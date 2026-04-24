@@ -95,3 +95,14 @@ model Notice {
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
 }
+
+model Income {
+  id          String   @id @default(uuid())
+  title       String
+  amount      Float
+  category    String   // Settlement Reversal, Penalty, Donation, etc.
+  date        DateTime @default(now())
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
