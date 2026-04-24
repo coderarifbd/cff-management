@@ -144,7 +144,8 @@ export default function MembersPage() {
       await fetchMembers();
       handleCloseModal();
     } catch (err: any) {
-      setError(err.message);
+      console.error("Submit error:", err);
+      setError(err.message || "Failed to update member. Please check console.");
     } finally {
       setSubmitLoading(false);
     }
