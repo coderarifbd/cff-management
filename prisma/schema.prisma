@@ -1,0 +1,87 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(uuid())
+  memberNo  String?  @unique
+  name      String
+  email     String   @unique
+  password  String
+  phone     String?
+  role      String   @default("MEMBER")
+  status    String   @default("ACTIVE")
+  bannedAt  DateTime?
+  joinDate  DateTime @default(now())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  payments  Payment[]
+  deposits  Deposit[]
+}
+
+model Payment {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  month     Int
+  year      Int
+  amount    Float
+  fine      Float    @default(0)
+  isPaid    Boolean  @default(false)
+  paidAt    DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, month, year])
+}
+
+model Deposit {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  amount    Float
+  date      DateTime @default(now())
+  createdAt DateTime @default(now())
+}
+
+model Investment {
+  id          String   @id @default(uuid())
+  title       String
+  type        String   @default("Other Investment")
+  amount      Float
+  profit      Float    @default(0)
+  refund      Float    @default(0)
+  status      String   @default("RUNNING")
+  date        DateTime @default(now())
+  documentUrl String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  profits     InvestmentProfit[]
+}
+
+model InvestmentProfit {
+  id           String     @id @default(uuid())
+  investmentId String
+  investment   Investment @relation(fields: [investmentId], references: [id], onDelete: Cascade)
+  amount       Float
+  date         DateTime   @default(now())
+  note         String?
+  createdAt    DateTime   @default(now())
+}
+
+model Expense {
+  id          String   @id @default(uuid())
+  category    String   // bills, events, custom
+  amount      Float
+  description String?
+  date        DateTime @default(now())
+  receiptUrl  String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
