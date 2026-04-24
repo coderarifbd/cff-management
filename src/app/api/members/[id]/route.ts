@@ -22,11 +22,16 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
       return NextResponse.json({ error: 'Email or Member No already taken' }, { status: 400 });
     }
 
-    let newBannedAt: Date | null | undefined = undefined;
-    if (status === 'BANNED') {
-      newBannedAt = new Date();
-    } else if (status === 'ACTIVE') {
-      newBannedAt = null;
+    if (status === 'BANNED' && refundAmount > 0) {
+      await prisma.expense.create({
+        data: {
+          title: `Settlement Refund: ${name} (${memberNo || id})`,
+          amount: parseFloat(refundAmount),
+          category: 'Member Settlement',
+          description: `Refunded after penalty deduction. Settlement date: ${bannedDate || new Date().toISOString()}`,
+          date: bannedDate ? new Date(bannedDate) : new Date()
+        }
+      });
     }
 
     const updatedMember = await prisma.user.update({
@@ -38,7 +43,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
         phone: phone || null,
         role,
         status,
-        bannedAt: newBannedAt !== undefined ? newBannedAt : undefined,
+        bannedAt: status === 'BANNED' ? (bannedDate ? new Date(bannedDate) : new Date()) : (status === 'ACTIVE' ? null : undefined),
         joinDate: joinDate ? new Date(joinDate) : undefined,
       }
     });

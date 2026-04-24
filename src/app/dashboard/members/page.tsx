@@ -126,10 +126,16 @@ export default function MembersPage() {
       const url = editingId ? `/api/members/${editingId}` : '/api/members';
       const method = editingId ? 'PUT' : 'POST';
 
+      const payload: any = { ...formData };
+      if (formData.status === 'BANNED' && settlement) {
+        payload.refundAmount = settlement.finalRefund;
+        payload.bannedDate = bannedDate;
+      }
+
       const res = await fetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData)
+        body: JSON.stringify(payload)
       });
 
       const data = await res.json();
