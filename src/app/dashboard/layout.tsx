@@ -2,7 +2,7 @@
 import { ReactNode, useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { LayoutDashboard, Users, CreditCard, TrendingUp, Receipt, FileText, LogOut, ShieldCheck } from 'lucide-react';
+import { LayoutDashboard, Users, CreditCard, TrendingUp, Receipt, FileText, LogOut, ShieldCheck, Megaphone, Lock } from 'lucide-react';
 import { AuthProvider, useAuth } from '@/lib/auth-context';
 
 function DashboardLayoutInner({ children }: { children: ReactNode }) {
