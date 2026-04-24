@@ -52,18 +52,19 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
         });
 
         if (recentRefund) {
-          await prisma.income.create({
+          // Instead of Income, create a NEGATIVE Expense to balance the fund
+          await prisma.expense.create({
             data: {
               title: `Refund Reversal: ${name} (${memberNo || id})`,
-              amount: recentRefund.amount,
-              category: 'Settlement Reversal',
-              description: `Automated reversal for re-activated member. Original refund date: ${recentRefund.date.toLocaleDateString()}`,
+              amount: -recentRefund.amount, // Negative amount adds money back to fund
+              category: 'Member Settlement',
+              description: `Automated reversal for re-activated member. Original refund: ${recentRefund.amount}`,
               date: new Date()
             }
           });
         }
       } catch (e) {
-        console.error("Failed to create income reversal:", e);
+        console.error("Failed to record reversal:", e);
       }
     }
 
