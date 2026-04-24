@@ -6,9 +6,13 @@ export default function MemberDashboardPage() {
   const [data, setData] = useState<any>(null);
   const [notices, setNotices] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [dismissed, setDismissed] = useState(false);
+  const [hiddenIds, setHiddenIds] = useState<string[]>([]);
 
   useEffect(() => {
+    // Load hidden notices from local storage
+    const saved = localStorage.getItem('cff_hidden_notices');
+    if (saved) setHiddenIds(JSON.parse(saved));
+
     Promise.all([
       fetch('/api/member/dashboard').then(res => res.json()),
       fetch('/api/notices').then(res => res.json())
@@ -25,27 +29,34 @@ export default function MemberDashboardPage() {
     });
   }, []);
 
+  const hideNotice = (id: string) => {
+    const updated = [...hiddenIds, id];
+    setHiddenIds(updated);
+    localStorage.setItem('cff_hidden_notices', JSON.stringify(updated));
+  };
+
   if (loading || !data) return <div style={{ padding: '2rem', textAlign: 'center' }}>Loading your secure dashboard...</div>;
+
+  const visibleNotices = notices.filter(n => !hiddenIds.includes(n.id)).slice(0, 3);
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
       {/* Notices Section */}
-      {notices.length > 0 && !dismissed && (
-        <div className="card" style={{ padding: '1rem', borderLeft: '4px solid #f59e0b', background: '#fffbeb', position: 'relative' }}>
-          <button 
-            onClick={() => setDismissed(true)}
-            style={{ position: 'absolute', right: '0.75rem', top: '0.75rem', background: 'none', border: 'none', cursor: 'pointer', color: '#92400e', opacity: 0.6 }}
-            title="Hide notice"
-          >
-            <X size={18} />
-          </button>
+      {visibleNotices.length > 0 && (
+        <div className="card" style={{ padding: '1rem', borderLeft: '4px solid #f59e0b', background: '#fffbeb' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1rem', color: '#92400e' }}>
             <Megaphone size={20} />
             <h3 style={{ fontSize: '1rem', fontWeight: 600 }}>Latest Notices</h3>
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-            {notices.slice(0, 2).map((notice) => (
-              <div key={notice.id} style={{ borderBottom: '1px solid #fef3c7', paddingBottom: '0.75rem' }}>
+            {visibleNotices.map((notice) => (
+              <div key={notice.id} style={{ borderBottom: '1px solid #fef3c7', paddingBottom: '0.75rem', position: 'relative' }}>
+                <button 
+                  onClick={() => hideNotice(notice.id)}
+                  style={{ position: 'absolute', right: 0, top: 0, background: 'none', border: 'none', cursor: 'pointer', color: '#92400e', opacity: 0.5 }}
+                >
+                  <X size={14} />
+                </button>
                 <h4 style={{ fontSize: '0.9rem', fontWeight: 600, color: '#92400e' }}>{notice.title}</h4>
                 <p style={{ fontSize: '0.85rem', color: '#b45309', marginTop: '0.25rem', whiteSpace: 'pre-wrap' }}>{notice.content}</p>
                 <p style={{ fontSize: '0.7rem', color: '#d97706', marginTop: '0.4rem' }}>{new Date(notice.createdAt).toLocaleDateString()}</p>

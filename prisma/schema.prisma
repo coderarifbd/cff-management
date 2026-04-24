@@ -87,10 +87,11 @@ model Expense {
 }
 
 model Notice {
-  id        String   @id @default(uuid())
-  title     String
-  content   String
-  status    String   @default("ACTIVE") // ACTIVE, ARCHIVED
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id         String   @id @default(uuid())
+  title      String
+  content    String
+  authorName String   @default("Administration")
+  status     String   @default("ACTIVE") // ACTIVE, ARCHIVED
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 }
