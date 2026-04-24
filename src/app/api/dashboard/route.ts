@@ -31,8 +31,19 @@ export async function GET() {
       _sum: { amount: true }
     });
 
-    // Net profit calculation: Collections + Fines - Expenses + Investment Profit? 
-    // This is simplified. Adjust as needed.
+    const activeInvestmentsCount = await prisma.investment.count({
+      where: { status: 'RUNNING' }
+    });
+
+    const investmentTotals = await prisma.investment.aggregate({
+      _sum: { profit: true, refund: true }
+    });
+    
+    const totalInvestmentProfit = investmentTotals._sum.profit || 0;
+    const totalInvestmentRefund = investmentTotals._sum.refund || 0;
+
+    // Net profit calculation: 
+    // Collections + Fines + Deposits + Investment Profit + Investment Refund - Expenses - Investment Principal
     const allCollections = await prisma.payment.aggregate({
       _sum: { amount: true },
       where: { isPaid: true }
@@ -45,15 +56,8 @@ export async function GET() {
     const totalInvestments = investments._sum.amount || 0;
     const totalExpenses = expenses._sum.amount || 0;
     
-    const netProfit = totalIncome - totalExpenses - totalInvestments;
-
-    const activeInvestmentsCount = await prisma.investment.count({
-      where: { status: 'RUNNING' }
-    });
-
-    const totalInvestmentProfit = await prisma.investment.aggregate({
-      _sum: { profit: true }
-    });
+    // Add profit and refunded principal back to the net balance
+    const netProfit = totalIncome + totalInvestmentProfit + totalInvestmentRefund - totalExpenses - totalInvestments;
 
     return NextResponse.json({
       totalMembers,
@@ -61,7 +65,7 @@ export async function GET() {
       totalFines: totalFines._sum.fine || 0,
       totalInvestments,
       activeInvestmentsCount,
-      totalInvestmentProfit: totalInvestmentProfit._sum.profit || 0,
+      totalInvestmentProfit,
       totalExpenses,
       netProfit
     });
