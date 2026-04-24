@@ -1,6 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { Plus, Edit2, Trash2, X, Key } from 'lucide-react';
+import { Plus, Edit2, Trash2, X, Key, Eye, EyeOff, ShieldCheck } from 'lucide-react';
 import { useAuth } from '@/lib/auth-context';
 
 export default function MembersPage() {
@@ -10,6 +10,10 @@ export default function MembersPage() {
   
   // Modal states
   const [showModal, setShowModal] = useState(false);
+  const [showResetModal, setShowResetModal] = useState(false);
+  const [resetUserId, setResetUserId] = useState<string | null>(null);
+  const [newPassword, setNewPassword] = useState('');
+  const [showPass, setShowPass] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     memberNo: '', name: '', email: '', phone: '', role: 'MEMBER', status: 'ACTIVE', joinDate: ''
@@ -84,21 +88,29 @@ export default function MembersPage() {
   };
 
   const handleResetPassword = async (id: string) => {
-    const newPass = prompt('Enter new password for this member (min 6 characters):');
-    if (!newPass) return;
-    if (newPass.length < 6) { alert('Password too short'); return; }
+    setResetUserId(id);
+    setNewPassword('');
+    setShowResetModal(true);
+  };
 
+  const submitReset = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (newPassword.length < 6) { alert('Password must be at least 6 characters'); return; }
+    setSubmitLoading(true);
     try {
       const res = await fetch('/api/auth/reset-password', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId: id, newPassword: newPass })
+        body: JSON.stringify({ userId: resetUserId, newPassword })
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Failed');
       alert('Password reset successfully!');
+      setShowResetModal(false);
     } catch (err: any) {
       alert(err.message);
+    } finally {
+      setSubmitLoading(false);
     }
   };
 
@@ -249,6 +261,45 @@ export default function MembersPage() {
                 <button type="button" className="btn btn-outline" onClick={handleCloseModal}>Cancel</button>
                 <button type="submit" className="btn btn-primary" disabled={submitLoading}>
                   {submitLoading ? 'Saving...' : 'Save Member'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+      {/* Reset Password Modal */}
+      {showResetModal && (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 110 }}>
+          <div className="card" style={{ width: '100%', maxWidth: '400px', padding: '2rem' }}>
+            <div style={{ textAlign: 'center', marginBottom: '1.5rem' }}>
+              <div style={{ width: 64, height: 64, background: '#e0e7ff', color: '#4338ca', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1rem' }}>
+                <Key size={32} />
+              </div>
+              <h3 style={{ fontSize: '1.25rem', fontWeight: 700 }}>Reset Password</h3>
+              <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem' }}>Set a new secure password for this member.</p>
+            </div>
+
+            <form onSubmit={submitReset} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+              <div style={{ position: 'relative' }}>
+                <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, marginBottom: '0.5rem' }}>New Password</label>
+                <input 
+                  type={showPass ? 'text' : 'password'} 
+                  className="input" 
+                  value={newPassword} 
+                  onChange={e => setNewPassword(e.target.value)} 
+                  required 
+                  placeholder="Min 6 characters"
+                  autoFocus
+                />
+                <button type="button" onClick={() => setShowPass(!showPass)} style={{ position: 'absolute', right: '0.75rem', top: '2.4rem', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)' }}>
+                  {showPass ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
+              </div>
+
+              <div style={{ display: 'flex', gap: '1rem', marginTop: '0.5rem' }}>
+                <button type="button" className="btn btn-outline" onClick={() => setShowResetModal(false)} style={{ flex: 1 }}>Cancel</button>
+                <button type="submit" className="btn btn-primary" disabled={submitLoading} style={{ flex: 1.5 }}>
+                  {submitLoading ? 'Resetting...' : 'Update Password'}
                 </button>
               </div>
             </form>
