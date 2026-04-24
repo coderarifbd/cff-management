@@ -35,6 +35,7 @@ function DashboardLayoutInner({ children }: { children: ReactNode }) {
     { name: 'Investments', path: '/dashboard/investments', icon: <TrendingUp size={20} />, roles: ['ADMIN', 'MANAGER'] },
     { name: 'Expenses', path: '/dashboard/expenses', icon: <Receipt size={20} />, roles: ['ADMIN', 'MANAGER'] },
     { name: 'Reports', path: '/dashboard/reports', icon: <FileText size={20} />, roles: ['ADMIN', 'MANAGER'] },
+    { name: 'Notices', path: '/dashboard/notices', icon: <Megaphone size={20} />, roles: ['ADMIN', 'MANAGER'] },
     { name: 'Security', path: '/dashboard/change-password', icon: <Lock size={20} />, roles: ['ADMIN', 'MANAGER'] },
   ];
 
