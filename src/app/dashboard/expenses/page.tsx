@@ -1,6 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { Plus, Receipt, Edit2, Trash2, X, Upload, FileText } from 'lucide-react';
+import { Plus, Receipt, Edit2, Trash2, X, Upload, FileText, AlertTriangle } from 'lucide-react';
 
 export default function ExpensesPage() {
   const [expenses, setExpenses] = useState<any[]>([]);
@@ -10,6 +10,7 @@ export default function ExpensesPage() {
   // Modals
   const [showAddModal, setShowAddModal] = useState(false);
   const [showManageModal, setShowManageModal] = useState(false);
+  const [deleteId, setDeleteId] = useState<string | null>(null);
   const [submitLoading, setSubmitLoading] = useState(false);
 
   // Forms
@@ -121,12 +122,17 @@ export default function ExpensesPage() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this expense record completely?')) return;
+    setSubmitLoading(true);
     try {
       const res = await fetch(`/api/expenses/${id}`, { method: 'DELETE' });
-      if (res.ok) await fetchExpenses();
+      if (res.ok) {
+        await fetchExpenses();
+        setDeleteId(null);
+      }
     } catch (err) {
       console.error(err);
+    } finally {
+      setSubmitLoading(false);
     }
   };
 
@@ -177,7 +183,7 @@ export default function ExpensesPage() {
                         <button className="btn btn-outline" style={{ padding: '0.25rem 0.5rem', fontSize: '0.75rem' }} onClick={() => openManageModal(expense)} title="Edit">
                           <Edit2 size={14} />
                         </button>
-                        <button className="btn btn-outline" style={{ padding: '0.25rem 0.5rem', fontSize: '0.75rem', color: 'var(--danger)', borderColor: 'var(--danger)' }} onClick={() => handleDelete(expense.id)} title="Delete">
+                        <button className="btn btn-outline" style={{ padding: '0.25rem 0.5rem', fontSize: '0.75rem', color: 'var(--danger)', borderColor: 'var(--danger)' }} onClick={() => setDeleteId(expense.id)} title="Delete">
                           <Trash2 size={14} />
                         </button>
                       </div>
@@ -316,6 +322,29 @@ export default function ExpensesPage() {
                 <button type="submit" className="btn btn-primary" disabled={submitLoading}>{submitLoading ? 'Saving...' : 'Save Updates'}</button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {deleteId && (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 110 }}>
+          <div className="card" style={{ width: '100%', maxWidth: '400px', padding: '2rem', textAlign: 'center' }}>
+            <div style={{ width: 64, height: 64, background: '#fee2e2', color: '#dc2626', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.5rem' }}>
+              <AlertTriangle size={32} />
+            </div>
+            <h3 style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: '0.75rem', color: '#1e293b' }}>Delete Expense?</h3>
+            <p style={{ color: '#64748b', marginBottom: '2rem', fontSize: '0.9rem', lineHeight: '1.5' }}>
+              Are you sure you want to delete this expense record? This action cannot be undone and will permanently remove it from the system.
+            </p>
+            <div style={{ display: 'flex', gap: '1rem' }}>
+              <button className="btn btn-outline" style={{ flex: 1, padding: '0.75rem' }} onClick={() => setDeleteId(null)} disabled={submitLoading}>
+                Cancel
+              </button>
+              <button className="btn" style={{ flex: 1, background: '#ef4444', color: 'white', padding: '0.75rem', border: 'none' }} onClick={() => handleDelete(deleteId)} disabled={submitLoading}>
+                {submitLoading ? 'Deleting...' : 'Yes, Delete'}
+              </button>
+            </div>
           </div>
         </div>
       )}
