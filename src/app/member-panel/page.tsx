@@ -1,31 +1,53 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { CheckCircle, AlertCircle, TrendingUp } from 'lucide-react';
+import { CheckCircle, AlertCircle, TrendingUp, Megaphone } from 'lucide-react';
 
 export default function MemberDashboardPage() {
   const [data, setData] = useState<any>(null);
+  const [notices, setNotices] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch('/api/member/dashboard')
-      .then(res => {
-        if (!res.ok) throw new Error('Unauthorized');
-        return res.json();
-      })
-      .then(d => {
-        setData(d);
-        setLoading(false);
-      })
-      .catch(err => {
-        console.error(err);
-        window.location.href = '/';
-      });
+    Promise.all([
+      fetch('/api/member/dashboard').then(res => res.json()),
+      fetch('/api/notices').then(res => res.json())
+    ])
+    .then(([dashData, noticesData]) => {
+      if (dashData.error) throw new Error('Unauthorized');
+      setData(dashData);
+      setNotices(noticesData || []);
+      setLoading(false);
+    })
+    .catch(err => {
+      console.error(err);
+      window.location.href = '/';
+    });
   }, []);
 
   if (loading || !data) return <div style={{ padding: '2rem', textAlign: 'center' }}>Loading your secure dashboard...</div>;
 
   return (
-    <div>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+      {/* Notices Section */}
+      {notices.length > 0 && (
+        <div className="card" style={{ padding: '1rem', borderLeft: '4px solid #f59e0b', background: '#fffbeb' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1rem', color: '#92400e' }}>
+            <Megaphone size={20} />
+            <h3 style={{ fontSize: '1rem', fontWeight: 600 }}>Latest Notices</h3>
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+            {notices.slice(0, 2).map((notice) => (
+              <div key={notice.id} style={{ borderBottom: '1px solid #fef3c7', paddingBottom: '0.75rem' }}>
+                <h4 style={{ fontSize: '0.9rem', fontWeight: 600, color: '#92400e' }}>{notice.title}</h4>
+                <p style={{ fontSize: '0.85rem', color: '#b45309', marginTop: '0.25rem', whiteSpace: 'pre-wrap' }}>{notice.content}</p>
+                <p style={{ fontSize: '0.7rem', color: '#d97706', marginTop: '0.4rem' }}>{new Date(notice.createdAt).toLocaleDateString()}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      <div>
       <div className="stats-grid" style={{ marginBottom: '2rem' }}>
         <div className="card stat-card" style={{ background: 'var(--primary)', color: 'white' }}>
           <div className="stat-icon" style={{ background: 'rgba(255,255,255,0.2)', color: 'white' }}><TrendingUp size={24} /></div>
