@@ -24,38 +24,46 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
     }
 
     // 1. Transition: ACTIVE -> BANNED
-    if (currentUser?.status !== 'BANNED' && status === 'BANNED' && refundAmount > 0) {
-      await prisma.expense.create({
-        data: {
-          title: `Settlement Refund: ${name} (${memberNo || id})`,
-          amount: parseFloat(refundAmount),
-          category: 'Member Settlement',
-          description: `Refunded after penalty deduction. Settlement date: ${bannedDate || new Date().toISOString()}`,
-          date: bannedDate ? new Date(bannedDate) : new Date()
-        }
-      });
+    if (currentUser?.status !== 'BANNED' && status === 'BANNED' && refundAmount && parseFloat(refundAmount) > 0) {
+      try {
+        await prisma.expense.create({
+          data: {
+            title: `Settlement Refund: ${name} (${memberNo || id})`,
+            amount: parseFloat(refundAmount),
+            category: 'Member Settlement',
+            description: `Refunded after penalty deduction. Settlement date: ${bannedDate || new Date().toISOString()}`,
+            date: bannedDate ? new Date(bannedDate) : new Date()
+          }
+        });
+      } catch (e) {
+        console.error("Failed to create expense:", e);
+      }
     }
 
     // 2. Transition: BANNED -> ACTIVE (Reversal)
     if (currentUser?.status === 'BANNED' && status === 'ACTIVE') {
-      const recentRefund = await prisma.expense.findFirst({
-        where: { 
-          title: { contains: `Settlement Refund: ${name}` },
-          category: 'Member Settlement'
-        },
-        orderBy: { createdAt: 'desc' }
-      });
-
-      if (recentRefund) {
-        await prisma.income.create({
-          data: {
-            title: `Refund Reversal: ${name} (${memberNo || id})`,
-            amount: recentRefund.amount,
-            category: 'Settlement Reversal',
-            description: `Automated reversal for re-activated member. Original refund date: ${recentRefund.date.toLocaleDateString()}`,
-            date: new Date()
-          }
+      try {
+        const recentRefund = await prisma.expense.findFirst({
+          where: { 
+            title: { contains: `Settlement Refund: ${name}` },
+            category: 'Member Settlement'
+          },
+          orderBy: { createdAt: 'desc' }
         });
+
+        if (recentRefund) {
+          await prisma.income.create({
+            data: {
+              title: `Refund Reversal: ${name} (${memberNo || id})`,
+              amount: recentRefund.amount,
+              category: 'Settlement Reversal',
+              description: `Automated reversal for re-activated member. Original refund date: ${recentRefund.date.toLocaleDateString()}`,
+              date: new Date()
+            }
+          });
+        }
+      } catch (e) {
+        console.error("Failed to create income reversal:", e);
       }
     }
 
