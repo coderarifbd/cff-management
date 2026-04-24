@@ -107,11 +107,17 @@ export default function MembersPage() {
         status: member.status || 'ACTIVE',
         joinDate: member.joinDate ? new Date(member.joinDate).toISOString().split('T')[0] : ''
       });
+      if (member.bannedAt) {
+        setBannedDate(new Date(member.bannedAt).toISOString().split('T')[0]);
+      } else {
+        setBannedDate(new Date().toISOString().split('T')[0]);
+      }
     } else {
       setEditingId(null);
       setFormData({
         memberNo: '', name: '', email: '', phone: '', role: 'MEMBER', status: 'ACTIVE', joinDate: new Date().toISOString().split('T')[0]
       });
+      setBannedDate(new Date().toISOString().split('T')[0]);
     }
     setShowModal(true);
   };
