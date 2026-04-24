@@ -124,7 +124,7 @@ export default function MembersPage() {
     setError('');
     try {
       const url = editingId ? `/api/members/${editingId}` : '/api/members';
-      const method = editingId ? 'PUT' : 'POST';
+      const method = editingId ? 'PATCH' : 'POST';
 
       const payload: any = { ...formData };
       if (formData.status === 'BANNED' && settlement) {

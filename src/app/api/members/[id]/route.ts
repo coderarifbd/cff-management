@@ -1,7 +1,12 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 
+export async function PATCH(request: Request, { params }: { params: Promise<{ id: string }> }) {
+  return PUT(request, { params });
+}
+
 export async function PUT(request: Request, { params }: { params: Promise<{ id: string }> }) {
+  console.log(">>> Member Update Request Received");
   try {
     const { id } = await params;
     const data = await request.json();
