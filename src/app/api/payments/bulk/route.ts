@@ -6,7 +6,7 @@ export async function POST(request: Request) {
     const { month, year, amount } = await request.json();
 
     const activeMembers = await prisma.user.findMany({
-      where: { status: 'ACTIVE', role: { in: ['MEMBER', 'MANAGER'] } }
+      where: { status: 'ACTIVE', role: 'MEMBER' }
     });
 
     if (activeMembers.length === 0) {
