@@ -145,7 +145,7 @@ export default function MembersPage() {
       handleCloseModal();
     } catch (err: any) {
       console.error("Submit error:", err);
-      setError(err.message || "Failed to update member. Please check console.");
+      setError(err.message || "Email or Member No already exists, or there is a server error.");
     } finally {
       setSubmitLoading(false);
     }

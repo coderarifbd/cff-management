@@ -88,9 +88,9 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
     });
 
     return NextResponse.json(updatedMember);
-  } catch (error) {
-    console.error(error);
-    return NextResponse.json({ error: 'Failed to update member' }, { status: 500 });
+  } catch (error: any) {
+    console.error(">>> Server Error during member update:", error);
+    return NextResponse.json({ error: error.message || 'Failed to update member' }, { status: 500 });
   }
 }
 
