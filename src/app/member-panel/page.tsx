@@ -1,11 +1,12 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { CheckCircle, AlertCircle, TrendingUp, Megaphone } from 'lucide-react';
+import { CheckCircle, AlertCircle, TrendingUp, Megaphone, X } from 'lucide-react';
 
 export default function MemberDashboardPage() {
   const [data, setData] = useState<any>(null);
   const [notices, setNotices] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [dismissed, setDismissed] = useState(false);
 
   useEffect(() => {
     Promise.all([
@@ -29,8 +30,15 @@ export default function MemberDashboardPage() {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
       {/* Notices Section */}
-      {notices.length > 0 && (
-        <div className="card" style={{ padding: '1rem', borderLeft: '4px solid #f59e0b', background: '#fffbeb' }}>
+      {notices.length > 0 && !dismissed && (
+        <div className="card" style={{ padding: '1rem', borderLeft: '4px solid #f59e0b', background: '#fffbeb', position: 'relative' }}>
+          <button 
+            onClick={() => setDismissed(true)}
+            style={{ position: 'absolute', right: '0.75rem', top: '0.75rem', background: 'none', border: 'none', cursor: 'pointer', color: '#92400e', opacity: 0.6 }}
+            title="Hide notice"
+          >
+            <X size={18} />
+          </button>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1rem', color: '#92400e' }}>
             <Megaphone size={20} />
             <h3 style={{ fontSize: '1rem', fontWeight: 600 }}>Latest Notices</h3>
