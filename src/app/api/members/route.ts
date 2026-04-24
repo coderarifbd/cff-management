@@ -2,13 +2,16 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import bcrypt from 'bcryptjs';
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
+    const { searchParams } = new URL(request.url);
+    const membersOnly = searchParams.get('membersOnly') === 'true';
+
     const members = await prisma.user.findMany({
       where: {
-        role: { in: ['MEMBER', 'MANAGER'] }
+        role: membersOnly ? 'MEMBER' : { in: ['MEMBER', 'MANAGER'] }
       },
-      orderBy: { joinDate: 'desc' }
+      orderBy: [{ memberNo: 'asc' }, { joinDate: 'asc' }]
     });
     return NextResponse.json(members);
   } catch (error) {

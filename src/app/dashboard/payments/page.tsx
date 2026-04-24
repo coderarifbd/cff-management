@@ -45,7 +45,7 @@ export default function PaymentsPage() {
 
   const fetchMembers = async () => {
     try {
-      const res = await fetch('/api/members');
+      const res = await fetch('/api/members?membersOnly=true');
       const data = await res.json();
       if (Array.isArray(data)) setMembers(data.filter((m: any) => m.status === 'ACTIVE'));
     } catch (err) {
