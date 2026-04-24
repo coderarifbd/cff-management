@@ -4,6 +4,8 @@ import { prisma } from '@/lib/prisma';
 export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params;
+    const { searchParams } = new URL(request.url);
+    const calculationDateStr = searchParams.get('date');
 
     // Get user and their total payments
     const user = await prisma.user.findUnique({
@@ -19,9 +21,9 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
 
     const totalPrincipal = user.payments.reduce((sum, p) => sum + p.amount, 0);
     
-    // Calculate membership duration in years
+    // Calculate membership duration in years based on provided date or today
     const joinDate = new Date(user.joinDate);
-    const today = new Date();
+    const today = calculationDateStr ? new Date(calculationDateStr) : new Date();
     const diffTime = Math.abs(today.getTime() - joinDate.getTime());
     const durationYears = diffTime / (1000 * 60 * 60 * 24 * 365.25);
 

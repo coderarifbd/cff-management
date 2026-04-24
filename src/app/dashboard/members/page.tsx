@@ -23,6 +23,7 @@ export default function MembersPage() {
   const [error, setError] = useState('');
   const [settlement, setSettlement] = useState<any>(null);
   const [calcLoading, setCalcLoading] = useState(false);
+  const [bannedDate, setBannedDate] = useState(new Date().toISOString().split('T')[0]);
 
   const fetchMembers = async () => {
     try {
@@ -40,10 +41,11 @@ export default function MembersPage() {
     fetchMembers();
   }, []);
 
-  const calculateSettlement = async (memberId: string) => {
+  const calculateSettlement = async (memberId: string, date?: string) => {
     setCalcLoading(true);
     try {
-      const res = await fetch(`/api/members/${memberId}/settlement`);
+      const url = date ? `/api/members/${memberId}/settlement?date=${date}` : `/api/members/${memberId}/settlement`;
+      const res = await fetch(url);
       const data = await res.json();
       
       const years = parseFloat(data.durationYears);
@@ -86,11 +88,11 @@ export default function MembersPage() {
 
   useEffect(() => {
     if (formData.status === 'BANNED' && editingId) {
-      calculateSettlement(editingId);
+      calculateSettlement(editingId, bannedDate);
     } else {
       setSettlement(null);
     }
-  }, [formData.status, editingId]);
+  }, [formData.status, editingId, bannedDate]);
 
   const handleOpenModal = (member?: any) => {
     setError('');
@@ -312,6 +314,20 @@ export default function MembersPage() {
                   </select>
                 </div>
               </div>
+
+              {formData.status === 'BANNED' && (
+                <div style={{ background: '#fff7ed', border: '1px solid #ffedd5', borderRadius: '8px', padding: '1rem', marginTop: '0.5rem' }}>
+                  <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', fontWeight: 600, color: '#9a3412' }}>Effective Date for Settlement</label>
+                  <input 
+                    type="date" 
+                    className="input" 
+                    value={bannedDate} 
+                    onChange={e => setBannedDate(e.target.value)} 
+                    style={{ borderColor: '#fed7aa' }}
+                  />
+                  <p style={{ fontSize: '0.75rem', color: '#c2410c', marginTop: '0.4rem' }}>* Calculation will update based on this date.</p>
+                </div>
+              )}
 
               {settlement && (
                 <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '1rem', marginTop: '0.5rem' }}>
