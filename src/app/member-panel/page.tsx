@@ -117,5 +117,6 @@ export default function MemberDashboardPage() {
         </table>
       </div>
     </div>
+  </div>
   );
 }
