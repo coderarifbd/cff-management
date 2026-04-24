@@ -33,10 +33,9 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
       try {
         await prisma.expense.create({
           data: {
-            title: `Settlement Refund: ${name} (${memberNo || id})`,
             amount: parseFloat(refundAmount),
             category: 'Member Settlement',
-            description: `Refunded after penalty deduction. Settlement date: ${bannedDate || new Date().toISOString()}`,
+            description: `Settlement Refund: ${name} (${memberNo || id}). Refunded after penalty deduction.`,
             date: bannedDate ? new Date(bannedDate) : new Date()
           }
         });
@@ -50,7 +49,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
       try {
         const recentRefund = await prisma.expense.findFirst({
           where: { 
-            title: { contains: `Settlement Refund: ${name}` },
+            description: { contains: `Settlement Refund: ${name}` },
             category: 'Member Settlement'
           },
           orderBy: { createdAt: 'desc' }
@@ -60,16 +59,32 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
           // Instead of Income, create a NEGATIVE Expense to balance the fund
           await prisma.expense.create({
             data: {
-              title: `Refund Reversal: ${name} (${memberNo || id})`,
               amount: -recentRefund.amount, // Negative amount adds money back to fund
               category: 'Member Settlement',
-              description: `Automated reversal for re-activated member. Original refund: ${recentRefund.amount}`,
+              description: `Refund Reversal: ${name} (${memberNo || id}). Automated reversal for re-activated member.`,
               date: new Date()
             }
           });
         }
       } catch (e) {
         console.error("Failed to record reversal:", e);
+      }
+    }
+
+    // Ensure valid dates
+    let safeBannedAt = status === 'BANNED' ? new Date() : (status === 'ACTIVE' ? null : undefined);
+    if (status === 'BANNED' && bannedDate) {
+      const parsedBannedDate = new Date(bannedDate);
+      if (!isNaN(parsedBannedDate.getTime())) {
+        safeBannedAt = parsedBannedDate;
+      }
+    }
+
+    let safeJoinDate = undefined;
+    if (joinDate) {
+      const parsedJoinDate = new Date(joinDate);
+      if (!isNaN(parsedJoinDate.getTime())) {
+        safeJoinDate = parsedJoinDate;
       }
     }
 
@@ -82,8 +97,8 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
         phone: phone || null,
         role,
         status,
-        bannedAt: status === 'BANNED' ? (bannedDate ? new Date(bannedDate) : new Date()) : (status === 'ACTIVE' ? null : undefined),
-        joinDate: joinDate ? new Date(joinDate) : undefined,
+        bannedAt: safeBannedAt,
+        joinDate: safeJoinDate,
       }
     });
 
