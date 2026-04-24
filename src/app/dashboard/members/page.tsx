@@ -1,6 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { Plus, Edit2, Trash2, X } from 'lucide-react';
+import { Plus, Edit2, Trash2, X, Key } from 'lucide-react';
 import { useAuth } from '@/lib/auth-context';
 
 export default function MembersPage() {
@@ -83,6 +83,25 @@ export default function MembersPage() {
     }
   };
 
+  const handleResetPassword = async (id: string) => {
+    const newPass = prompt('Enter new password for this member (min 6 characters):');
+    if (!newPass) return;
+    if (newPass.length < 6) { alert('Password too short'); return; }
+
+    try {
+      const res = await fetch('/api/auth/reset-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: id, newPassword: newPass })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed');
+      alert('Password reset successfully!');
+    } catch (err: any) {
+      alert(err.message);
+    }
+  };
+
   const handleDelete = async (id: string) => {
     if (!confirm('Are you sure you want to delete this member?')) return;
     try {
@@ -147,10 +166,13 @@ export default function MembersPage() {
                       <div style={{ display: 'flex', gap: '0.5rem' }}>
                         {isAdmin && (
                           <>
-                            <button className="btn btn-outline" style={{ padding: '0.25rem 0.5rem' }} onClick={() => handleOpenModal(member)}>
+                            <button className="btn btn-outline" style={{ padding: '0.25rem 0.5rem' }} onClick={() => handleOpenModal(member)} title="Edit Member">
                               <Edit2 size={14} />
                             </button>
-                            <button className="btn" style={{ padding: '0.25rem 0.5rem', background: '#fee2e2', color: '#991b1b' }} onClick={() => handleDelete(member.id)}>
+                            <button className="btn btn-outline" style={{ padding: '0.25rem 0.5rem', color: '#6366f1', borderColor: '#c7d2fe' }} onClick={() => handleResetPassword(member.id)} title="Reset Password">
+                              <Key size={14} />
+                            </button>
+                            <button className="btn" style={{ padding: '0.25rem 0.5rem', background: '#fee2e2', color: '#991b1b' }} onClick={() => handleDelete(member.id)} title="Delete Member">
                               <Trash2 size={14} />
                             </button>
                           </>

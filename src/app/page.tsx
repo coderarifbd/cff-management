@@ -79,6 +79,15 @@ export default function LoginPage() {
           <button type="submit" className="btn btn-primary" style={{ width: '100%', marginTop: '1rem' }} disabled={loading}>
             {loading ? 'Logging in...' : 'Login'}
           </button>
+          <div style={{ textAlign: 'center', marginTop: '1rem' }}>
+            <button 
+              type="button" 
+              onClick={() => alert('Please contact the CFF Administration to reset your password.')}
+              style={{ background: 'none', border: 'none', color: 'var(--primary)', fontSize: '0.875rem', cursor: 'pointer', textDecoration: 'underline' }}
+            >
+              Forgot Password?
+            </button>
+          </div>
         </form>
       </div>
     </div>

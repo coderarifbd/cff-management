@@ -2,7 +2,7 @@
 import { ReactNode, useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { User, FileText, LogOut } from 'lucide-react';
+import { User, FileText, LogOut, Lock } from 'lucide-react';
 
 export default function MemberPanelLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname();
@@ -26,6 +26,7 @@ export default function MemberPanelLayout({ children }: { children: ReactNode })
   const navItems = [
     { name: 'My Dashboard', path: '/member-panel', icon: <User size={20} /> },
     { name: 'My Statements', path: '/member-panel/statements', icon: <FileText size={20} /> },
+    { name: 'Security', path: '/member-panel/change-password', icon: <Lock size={20} /> },
   ];
 
   return (
