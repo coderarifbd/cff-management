@@ -23,9 +23,9 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
     }
 
     let newBannedAt: Date | null | undefined = undefined;
-    if (status === 'BANNED' && existing?.status !== 'BANNED') {
+    if (status === 'BANNED') {
       newBannedAt = new Date();
-    } else if (status === 'ACTIVE' && existing?.status === 'BANNED') {
+    } else if (status === 'ACTIVE') {
       newBannedAt = null;
     }
 
