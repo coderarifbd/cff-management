@@ -12,6 +12,7 @@ export default function MembersPage() {
   const [showModal, setShowModal] = useState(false);
   const [showResetModal, setShowResetModal] = useState(false);
   const [resetUserId, setResetUserId] = useState<string | null>(null);
+  const [resetUserName, setResetUserName] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [showPass, setShowPass] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -87,8 +88,9 @@ export default function MembersPage() {
     }
   };
 
-  const handleResetPassword = async (id: string) => {
-    setResetUserId(id);
+  const handleResetPassword = async (member: any) => {
+    setResetUserId(member.id);
+    setResetUserName(`${member.name} (${member.memberNo || 'N/A'})`);
     setNewPassword('');
     setShowResetModal(true);
   };
@@ -181,7 +183,7 @@ export default function MembersPage() {
                             <button className="btn btn-outline" style={{ padding: '0.25rem 0.5rem' }} onClick={() => handleOpenModal(member)} title="Edit Member">
                               <Edit2 size={14} />
                             </button>
-                            <button className="btn btn-outline" style={{ padding: '0.25rem 0.5rem', color: '#6366f1', borderColor: '#c7d2fe' }} onClick={() => handleResetPassword(member.id)} title="Reset Password">
+                            <button className="btn btn-outline" style={{ padding: '0.25rem 0.5rem', color: '#6366f1', borderColor: '#c7d2fe' }} onClick={() => handleResetPassword(member)} title="Reset Password">
                               <Key size={14} />
                             </button>
                             <button className="btn" style={{ padding: '0.25rem 0.5rem', background: '#fee2e2', color: '#991b1b' }} onClick={() => handleDelete(member.id)} title="Delete Member">
@@ -276,7 +278,10 @@ export default function MembersPage() {
                 <Key size={32} />
               </div>
               <h3 style={{ fontSize: '1.25rem', fontWeight: 700 }}>Reset Password</h3>
-              <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem' }}>Set a new secure password for this member.</p>
+              <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem', marginTop: '0.25rem' }}>
+                Set a new secure password for:<br/>
+                <strong style={{ color: 'var(--primary)', fontSize: '1rem' }}>{resetUserName}</strong>
+              </p>
             </div>
 
             <form onSubmit={submitReset} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
