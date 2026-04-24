@@ -1,6 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { Plus, Edit2, Trash2, X, Key, Eye, EyeOff, ShieldCheck } from 'lucide-react';
+import { Plus, Edit2, Trash2, X, Key, Eye, EyeOff, ShieldCheck, Info } from 'lucide-react';
 import { useAuth } from '@/lib/auth-context';
 
 export default function MembersPage() {
@@ -21,6 +21,8 @@ export default function MembersPage() {
   });
   const [submitLoading, setSubmitLoading] = useState(false);
   const [error, setError] = useState('');
+  const [settlement, setSettlement] = useState<any>(null);
+  const [calcLoading, setCalcLoading] = useState(false);
 
   const fetchMembers = async () => {
     try {
@@ -37,6 +39,58 @@ export default function MembersPage() {
   useEffect(() => {
     fetchMembers();
   }, []);
+
+  const calculateSettlement = async (memberId: string) => {
+    setCalcLoading(true);
+    try {
+      const res = await fetch(`/api/members/${memberId}/settlement`);
+      const data = await res.json();
+      
+      const years = parseFloat(data.durationYears);
+      const principal = data.totalPrincipal;
+      let deduction = 0;
+      let profitShare = 100; // Default 100% (before deduction)
+      let ruleText = "";
+
+      if (years < 5) {
+        deduction = principal * 0.4;
+        profitShare = 0;
+        ruleText = "Less than 5 years: 40% principal deduction, no profit.";
+      } else if (years >= 5 && years < 7) {
+        deduction = 0;
+        profitShare = 0;
+        ruleText = "5-7 years: Full principal return, no profit.";
+      } else if (years >= 7 && years < 10) {
+        deduction = 0;
+        profitShare = 50;
+        ruleText = "7-10 years: Full principal, 50% profit share.";
+      } else {
+        deduction = 0;
+        profitShare = 80;
+        ruleText = "More than 10 years: Full principal, 80% profit share.";
+      }
+
+      setSettlement({
+        ...data,
+        deduction,
+        profitShare,
+        ruleText,
+        finalRefund: principal - deduction
+      });
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setCalcLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (formData.status === 'BANNED' && editingId) {
+      calculateSettlement(editingId);
+    } else {
+      setSettlement(null);
+    }
+  }, [formData.status, editingId]);
 
   const handleOpenModal = (member?: any) => {
     setError('');
@@ -249,7 +303,6 @@ export default function MembersPage() {
                     <option value="MEMBER">Member</option>
                     <option value="MANAGER">Manager</option>
                   </select>
-                </div>
                 <div>
                   <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', fontWeight: 500 }}>Status</label>
                   <select className="input" value={formData.status} onChange={e => setFormData({...formData, status: e.target.value})}>
@@ -258,6 +311,35 @@ export default function MembersPage() {
                   </select>
                 </div>
               </div>
+
+              {settlement && (
+                <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '1rem', marginTop: '0.5rem' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--primary)', fontWeight: 600, marginBottom: '0.75rem', fontSize: '0.9rem' }}>
+                    <Info size={16} /> Settlement Estimation
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', fontSize: '0.875rem' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                      <span style={{ color: 'var(--text-muted)' }}>Duration:</span>
+                      <span style={{ fontWeight: 600 }}>{settlement.durationYears} Years</span>
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                      <span style={{ color: 'var(--text-muted)' }}>Total Deposited:</span>
+                      <span style={{ fontWeight: 600 }}>৳ {settlement.totalPrincipal}</span>
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--danger)' }}>
+                      <span>Deduction (Penalty):</span>
+                      <span style={{ fontWeight: 600 }}>- ৳ {settlement.deduction}</span>
+                    </div>
+                    <div style={{ borderTop: '1px dashed #cbd5e1', marginTop: '0.5rem', paddingTop: '0.5rem', display: 'flex', justifyContent: 'space-between', fontSize: '1rem' }}>
+                      <span style={{ fontWeight: 700 }}>Final Refund:</span>
+                      <span style={{ fontWeight: 800, color: 'var(--success)' }}>৳ {settlement.finalRefund}</span>
+                    </div>
+                    <p style={{ fontSize: '0.75rem', color: '#64748b', marginTop: '0.5rem', fontStyle: 'italic' }}>
+                      * {settlement.ruleText}
+                    </p>
+                  </div>
+                </div>
+              )}
 
               <div style={{ marginTop: '1rem', display: 'flex', justifyContent: 'flex-end', gap: '1rem' }}>
                 <button type="button" className="btn btn-outline" onClick={handleCloseModal}>Cancel</button>
