@@ -303,6 +303,7 @@ export default function MembersPage() {
                     <option value="MEMBER">Member</option>
                     <option value="MANAGER">Manager</option>
                   </select>
+                </div>
                 <div>
                   <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', fontWeight: 500 }}>Status</label>
                   <select className="input" value={formData.status} onChange={e => setFormData({...formData, status: e.target.value})}>
