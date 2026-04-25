@@ -19,6 +19,10 @@ export default function InvestmentsPage() {
   const [manageForm, setManageForm] = useState({ id: '', title: '', type: 'Other Investment', amount: 0, profit: 0, refund: 0, status: 'RUNNING', date: '', documentUrl: '' });
   const [manageFile, setManageFile] = useState<File | null>(null);
 
+  // Search and Filter
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState('ALL');
+
   const fetchInvestments = async () => {
     setLoading(true);
     try {
@@ -35,6 +39,14 @@ export default function InvestmentsPage() {
   useEffect(() => {
     fetchInvestments();
   }, []);
+
+  // Filtering Logic
+  const filteredInvestments = investments.filter(inv => {
+    const matchesSearch = inv.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                         (inv.type && inv.type.toLowerCase().includes(searchTerm.toLowerCase()));
+    const matchesStatus = statusFilter === 'ALL' || inv.status === statusFilter;
+    return matchesSearch && matchesStatus;
+  });
 
   const handleAddSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -129,12 +141,12 @@ export default function InvestmentsPage() {
     }
   };
 
-  // Calculations
-  const totalActiveInvestments = investments
+  // Calculations based on filtered data
+  const totalActiveInvestments = filteredInvestments
     .filter(i => i.status === 'RUNNING')
     .reduce((sum, i) => sum + (i.amount - i.refund), 0);
     
-  const totalProfit = investments.reduce((sum, i) => sum + i.profit, 0);
+  const totalProfit = filteredInvestments.reduce((sum, i) => sum + i.profit, 0);
 
   return (
     <div>
@@ -145,6 +157,7 @@ export default function InvestmentsPage() {
         </button>
       </div>
 
+      {/* Stats Section */}
       <div className="grid-2" style={{ marginBottom: '2rem' }}>
         <div className="card" style={{ background: 'linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%)', color: 'white' }}>
           <h3 style={{ fontSize: '1rem', color: 'rgba(255,255,255,0.8)', marginBottom: '0.5rem' }}>Active Investments (Running)</h3>
@@ -153,6 +166,31 @@ export default function InvestmentsPage() {
         <div className="card" style={{ background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)', color: 'white' }}>
           <h3 style={{ fontSize: '1rem', color: 'rgba(255,255,255,0.8)', marginBottom: '0.5rem' }}>Total Profit Earned</h3>
           <p style={{ fontSize: '2rem', fontWeight: 700 }}>৳ {totalProfit}</p>
+        </div>
+      </div>
+
+      {/* Search & Filter Section */}
+      <div className="card" style={{ marginBottom: '1.5rem', display: 'flex', gap: '1rem', alignItems: 'center', flexWrap: 'wrap' }}>
+        <div style={{ flex: 1, minWidth: '240px' }}>
+          <input 
+            type="text" 
+            className="input" 
+            placeholder="Search by project name or type..." 
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+        </div>
+        <div style={{ minWidth: '150px' }}>
+          <select 
+            className="input" 
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+          >
+            <option value="ALL">All Status</option>
+            <option value="RUNNING">RUNNING</option>
+            <option value="COMPLETED">COMPLETED</option>
+            <option value="FAILED">FAILED</option>
+          </select>
         </div>
       </div>
 
@@ -173,10 +211,10 @@ export default function InvestmentsPage() {
             <tbody>
               {loading ? (
                 <tr><td colSpan={7} style={{ textAlign: 'center' }}>Loading investments...</td></tr>
-              ) : investments.length === 0 ? (
+              ) : filteredInvestments.length === 0 ? (
                 <tr><td colSpan={7} style={{ textAlign: 'center' }}>No investment records found.</td></tr>
               ) : (
-                investments.map((inv) => (
+                filteredInvestments.map((inv) => (
                   <tr key={inv.id}>
                     <td>
                       <a href={`/dashboard/investments/${inv.id}`} style={{ fontWeight: 600, color: 'var(--primary)', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
