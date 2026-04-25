@@ -2,7 +2,7 @@
 import { ReactNode, useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { LayoutDashboard, Users, CreditCard, TrendingUp, Receipt, FileText, LogOut, ShieldCheck, Megaphone, Lock } from 'lucide-react';
+import { LayoutDashboard, Users, CreditCard, TrendingUp, Receipt, FileText, LogOut, ShieldCheck, Megaphone, Lock, Wallet } from 'lucide-react';
 import { AuthProvider, useAuth } from '@/lib/auth-context';
 
 function DashboardLayoutInner({ children }: { children: ReactNode }) {
@@ -34,6 +34,7 @@ function DashboardLayoutInner({ children }: { children: ReactNode }) {
     { name: 'Payments', path: '/dashboard/payments', icon: <CreditCard size={20} />, roles: ['ADMIN', 'MANAGER'] },
     { name: 'Investments', path: '/dashboard/investments', icon: <TrendingUp size={20} />, roles: ['ADMIN', 'MANAGER'] },
     { name: 'Expenses', path: '/dashboard/expenses', icon: <Receipt size={20} />, roles: ['ADMIN', 'MANAGER'] },
+    { name: 'Other Incomes', path: '/dashboard/incomes', icon: <Wallet size={20} />, roles: ['ADMIN', 'MANAGER'] },
     { name: 'Reports', path: '/dashboard/reports', icon: <FileText size={20} />, roles: ['ADMIN', 'MANAGER'] },
     { name: 'Notices', path: '/dashboard/notices', icon: <Megaphone size={20} />, roles: ['ADMIN', 'MANAGER'] },
     { name: 'Security', path: '/dashboard/change-password', icon: <Lock size={20} />, roles: ['ADMIN', 'MANAGER'] },

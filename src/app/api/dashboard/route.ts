@@ -52,7 +52,11 @@ export async function GET() {
       _sum: { amount: true }
     });
     
-    const totalIncome = (allCollections._sum.amount || 0) + (totalFines._sum.fine || 0) + (allDeposits._sum.amount || 0);
+    const allOtherIncomes = await prisma.income.aggregate({
+      _sum: { amount: true }
+    });
+    
+    const totalIncome = (allCollections._sum.amount || 0) + (totalFines._sum.fine || 0) + (allDeposits._sum.amount || 0) + (allOtherIncomes._sum.amount || 0);
     const totalInvestments = investments._sum.amount || 0;
     const totalExpenses = expenses._sum.amount || 0;
     
