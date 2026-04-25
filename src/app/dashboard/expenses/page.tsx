@@ -268,6 +268,15 @@ export default function ExpensesPage() {
                 ))
               )}
             </tbody>
+            {filteredExpenses.length > 0 && (
+              <tfoot>
+                <tr style={{ background: '#f8fafc', fontWeight: 700 }}>
+                  <td colSpan={3} style={{ textAlign: 'right', padding: '1rem' }}>Total Filtered Expenses:</td>
+                  <td style={{ color: 'var(--danger)', padding: '1rem' }}>- ৳ {filteredExpenses.reduce((sum, e) => sum + e.amount, 0)}</td>
+                  <td></td>
+                </tr>
+              </tfoot>
+            )}
           </table>
         </div>
       </div>

@@ -289,6 +289,17 @@ export default function InvestmentsPage() {
                 ))
               )}
             </tbody>
+            {filteredInvestments.length > 0 && (
+              <tfoot>
+                <tr style={{ background: '#f8fafc', fontWeight: 700 }}>
+                  <td colSpan={2} style={{ textAlign: 'right', padding: '1rem' }}>Filtered Totals:</td>
+                  <td style={{ padding: '1rem' }}>৳ {filteredInvestments.reduce((sum, i) => sum + i.amount, 0)}</td>
+                  <td style={{ color: 'var(--success)', padding: '1rem' }}>+ ৳ {filteredInvestments.reduce((sum, i) => sum + i.profit, 0)}</td>
+                  <td style={{ padding: '1rem' }}>৳ {filteredInvestments.reduce((sum, i) => sum + i.refund, 0)}</td>
+                  <td colSpan={2}></td>
+                </tr>
+              </tfoot>
+            )}
           </table>
         </div>
       </div>
