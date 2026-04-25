@@ -22,6 +22,8 @@ export default function InvestmentsPage() {
   // Search and Filter
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('ALL');
+  const [selectedMonth, setSelectedMonth] = useState('ALL');
+  const [selectedYear, setSelectedYear] = useState('ALL');
 
   const fetchInvestments = async () => {
     setLoading(true);
@@ -40,12 +42,25 @@ export default function InvestmentsPage() {
     fetchInvestments();
   }, []);
 
+  // Get unique years from investment data
+  const availableYears = Array.from(new Set(investments.map(inv => new Date(inv.date).getFullYear()))).sort((a, b) => b - a);
+  const months = [
+    { name: 'January', value: 0 }, { name: 'February', value: 1 }, { name: 'March', value: 2 },
+    { name: 'April', value: 3 }, { name: 'May', value: 4 }, { name: 'June', value: 5 },
+    { name: 'July', value: 6 }, { name: 'August', value: 7 }, { name: 'September', value: 8 },
+    { name: 'October', value: 9 }, { name: 'November', value: 10 }, { name: 'December', value: 11 }
+  ];
+
   // Filtering Logic
   const filteredInvestments = investments.filter(inv => {
+    const invDate = new Date(inv.date);
     const matchesSearch = inv.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
                          (inv.type && inv.type.toLowerCase().includes(searchTerm.toLowerCase()));
     const matchesStatus = statusFilter === 'ALL' || inv.status === statusFilter;
-    return matchesSearch && matchesStatus;
+    const matchesMonth = selectedMonth === 'ALL' || invDate.getMonth() === parseInt(selectedMonth);
+    const matchesYear = selectedYear === 'ALL' || invDate.getFullYear() === parseInt(selectedYear);
+    
+    return matchesSearch && matchesStatus && matchesMonth && matchesYear;
   });
 
   const handleAddSubmit = async (e: React.FormEvent) => {
@@ -171,16 +186,16 @@ export default function InvestmentsPage() {
 
       {/* Search & Filter Section */}
       <div className="card" style={{ marginBottom: '1.5rem', display: 'flex', gap: '1rem', alignItems: 'center', flexWrap: 'wrap' }}>
-        <div style={{ flex: 1, minWidth: '240px' }}>
+        <div style={{ flex: 1, minWidth: '200px' }}>
           <input 
             type="text" 
             className="input" 
-            placeholder="Search by project name or type..." 
+            placeholder="Search project..." 
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
-        <div style={{ minWidth: '150px' }}>
+        <div style={{ minWidth: '130px' }}>
           <select 
             className="input" 
             value={statusFilter}
@@ -190,6 +205,30 @@ export default function InvestmentsPage() {
             <option value="RUNNING">RUNNING</option>
             <option value="COMPLETED">COMPLETED</option>
             <option value="FAILED">FAILED</option>
+          </select>
+        </div>
+        <div style={{ minWidth: '130px' }}>
+          <select 
+            className="input" 
+            value={selectedMonth}
+            onChange={(e) => setSelectedMonth(e.target.value)}
+          >
+            <option value="ALL">All Months</option>
+            {months.map(m => (
+              <option key={m.value} value={m.value}>{m.name}</option>
+            ))}
+          </select>
+        </div>
+        <div style={{ minWidth: '130px' }}>
+          <select 
+            className="input" 
+            value={selectedYear}
+            onChange={(e) => setSelectedYear(e.target.value)}
+          >
+            <option value="ALL">All Years</option>
+            {availableYears.map(year => (
+              <option key={year} value={year}>{year}</option>
+            ))}
           </select>
         </div>
       </div>
