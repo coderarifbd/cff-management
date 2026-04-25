@@ -34,7 +34,8 @@ export default function DashboardPage() {
     activeInvestmentsCount: 0,
     totalInvestmentProfit: 0,
     totalExpenses: 0,
-    netProfit: 0
+    netProfit: 0,
+    chartData: [] as any[]
   });
   const [loading, setLoading] = useState(true);
 
@@ -56,25 +57,31 @@ export default function DashboardPage() {
   }, []);
 
   const chartData = {
-    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+    labels: stats.chartData.map(d => d.label),
     datasets: [
       {
-        label: 'Net Profit',
-        data: [12000, 19000, 15000, 22000, 18000, 25000],
+        label: 'Monthly Net Profit',
+        data: stats.chartData.map(d => d.profit),
         borderColor: 'rgb(21, 128, 61)',
         backgroundColor: 'rgba(21, 128, 61, 0.5)',
+        fill: true,
         tension: 0.4
       }
     ]
   };
 
   const barData = {
-    labels: ['Income', 'Expenses'],
+    labels: stats.chartData.map(d => d.label),
     datasets: [
       {
-        label: 'Current Month',
-        data: [23700, 8500],
-        backgroundColor: ['rgba(21, 128, 61, 0.8)', 'rgba(239, 68, 68, 0.8)'],
+        label: 'Total Income',
+        data: stats.chartData.map(d => d.income),
+        backgroundColor: 'rgba(21, 128, 61, 0.8)',
+      },
+      {
+        label: 'Total Expenses',
+        data: stats.chartData.map(d => d.expense),
+        backgroundColor: 'rgba(239, 68, 68, 0.8)',
       }
     ]
   };

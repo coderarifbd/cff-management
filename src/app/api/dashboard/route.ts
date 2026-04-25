@@ -63,6 +63,62 @@ export async function GET() {
     // Add profit and refunded principal back to the net balance
     const netProfit = totalIncome + totalInvestmentProfit + totalInvestmentRefund - totalExpenses - totalInvestments;
 
+    // Monthly Chart Data (Last 6 Months)
+    const chartData: any[] = [];
+    const now = new Date();
+    
+    for (let i = 5; i >= 0; i--) {
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      const m = d.getMonth() + 1;
+      const y = d.getFullYear();
+      const monthName = d.toLocaleString('default', { month: 'short' });
+
+      const mPayments = await prisma.payment.aggregate({
+        _sum: { amount: true, fine: true },
+        where: { month: m, year: y, isPaid: true }
+      });
+      
+      const mOtherIncomes = await prisma.income.aggregate({
+        _sum: { amount: true },
+        where: {
+          date: {
+            gte: new Date(y, m - 1, 1),
+            lt: new Date(y, m, 1)
+          }
+        }
+      });
+
+      const mExpenses = await prisma.expense.aggregate({
+        _sum: { amount: true },
+        where: {
+          date: {
+            gte: new Date(y, m - 1, 1),
+            lt: new Date(y, m, 1)
+          }
+        }
+      });
+
+      const mInvestmentProfits = await prisma.investmentProfit.aggregate({
+        _sum: { amount: true },
+        where: {
+          date: {
+            gte: new Date(y, m - 1, 1),
+            lt: new Date(y, m, 1)
+          }
+        }
+      });
+
+      const totalMIncome = (mPayments._sum.amount || 0) + (mPayments._sum.fine || 0) + (mOtherIncomes._sum.amount || 0) + (mInvestmentProfits._sum.amount || 0);
+      const totalMExpense = mExpenses._sum.amount || 0;
+
+      chartData.push({
+        label: monthName,
+        income: totalMIncome,
+        expense: totalMExpense,
+        profit: totalMIncome - totalMExpense
+      });
+    }
+
     return NextResponse.json({
       totalMembers,
       monthlyCollection,
@@ -71,7 +127,8 @@ export async function GET() {
       activeInvestmentsCount,
       totalInvestmentProfit,
       totalExpenses,
-      netProfit
+      netProfit,
+      chartData
     });
   } catch (error) {
     console.error(error);
