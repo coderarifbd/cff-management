@@ -24,6 +24,12 @@ export default function ExpensesPage() {
 
   const uniqueCategories = Array.from(new Set(['Events', 'Bills', 'Maintenance', ...expenses.map(e => e.category)]));
 
+  // Search and Filter
+  const [searchTerm, setSearchTerm] = useState('');
+  const [categoryFilter, setCategoryFilter] = useState('ALL');
+  const [selectedMonth, setSelectedMonth] = useState('ALL');
+  const [selectedYear, setSelectedYear] = useState('ALL');
+
   const fetchExpenses = async () => {
     setLoading(true);
     try {
@@ -40,6 +46,27 @@ export default function ExpensesPage() {
   useEffect(() => {
     fetchExpenses();
   }, []);
+
+  // Filter Helpers
+  const availableYears = Array.from(new Set(expenses.map(e => new Date(e.date).getFullYear()))).sort((a, b) => b - a);
+  const months = [
+    { name: 'January', value: 0 }, { name: 'February', value: 1 }, { name: 'March', value: 2 },
+    { name: 'April', value: 3 }, { name: 'May', value: 4 }, { name: 'June', value: 5 },
+    { name: 'July', value: 6 }, { name: 'August', value: 7 }, { name: 'September', value: 8 },
+    { name: 'October', value: 9 }, { name: 'November', value: 10 }, { name: 'December', value: 11 }
+  ];
+
+  // Filtering Logic
+  const filteredExpenses = expenses.filter(exp => {
+    const expDate = new Date(exp.date);
+    const matchesSearch = exp.description?.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                         exp.category.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesCategory = categoryFilter === 'ALL' || exp.category === categoryFilter;
+    const matchesMonth = selectedMonth === 'ALL' || expDate.getMonth() === parseInt(selectedMonth);
+    const matchesYear = selectedYear === 'ALL' || expDate.getFullYear() === parseInt(selectedYear);
+    
+    return matchesSearch && matchesCategory && matchesMonth && matchesYear;
+  });
 
   const handleAddSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -145,6 +172,55 @@ export default function ExpensesPage() {
         </button>
       </div>
 
+      {/* Search & Filter Section */}
+      <div className="card" style={{ marginBottom: '1.5rem', display: 'flex', gap: '1rem', alignItems: 'center', flexWrap: 'wrap' }}>
+        <div style={{ flex: 1, minWidth: '200px' }}>
+          <input 
+            type="text" 
+            className="input" 
+            placeholder="Search expenses..." 
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+        </div>
+        <div style={{ minWidth: '130px' }}>
+          <select 
+            className="input" 
+            value={categoryFilter}
+            onChange={(e) => setCategoryFilter(e.target.value)}
+          >
+            <option value="ALL">All Categories</option>
+            {uniqueCategories.map(cat => (
+              <option key={cat} value={cat}>{cat}</option>
+            ))}
+          </select>
+        </div>
+        <div style={{ minWidth: '130px' }}>
+          <select 
+            className="input" 
+            value={selectedMonth}
+            onChange={(e) => setSelectedMonth(e.target.value)}
+          >
+            <option value="ALL">All Months</option>
+            {months.map(m => (
+              <option key={m.value} value={m.value}>{m.name}</option>
+            ))}
+          </select>
+        </div>
+        <div style={{ minWidth: '130px' }}>
+          <select 
+            className="input" 
+            value={selectedYear}
+            onChange={(e) => setSelectedYear(e.target.value)}
+          >
+            <option value="ALL">All Years</option>
+            {availableYears.map(year => (
+              <option key={year} value={year}>{year}</option>
+            ))}
+          </select>
+        </div>
+      </div>
+
       <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
         <div style={{ overflowX: 'auto' }}>
           <table>
@@ -160,10 +236,10 @@ export default function ExpensesPage() {
             <tbody>
               {loading ? (
                 <tr><td colSpan={5} style={{ textAlign: 'center' }}>Loading expenses...</td></tr>
-              ) : expenses.length === 0 ? (
+              ) : filteredExpenses.length === 0 ? (
                 <tr><td colSpan={5} style={{ textAlign: 'center' }}>No expense records found.</td></tr>
               ) : (
-                expenses.map((expense) => (
+                filteredExpenses.map((expense) => (
                   <tr key={expense.id}>
                     <td>{new Date(expense.date).toLocaleDateString()}</td>
                     <td>
