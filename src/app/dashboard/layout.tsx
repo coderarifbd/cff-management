@@ -10,6 +10,7 @@ function DashboardLayoutInner({ children }: { children: ReactNode }) {
   const router = useRouter();
   const { role, isAdmin, isManager, loading } = useAuth();
   const [userName, setUserName] = useState('');
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   useEffect(() => {
     fetch('/api/auth/me')
@@ -22,6 +23,11 @@ function DashboardLayoutInner({ children }: { children: ReactNode }) {
         }
       }).catch(() => {});
   }, []);
+
+  // Close sidebar on navigation
+  useEffect(() => {
+    setIsSidebarOpen(false);
+  }, [pathname]);
 
   const handleLogout = () => {
     document.cookie = 'token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
@@ -44,10 +50,19 @@ function DashboardLayoutInner({ children }: { children: ReactNode }) {
 
   return (
     <div className="layout">
-      <aside className="sidebar">
+      {/* Mobile Overlay */}
+      {isSidebarOpen && (
+        <div 
+          className="sidebar-overlay" 
+          onClick={() => setIsSidebarOpen(false)}
+        />
+      )}
+
+      <aside className={`sidebar ${isSidebarOpen ? 'open' : ''}`}>
         <div className="sidebar-header">
           <div style={{ width: 32, height: 32, background: isManager ? '#7c3aed' : 'var(--primary)', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontWeight: 'bold' }}>C</div>
           <span>{isManager ? 'CFF Manager' : 'CFF Admin'}</span>
+          <button className="mobile-close" onClick={() => setIsSidebarOpen(false)}><X size={20} /></button>
         </div>
         <nav className="sidebar-nav">
           {navItems.map((item) => (
@@ -71,9 +86,14 @@ function DashboardLayoutInner({ children }: { children: ReactNode }) {
 
       <main className="main-content">
         <header className="topbar">
-          <h2 style={{ fontSize: '1.25rem', fontWeight: 600 }}>Overview</h2>
           <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-            <div style={{ textAlign: 'right' }}>
+            <button className="mobile-toggle" onClick={() => setIsSidebarOpen(true)}>
+              <LayoutDashboard size={24} />
+            </button>
+            <h2 className="topbar-title">Overview</h2>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+            <div className="user-info-text">
               <p style={{ fontSize: '0.875rem', fontWeight: 600 }}>{userName || (isManager ? 'Manager' : 'Admin')}</p>
               <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '0.25rem', justifyContent: 'flex-end' }}>
                 <ShieldCheck size={12} />
