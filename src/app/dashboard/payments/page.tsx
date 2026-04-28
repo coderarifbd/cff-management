@@ -1,6 +1,6 @@
 'use client';
 import { useState, useEffect, useCallback } from 'react';
-import { Search, AlertCircle, CheckCircle, Plus, Copy, X, Edit2, Filter, Trash2, AlertTriangle, Calendar, Wallet, DollarSign, ArrowRight, User } from 'lucide-react';
+import { Search, AlertCircle, CheckCircle, Plus, Copy, X, Edit2, Filter, Trash2, AlertTriangle, Calendar, Wallet, DollarSign, ArrowRight, User, Activity } from 'lucide-react';
 
 export default function PaymentsPage() {
   const [payments, setPayments] = useState<any[]>([]);
