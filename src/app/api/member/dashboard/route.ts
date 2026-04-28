@@ -59,7 +59,12 @@ export async function GET(request: Request) {
       prisma.investmentProfit.aggregate({ _sum: { amount: true } }),
       prisma.income.aggregate({ _sum: { amount: true } }),
       prisma.expense.aggregate({ _sum: { amount: true } }),
-      prisma.user.count({ where: { status: 'ACTIVE' } })
+      prisma.user.count({ 
+        where: { 
+          status: 'ACTIVE',
+          role: { in: ['MEMBER', 'MANAGER'] }
+        } 
+      })
     ]);
 
     const totalIncomes = 
