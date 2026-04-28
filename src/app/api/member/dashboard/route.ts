@@ -62,7 +62,7 @@ export async function GET(request: Request) {
       prisma.user.count({ 
         where: { 
           status: 'ACTIVE',
-          role: { in: ['MEMBER', 'MANAGER'] }
+          role: 'MEMBER'
         } 
       })
     ]);
