@@ -2,7 +2,11 @@
 import { ReactNode, useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { LayoutDashboard, Users, CreditCard, TrendingUp, Receipt, FileText, LogOut, ShieldCheck, Megaphone, Lock, Wallet, X } from 'lucide-react';
+import { 
+  LayoutDashboard, Users, CreditCard, TrendingUp, 
+  Receipt, FileText, LogOut, ShieldCheck, 
+  Megaphone, Lock, Wallet, X, Menu, Bell
+} from 'lucide-react';
 import { AuthProvider, useAuth } from '@/lib/auth-context';
 
 function DashboardLayoutInner({ children }: { children: ReactNode }) {
@@ -35,7 +39,7 @@ function DashboardLayoutInner({ children }: { children: ReactNode }) {
   };
 
   const allNavItems = [
-    { name: 'Dashboard', path: '/dashboard', icon: <LayoutDashboard size={20} />, roles: ['ADMIN', 'MANAGER'] },
+    { name: 'Overview', path: '/dashboard', icon: <LayoutDashboard size={20} />, roles: ['ADMIN', 'MANAGER'] },
     { name: 'Members', path: '/dashboard/members', icon: <Users size={20} />, roles: ['ADMIN', 'MANAGER'] },
     { name: 'Payments', path: '/dashboard/payments', icon: <CreditCard size={20} />, roles: ['ADMIN', 'MANAGER'] },
     { name: 'Investments', path: '/dashboard/investments', icon: <TrendingUp size={20} />, roles: ['ADMIN', 'MANAGER'] },
@@ -47,6 +51,8 @@ function DashboardLayoutInner({ children }: { children: ReactNode }) {
   ];
 
   const navItems = role ? allNavItems.filter(item => item.roles.includes(role)) : [];
+
+  const currentRouteName = allNavItems.find(item => item.path === pathname)?.name || 'Dashboard';
 
   return (
     <div className="layout">
@@ -60,11 +66,28 @@ function DashboardLayoutInner({ children }: { children: ReactNode }) {
 
       <aside className={`sidebar ${isSidebarOpen ? 'open' : ''}`}>
         <div className="sidebar-header">
-          <div style={{ width: 32, height: 32, background: isManager ? '#7c3aed' : 'var(--primary)', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontWeight: 'bold' }}>C</div>
-          <span>{isManager ? 'CFF Manager' : 'CFF Admin'}</span>
-          <button className="mobile-close" onClick={() => setIsSidebarOpen(false)}><X size={20} /></button>
+          <div style={{ 
+            width: 38, 
+            height: 38, 
+            background: isManager ? 'linear-gradient(135deg, #7c3aed, #4c1d95)' : 'linear-gradient(135deg, var(--primary), var(--primary-dark))', 
+            borderRadius: 10, 
+            display: 'flex', 
+            alignItems: 'center', 
+            justifyContent: 'center', 
+            color: 'white', 
+            fontWeight: 800,
+            fontSize: '1.25rem',
+            boxShadow: '0 4px 12px rgba(0,0,0,0.2)'
+          }}>C</div>
+          <div style={{ display: 'flex', flexDirection: 'column' }}>
+            <span style={{ fontSize: '1rem', lineHeight: 1.2 }}>CFF Panel</span>
+            <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontWeight: 500 }}>{isManager ? 'Manager Dashboard' : 'Administrator'}</span>
+          </div>
+          <button className="mobile-close" onClick={() => setIsSidebarOpen(false)} style={{ color: 'white', background: 'transparent', border: 'none' }}><X size={24} /></button>
         </div>
+        
         <nav className="sidebar-nav">
+          <div style={{ padding: '0 1rem 0.5rem', fontSize: '0.65rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.1em', fontWeight: 600 }}>Main Menu</div>
           {navItems.map((item) => (
             <Link
               key={item.path}
@@ -76,41 +99,49 @@ function DashboardLayoutInner({ children }: { children: ReactNode }) {
             </Link>
           ))}
         </nav>
-        <div style={{ padding: '1rem', borderTop: '1px solid var(--border)' }}>
-          <button onClick={handleLogout} className="nav-item" style={{ width: '100%', border: 'none', background: 'transparent', cursor: 'pointer', textAlign: 'left', color: 'var(--danger)' }}>
+
+        <div style={{ padding: '1.5rem', borderTop: '1px solid var(--border)' }}>
+          <button onClick={handleLogout} className="nav-item" style={{ width: '100%', border: 'none', background: 'rgba(239, 68, 68, 0.05)', cursor: 'pointer', textAlign: 'left', color: '#ef4444' }}>
             <LogOut size={20} />
-            Logout
+            Sign Out
           </button>
         </div>
       </aside>
 
       <main className="main-content">
         <header className="topbar">
-          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-            <button className="mobile-toggle" onClick={() => setIsSidebarOpen(true)}>
-              <LayoutDashboard size={24} />
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem' }}>
+            <button className="mobile-toggle" onClick={() => setIsSidebarOpen(true)} style={{ background: 'transparent', border: 'none', cursor: 'pointer' }}>
+              <Menu size={24} />
             </button>
-            <h2 className="topbar-title">Overview</h2>
+            <h2 style={{ fontSize: '1.25rem', fontWeight: 700, letterSpacing: '-0.02em' }}>{currentRouteName}</h2>
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-            <div className="user-info-text">
-              <p style={{ fontSize: '0.875rem', fontWeight: 600 }}>{userName || (isManager ? 'Manager' : 'Admin')}</p>
-              <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '0.25rem', justifyContent: 'flex-end' }}>
-                <ShieldCheck size={12} />
-                {isManager ? 'Manager Role' : 'Admin Role'}
-              </p>
-            </div>
-            <div style={{ width: 40, height: 40, borderRadius: '50%', background: isManager ? '#7c3aed' : 'var(--primary-light)', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold' }}>
-              {userName ? userName.charAt(0).toUpperCase() : (isManager ? 'M' : 'A')}
+          
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
+            <button style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid var(--border)', width: 40, height: 40, borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)', cursor: 'pointer' }}>
+              <Bell size={18} />
+            </button>
+            
+            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', padding: '0.5rem', background: 'rgba(255,255,255,0.03)', borderRadius: 16, border: '1px solid var(--border)' }}>
+              <div style={{ width: 36, height: 36, borderRadius: 10, background: isManager ? 'linear-gradient(135deg, #7c3aed, #6d28d9)' : 'linear-gradient(135deg, var(--primary-light), var(--primary))', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: '0.9rem', boxShadow: '0 4px 8px rgba(0,0,0,0.1)' }}>
+                {userName ? userName.charAt(0).toUpperCase() : (isManager ? 'M' : 'A')}
+              </div>
+              <div className="user-info-text" style={{ paddingRight: '0.5rem' }}>
+                <p style={{ fontSize: '0.85rem', fontWeight: 600, lineHeight: 1.2 }}>{userName || (isManager ? 'Manager' : 'Admin')}</p>
+                <p style={{ fontSize: '0.7rem', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                  <ShieldCheck size={10} />
+                  {isManager ? 'Manager' : 'Administrator'}
+                </p>
+              </div>
             </div>
           </div>
         </header>
 
         {/* Manager notice banner */}
         {isManager && (
-          <div style={{ margin: '0 1.5rem 0', padding: '0.6rem 1rem', background: '#ede9fe', border: '1px solid #c4b5fd', borderRadius: '8px', color: '#5b21b6', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <ShieldCheck size={14} />
-            You are logged in as <strong>Manager</strong>. Some administrative actions are restricted.
+          <div style={{ margin: '1.5rem 2.5rem 0', padding: '0.75rem 1.25rem', background: 'rgba(124, 58, 237, 0.1)', border: '1px solid rgba(124, 58, 237, 0.2)', borderRadius: 12, color: '#a78bfa', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '0.75rem', backdropFilter: 'blur(10px)' }}>
+            <ShieldCheck size={16} />
+            <span>You are logged in as <strong>Manager</strong>. Some administrative actions are restricted for your role.</span>
           </div>
         )}
 

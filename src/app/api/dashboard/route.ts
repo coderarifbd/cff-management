@@ -119,6 +119,12 @@ export async function GET() {
       });
     }
 
+    const totalOtherAmount = (allOtherIncomes._sum.amount || 0) + (allDeposits._sum.amount || 0);
+    const totalProfit = totalInvestmentProfit + totalOtherAmount;
+    
+    // User requested formula for Total Amount: Fees + Fines + Investment Profit + Other Amount - Total Expense
+    const totalAmount = monthlyCollection + (totalFines._sum.fine || 0) + totalInvestmentProfit + totalOtherAmount - totalExpenses;
+
     return NextResponse.json({
       totalMembers,
       monthlyCollection,
@@ -128,6 +134,8 @@ export async function GET() {
       totalInvestmentProfit,
       totalExpenses,
       netProfit,
+      totalAmount,
+      totalProfit,
       chartData
     });
   } catch (error) {

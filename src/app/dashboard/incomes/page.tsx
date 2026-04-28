@@ -145,7 +145,7 @@ export default function IncomesPage() {
                     <td>{new Date(income.date).toLocaleDateString()}</td>
                     <td style={{ fontWeight: 600 }}>{income.title}</td>
                     <td>
-                      <span className="badge" style={{ background: '#dcfce3', color: '#166534' }}>
+                      <span className="badge" style={{ background: 'rgba(34, 197, 94, 0.1)', color: 'var(--primary-light)' }}>
                         {income.category}
                       </span>
                     </td>
@@ -171,11 +171,11 @@ export default function IncomesPage() {
 
       {/* Add Income Modal */}
       {showAddModal && (
-        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100 }}>
-          <div className="card" style={{ width: '100%', maxWidth: '400px', maxHeight: '90vh', overflowY: 'auto' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-              <h3 style={{ fontSize: '1.25rem', fontWeight: 600 }}>Add New Income</h3>
-              <button onClick={() => setShowAddModal(false)} style={{ background: 'transparent', border: 'none', cursor: 'pointer' }}><X size={24} /></button>
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(15, 23, 42, 0.9)', backdropFilter: 'blur(12px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100, padding: '1.5rem' }}>
+          <div className="card" style={{ width: '100%', maxWidth: '420px', maxHeight: '90vh', overflowY: 'auto', border: '1px solid var(--border)', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
+              <h3 style={{ fontSize: '1.5rem', fontWeight: 800, letterSpacing: '-0.025em' }}>Add New Income</h3>
+              <button onClick={() => setShowAddModal(false)} style={{ background: 'rgba(255,255,255,0.05)', border: 'none', width: 36, height: 36, borderRadius: 12, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white' }}><X size={24} /></button>
             </div>
             {error && <div style={{ background: 'var(--danger)', color: 'white', padding: '0.5rem', borderRadius: '4px', marginBottom: '1rem', fontSize: '0.875rem' }}>{error}</div>}
             <form onSubmit={handleAddSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
@@ -285,20 +285,20 @@ export default function IncomesPage() {
 
       {/* Delete Confirmation Modal */}
       {deleteId && (
-        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 110 }}>
-          <div className="card" style={{ width: '100%', maxWidth: '400px', padding: '2rem', textAlign: 'center' }}>
-            <div style={{ width: 64, height: 64, background: '#fee2e2', color: '#dc2626', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.5rem' }}>
-              <AlertTriangle size={32} />
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(15, 23, 42, 0.9)', backdropFilter: 'blur(12px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 110 }}>
+          <div className="card" style={{ width: '100%', maxWidth: '400px', padding: '2.5rem', textAlign: 'center', borderColor: 'rgba(239, 68, 68, 0.2)' }}>
+            <div style={{ width: 72, height: 72, background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444', borderRadius: 24, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.5rem' }}>
+              <AlertTriangle size={36} />
             </div>
-            <h3 style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: '0.75rem', color: '#1e293b' }}>Delete Income?</h3>
-            <p style={{ color: '#64748b', marginBottom: '2rem', fontSize: '0.9rem', lineHeight: '1.5' }}>
+            <h3 style={{ fontSize: '1.5rem', fontWeight: 800, marginBottom: '0.75rem', color: 'white' }}>Delete Income?</h3>
+            <p style={{ color: 'var(--text-muted)', marginBottom: '2.5rem', fontSize: '0.9rem', lineHeight: '1.6' }}>
               Are you sure you want to delete this income record? This action cannot be undone and will decrease the net balance.
             </p>
             <div style={{ display: 'flex', gap: '1rem' }}>
-              <button className="btn btn-outline" style={{ flex: 1, padding: '0.75rem' }} onClick={() => setDeleteId(null)} disabled={submitLoading}>
+              <button className="btn btn-outline" style={{ flex: 1 }} onClick={() => setDeleteId(null)} disabled={submitLoading}>
                 Cancel
               </button>
-              <button className="btn" style={{ flex: 1, background: '#ef4444', color: 'white', padding: '0.75rem', border: 'none' }} onClick={() => handleDelete(deleteId)} disabled={submitLoading}>
+              <button className="btn" style={{ flex: 1, background: '#ef4444', color: 'white', border: 'none' }} onClick={() => handleDelete(deleteId)} disabled={submitLoading}>
                 {submitLoading ? 'Deleting...' : 'Yes, Delete'}
               </button>
             </div>

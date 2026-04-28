@@ -1,6 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { CheckCircle, AlertCircle, TrendingUp, Megaphone, X } from 'lucide-react';
+import { CheckCircle, AlertCircle, TrendingUp, Megaphone, X, Calendar, Wallet, Receipt, Info } from 'lucide-react';
 
 export default function MemberDashboardPage() {
   const [data, setData] = useState<any>(null);
@@ -35,107 +35,170 @@ export default function MemberDashboardPage() {
     localStorage.setItem('cff_hidden_notices', JSON.stringify(updated));
   };
 
-  if (loading || !data) return <div style={{ padding: '2rem', textAlign: 'center' }}>Loading your secure dashboard...</div>;
+  if (loading || !data) {
+    return (
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1.5rem' }}>
+        {[...Array(3)].map((_, i) => (
+          <div key={i} className="card skeleton" style={{ height: '120px' }}></div>
+        ))}
+        <div className="card skeleton" style={{ gridColumn: '1 / -1', height: '400px' }}></div>
+      </div>
+    );
+  }
 
   const visibleNotices = notices.filter(n => !hiddenIds.includes(n.id)).slice(0, 3);
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+      <div style={{ marginBottom: '1rem' }}>
+        <h1 style={{ fontSize: '1.875rem', fontWeight: 800, letterSpacing: '-0.025em', marginBottom: '0.5rem' }}>Member Portal</h1>
+        <p style={{ color: 'var(--text-muted)' }}>Overview of your account and contributions.</p>
+      </div>
+
       {/* Notices Section */}
       {visibleNotices.length > 0 && (
-        <div className="card" style={{ padding: '1rem', borderLeft: '4px solid #f59e0b', background: '#fffbeb' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1rem', color: '#92400e' }}>
-            <Megaphone size={20} />
-            <h3 style={{ fontSize: '1rem', fontWeight: 600 }}>Latest Notices</h3>
+        <div className="card" style={{ 
+          background: 'rgba(245, 158, 11, 0.05)', 
+          borderColor: 'rgba(245, 158, 11, 0.2)', 
+          position: 'relative',
+          overflow: 'hidden'
+        }}>
+          <div style={{ 
+            position: 'absolute', 
+            top: 0, 
+            left: 0, 
+            width: '4px', 
+            height: '100%', 
+            background: '#f59e0b' 
+          }} />
+          
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.5rem' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', color: '#f59e0b' }}>
+              <Megaphone size={20} />
+              <h3 style={{ fontSize: '1.1rem', fontWeight: 700 }}>Active Announcements</h3>
+            </div>
           </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
             {visibleNotices.map((notice) => (
-              <div key={notice.id} style={{ borderBottom: '1px solid #fef3c7', paddingBottom: '0.75rem', position: 'relative' }}>
+              <div key={notice.id} style={{ 
+                background: 'rgba(255, 255, 255, 0.03)', 
+                padding: '1.25rem', 
+                borderRadius: '12px', 
+                position: 'relative',
+                border: '1px solid rgba(255, 255, 255, 0.05)'
+              }}>
                 <button 
                   onClick={() => hideNotice(notice.id)}
-                  style={{ position: 'absolute', right: 0, top: 0, background: 'none', border: 'none', cursor: 'pointer', color: '#92400e', opacity: 0.5 }}
+                  style={{ position: 'absolute', right: '1rem', top: '1rem', background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--text-muted)' }}
                 >
-                  <X size={14} />
+                  <X size={16} />
                 </button>
-                <h4 style={{ fontSize: '0.9rem', fontWeight: 600, color: '#92400e' }}>{notice.title}</h4>
-                <p style={{ fontSize: '0.85rem', color: '#b45309', marginTop: '0.25rem', whiteSpace: 'pre-wrap' }}>{notice.content}</p>
-                <p style={{ fontSize: '0.7rem', color: '#d97706', marginTop: '0.4rem' }}>{new Date(notice.createdAt).toLocaleDateString()}</p>
+                <h4 style={{ fontSize: '1rem', fontWeight: 700, color: 'white', marginBottom: '0.5rem' }}>{notice.title}</h4>
+                <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)', lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>{notice.content}</p>
+                <div style={{ marginTop: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.75rem', color: 'rgba(255, 255, 255, 0.4)' }}>
+                  <Calendar size={14} />
+                  <span>{new Date(notice.createdAt).toLocaleDateString()}</span>
+                </div>
               </div>
             ))}
           </div>
         </div>
       )}
 
-      <div>
-      <div className="stats-grid" style={{ marginBottom: '2rem' }}>
-        <div className="card stat-card" style={{ background: 'var(--primary)', color: 'white' }}>
+      <div className="stats-grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))' }}>
+        <div className="card stat-card" style={{ background: 'linear-gradient(135deg, #0ea5e9, #0369a1)', border: 'none', color: 'white' }}>
+          <div className="stat-icon" style={{ background: 'rgba(255,255,255,0.2)', color: 'white' }}><Wallet size={24} /></div>
+          <div className="stat-info">
+            <h3 style={{ color: 'rgba(255,255,255,0.8)' }}>Total Principal</h3>
+            <p style={{ color: 'white' }}>৳ {data.stats.totalPaidFees.toLocaleString()}</p>
+          </div>
+        </div>
+
+        <div className="card stat-card" style={{ background: 'linear-gradient(135deg, var(--primary), var(--primary-dark))', border: 'none', color: 'white', position: 'relative', overflow: 'hidden' }}>
+          <div style={{ position: 'absolute', right: '-10px', top: '-10px', opacity: 0.1 }}><TrendingUp size={80} /></div>
           <div className="stat-icon" style={{ background: 'rgba(255,255,255,0.2)', color: 'white' }}><TrendingUp size={24} /></div>
           <div className="stat-info">
-            <h3 style={{ color: 'rgba(255,255,255,0.8)' }}>Total Deposits</h3>
-            <p style={{ color: 'white' }}>৳ {data.stats.totalPaidAmount}</p>
+            <h3 style={{ color: 'rgba(255,255,255,0.8)' }}>Net Equity Share</h3>
+            <p style={{ color: 'white' }}>৳ {Math.round(data.stats.totalShare).toLocaleString()}</p>
+            <div style={{ fontSize: '0.75rem', marginTop: '0.25rem', color: 'rgba(255,255,255,0.7)', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+              <Info size={12} /> {data.stats.profitShare >= 0 ? '+' : ''} ৳ {Math.round(data.stats.profitShare).toLocaleString()} Net Value Added
+            </div>
           </div>
         </div>
-        <div className="card stat-card" style={{ borderLeft: '4px solid var(--danger)' }}>
-          <div className="stat-icon" style={{ background: '#fee2e2', color: '#991b1b' }}><AlertCircle size={24} /></div>
+
+        <div className="card stat-card" style={{ borderLeft: '4px solid var(--danger)', background: 'rgba(239, 68, 68, 0.05)' }}>
+          <div className="stat-icon" style={{ background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444' }}><Receipt size={24} /></div>
           <div className="stat-info">
-            <h3>Total Dues (incl. fines)</h3>
-            <p style={{ color: 'var(--danger)' }}>৳ {data.stats.totalDueAmount}</p>
+            <h3>Outstanding Dues</h3>
+            <p style={{ color: '#ef4444' }}>৳ {data.stats.totalDueAmount.toLocaleString()}</p>
           </div>
         </div>
-        <div className="card stat-card">
-          <div className="stat-icon" style={{ background: '#fef3c7', color: '#92400e' }}><AlertCircle size={24} /></div>
+
+        <div className="card stat-card" style={{ background: 'rgba(255, 255, 255, 0.02)' }}>
+          <div className="stat-icon" style={{ background: 'rgba(255, 255, 255, 0.05)', color: 'var(--text-muted)' }}><Calendar size={24} /></div>
           <div className="stat-info">
-            <h3>Total Fines Incurred</h3>
-            <p>৳ {data.stats.totalPaidFines + data.stats.totalDueFines}</p>
+            <h3>Fines & Penalties</h3>
+            <p>৳ {(data.stats.totalPaidFines + data.stats.totalDueFines).toLocaleString()}</p>
           </div>
         </div>
       </div>
 
       <div className="card">
-        <h3 style={{ marginBottom: '1.5rem', fontSize: '1.125rem' }}>My Statement & Payment History</h3>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '2rem' }}>
+          <div>
+            <h3 style={{ fontSize: '1.25rem', fontWeight: 800 }}>Payment Statement</h3>
+            <p style={{ fontSize: '0.875rem', color: 'var(--text-muted)' }}>History of your monthly fees and contributions</p>
+          </div>
+        </div>
         
-        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-          <thead>
-            <tr>
-              <th style={{ textAlign: 'left', padding: '1rem', borderBottom: '1px solid var(--border)' }}>Month</th>
-              <th style={{ textAlign: 'left', padding: '1rem', borderBottom: '1px solid var(--border)' }}>Monthly Fee</th>
-              <th style={{ textAlign: 'left', padding: '1rem', borderBottom: '1px solid var(--border)' }}>Fine</th>
-              <th style={{ textAlign: 'left', padding: '1rem', borderBottom: '1px solid var(--border)' }}>Status</th>
-              <th style={{ textAlign: 'left', padding: '1rem', borderBottom: '1px solid var(--border)' }}>Date Paid</th>
-            </tr>
-          </thead>
-          <tbody>
-            {data.payments.length === 0 && <tr><td colSpan={5} style={{ padding: '2rem', textAlign: 'center' }}>No payments found</td></tr>}
-            {data.payments.map((item: any) => {
-              const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-              return (
-                <tr key={item.id} style={{ borderBottom: '1px solid var(--border)' }}>
-                  <td style={{ padding: '1rem', fontWeight: 600 }}>{monthNames[item.month - 1]} {item.year}</td>
-                  <td style={{ padding: '1rem' }}>৳ {item.amount}</td>
-                  <td style={{ padding: '1rem', color: item.fine > 0 ? 'var(--danger)' : 'inherit' }}>৳ {item.fine}</td>
-                  <td style={{ padding: '1rem' }}>
-                    <span className={`badge ${item.isPaid ? 'badge-success' : 'badge-danger'}`}>
-                      {item.isPaid ? 'PAID' : 'DUE'}
-                    </span>
-                  </td>
-                  <td style={{ padding: '1rem' }}>
-                    {item.isPaid ? (
-                      <span style={{ color: 'var(--success)', display: 'flex', alignItems: 'center', gap: '0.25rem', fontSize: '0.875rem' }}>
-                        <CheckCircle size={16} /> {item.paidAt ? new Date(item.paidAt).toLocaleDateString() : 'Paid'}
+        <div className="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>Billing Period</th>
+                <th>Monthly Fee</th>
+                <th>Fine</th>
+                <th>Status</th>
+                <th>Payment Date</th>
+              </tr>
+            </thead>
+            <tbody>
+              {data.payments.length === 0 && <tr><td colSpan={5} style={{ padding: '4rem', textAlign: 'center', color: 'var(--text-muted)' }}>No payment records found</td></tr>}
+              {data.payments.map((item: any) => {
+                const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+                return (
+                  <tr key={item.id}>
+                    <td style={{ fontWeight: 700 }}>{monthNames[item.month - 1]} {item.year}</td>
+                    <td>৳ {item.amount.toLocaleString()}</td>
+                    <td style={{ color: item.fine > 0 ? 'var(--danger)' : 'inherit' }}>
+                      {item.fine > 0 ? `৳ ${item.fine.toLocaleString()}` : '—'}
+                    </td>
+                    <td>
+                      <span className={`badge ${item.isPaid ? 'badge-success' : 'badge-danger'}`}>
+                        {item.isPaid ? 'PAID' : 'PENDING'}
                       </span>
-                    ) : (
-                      <button className="btn btn-outline" style={{ padding: '0.25rem 0.5rem', fontSize: '0.75rem', borderColor: 'var(--primary)', color: 'var(--primary)' }} disabled>
-                        Awaiting Payment
-                      </button>
-                    )}
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
+                    </td>
+                    <td>
+                      {item.isPaid ? (
+                        <div style={{ color: '#34d399', display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.875rem', fontWeight: 600 }}>
+                          <CheckCircle size={16} /> 
+                          <span>{item.paidAt ? new Date(item.paidAt).toLocaleDateString() : 'Confirmed'}</span>
+                        </div>
+                      ) : (
+                        <span style={{ fontSize: '0.875rem', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                          <AlertCircle size={16} /> 
+                          Awaiting Payment
+                        </span>
+                      )}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
-  </div>
   );
 }

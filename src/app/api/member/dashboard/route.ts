@@ -50,6 +50,29 @@ export async function GET(request: Request) {
     const totalDueFees = unpaidPayments.reduce((sum, p) => sum + p.amount, 0);
     const totalDueFines = unpaidPayments.reduce((sum, p) => sum + p.fine, 0);
 
+    // Federation-wide inclusive equity calculation
+    const [allPayments, totalInvProfit, totalExtraIncome, totalExpenses, activeMemberCount] = await Promise.all([
+      prisma.payment.aggregate({ 
+        where: { isPaid: true },
+        _sum: { amount: true, fine: true } 
+      }),
+      prisma.investmentProfit.aggregate({ _sum: { amount: true } }),
+      prisma.income.aggregate({ _sum: { amount: true } }),
+      prisma.expense.aggregate({ _sum: { amount: true } }),
+      prisma.user.count({ where: { status: 'ACTIVE' } })
+    ]);
+
+    const totalIncomes = 
+      (allPayments._sum.amount || 0) + 
+      (allPayments._sum.fine || 0) + 
+      (totalInvProfit._sum.amount || 0) + 
+      (totalExtraIncome._sum.amount || 0);
+    
+    const totalOutgoings = (totalExpenses._sum.amount || 0);
+    
+    const netFederationFunds = totalIncomes - totalOutgoings;
+    const equityPerMember = activeMemberCount > 0 ? netFederationFunds / activeMemberCount : 0;
+
     return NextResponse.json({
       profile: {
         name: user.name,
@@ -64,7 +87,9 @@ export async function GET(request: Request) {
         totalDueFees,
         totalDueFines,
         totalPaidAmount: totalPaidFees + totalPaidFines,
-        totalDueAmount: totalDueFees + totalDueFines
+        totalDueAmount: totalDueFees + totalDueFines,
+        profitShare: equityPerMember - totalPaidFees, // For display purposes, showing the "bonus" value
+        totalShare: equityPerMember
       },
       payments: user.payments
     });

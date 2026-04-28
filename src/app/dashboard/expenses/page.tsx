@@ -1,6 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { Plus, Receipt, Edit2, Trash2, X, Upload, FileText, AlertTriangle } from 'lucide-react';
+import { Plus, Receipt, Edit2, Trash2, X, Upload, FileText, AlertTriangle, Search } from 'lucide-react';
 
 export default function ExpensesPage() {
   const [expenses, setExpenses] = useState<any[]>([]);
@@ -173,17 +173,19 @@ export default function ExpensesPage() {
       </div>
 
       {/* Search & Filter Section */}
-      <div className="card" style={{ marginBottom: '1.5rem', display: 'flex', gap: '1rem', alignItems: 'center', flexWrap: 'wrap' }}>
-        <div style={{ flex: 1, minWidth: '200px' }}>
+      <div className="card" style={{ marginBottom: '1.5rem', display: 'grid', gridTemplateColumns: '1fr auto auto auto', gap: '1rem', alignItems: 'center' }}>
+        <div style={{ position: 'relative' }}>
+          <Search size={18} style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
           <input 
             type="text" 
             className="input" 
+            style={{ paddingLeft: '2.75rem' }}
             placeholder="Search expenses..." 
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
-        <div style={{ minWidth: '130px' }}>
+        <div style={{ width: '160px' }}>
           <select 
             className="input" 
             value={categoryFilter}
@@ -195,7 +197,7 @@ export default function ExpensesPage() {
             ))}
           </select>
         </div>
-        <div style={{ minWidth: '130px' }}>
+        <div style={{ width: '140px' }}>
           <select 
             className="input" 
             value={selectedMonth}
@@ -207,7 +209,7 @@ export default function ExpensesPage() {
             ))}
           </select>
         </div>
-        <div style={{ minWidth: '130px' }}>
+        <div style={{ width: '120px' }}>
           <select 
             className="input" 
             value={selectedYear}
@@ -243,7 +245,7 @@ export default function ExpensesPage() {
                   <tr key={expense.id}>
                     <td>{new Date(expense.date).toLocaleDateString()}</td>
                     <td>
-                      <span className="badge" style={{ background: '#e2e8f0', color: '#475569' }}>
+                      <span className="badge" style={{ background: 'rgba(148, 163, 184, 0.1)', color: 'var(--text-muted)' }}>
                         {expense.category}
                       </span>
                     </td>
@@ -270,9 +272,9 @@ export default function ExpensesPage() {
             </tbody>
             {filteredExpenses.length > 0 && (
               <tfoot>
-                <tr style={{ background: '#f8fafc', fontWeight: 700 }}>
-                  <td colSpan={3} style={{ textAlign: 'right', padding: '1rem' }}>Total Filtered Expenses:</td>
-                  <td style={{ color: 'var(--danger)', padding: '1rem' }}>- ৳ {filteredExpenses.reduce((sum, e) => sum + e.amount, 0)}</td>
+                <tr style={{ background: 'rgba(255, 255, 255, 0.02)', fontWeight: 700 }}>
+                  <td colSpan={3} style={{ textAlign: 'right', padding: '1.25rem' }}>Total Filtered Expenses:</td>
+                  <td style={{ color: 'var(--danger)', padding: '1.25rem', fontSize: '1.125rem' }}>- ৳ {filteredExpenses.reduce((sum, e) => sum + e.amount, 0).toLocaleString()}</td>
                   <td></td>
                 </tr>
               </tfoot>
@@ -283,11 +285,11 @@ export default function ExpensesPage() {
 
       {/* Add Expense Modal */}
       {showAddModal && (
-        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100 }}>
-          <div className="card" style={{ width: '100%', maxWidth: '400px', maxHeight: '90vh', overflowY: 'auto' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-              <h3 style={{ fontSize: '1.25rem', fontWeight: 600 }}>Record New Expense</h3>
-              <button onClick={() => setShowAddModal(false)} style={{ background: 'transparent', border: 'none', cursor: 'pointer' }}><X size={24} /></button>
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(15, 23, 42, 0.9)', backdropFilter: 'blur(12px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100, padding: '1.5rem' }}>
+          <div className="card" style={{ width: '100%', maxWidth: '420px', maxHeight: '90vh', overflowY: 'auto', border: '1px solid var(--border)', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
+              <h3 style={{ fontSize: '1.5rem', fontWeight: 800, letterSpacing: '-0.025em' }}>Record Expense</h3>
+              <button onClick={() => setShowAddModal(false)} style={{ background: 'rgba(255,255,255,0.05)', border: 'none', width: 36, height: 36, borderRadius: 12, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white' }}><X size={24} /></button>
             </div>
             {error && <div style={{ background: 'var(--danger)', color: 'white', padding: '0.5rem', borderRadius: '4px', marginBottom: '1rem', fontSize: '0.875rem' }}>{error}</div>}
             <form onSubmit={handleAddSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>

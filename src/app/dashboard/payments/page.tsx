@@ -1,6 +1,6 @@
 'use client';
 import { useState, useEffect, useCallback } from 'react';
-import { Search, AlertCircle, CheckCircle, Plus, Copy, X, Edit2, Filter, Trash2, AlertTriangle } from 'lucide-react';
+import { Search, AlertCircle, CheckCircle, Plus, Copy, X, Edit2, Filter, Trash2, AlertTriangle, Calendar, Wallet, DollarSign, ArrowRight, User } from 'lucide-react';
 
 export default function PaymentsPage() {
   const [payments, setPayments] = useState<any[]>([]);
@@ -84,7 +84,6 @@ export default function PaymentsPage() {
 
   const handleMarkPaid = async (id: string) => {
     try {
-      // Optimistic update to immediately reflect in UI without waiting for API
       setPayments(prev => prev.map(p => p.id === id ? { ...p, isPaid: true, paidAt: new Date().toISOString() } : p));
       
       const res = await fetch(`/api/payments/${id}`, {
@@ -92,7 +91,7 @@ export default function PaymentsPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ isPaid: true })
       });
-      if (res.ok) await fetchPayments(true); // Silent refresh
+      if (res.ok) await fetchPayments(true);
     } catch (err) {
       console.error(err);
     }
@@ -114,7 +113,7 @@ export default function PaymentsPage() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
       setShowAddModal(false);
-      await fetchPayments(true); // Silent refresh
+      await fetchPayments(true);
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -136,7 +135,7 @@ export default function PaymentsPage() {
       if (!res.ok) throw new Error(data.error);
       alert(data.message);
       setShowBulkModal(false);
-      await fetchPayments(true); // Silent refresh
+      await fetchPayments(true);
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -175,12 +174,9 @@ export default function PaymentsPage() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
-      
-      // Optimistically update the UI to avoid lag
       setPayments(prev => prev.map(p => p.id === editForm.id ? { ...p, amount: editForm.amount, fine: editForm.fine, isPaid: editForm.isPaid, paidAt: editForm.isPaid && !p.isPaid ? new Date().toISOString() : p.paidAt } : p));
-      
       setShowEditModal(false);
-      await fetchPayments(true); // Silent refresh
+      await fetchPayments(true);
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -205,106 +201,140 @@ export default function PaymentsPage() {
 
   const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 
-  // Totals
-  const totalMonthlyFee = payments.reduce((sum, p) => sum + p.amount, 0);
-  const totalLateFine = payments.reduce((sum, p) => sum + p.fine, 0);
   const totalCollected = payments.reduce((sum, p) => p.isPaid ? sum + (p.amount + p.fine) : sum, 0);
   const totalDue = payments.reduce((sum, p) => !p.isPaid ? sum + (p.amount + p.fine) : sum, 0);
 
   return (
     <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
-        <h2 style={{ fontSize: '1.5rem', fontWeight: 600 }}>Collection & Payments</h2>
-        <div style={{ display: 'flex', gap: '0.5rem' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2.5rem', flexWrap: 'wrap', gap: '1rem' }}>
+        <div>
+          <h2 style={{ fontSize: '1.875rem', fontWeight: 800, letterSpacing: '-0.025em' }}>Collection Registry</h2>
+          <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem' }}>Monitor and manage monthly membership fees and penalties.</p>
+        </div>
+        <div style={{ display: 'flex', gap: '1rem' }}>
           <button className="btn btn-outline" onClick={() => { setError(''); setShowBulkModal(true); }}>
-            <Copy size={18} style={{ marginRight: '0.5rem' }} /> Bulk Generate
+            <Copy size={18} /> Bulk Generate
           </button>
           <button className="btn btn-primary" onClick={() => { setError(''); setShowAddModal(true); }}>
-            <Plus size={18} style={{ marginRight: '0.5rem' }} /> Add Payment
+            <Plus size={18} /> Add Payment
           </button>
         </div>
       </div>
 
-      <div className="card" style={{ marginBottom: '2rem', display: 'flex', gap: '1rem', alignItems: 'flex-end', background: 'var(--background)' }}>
-        <div>
-          <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', fontWeight: 500 }}>Filter Month</label>
-          <select className="input" value={filterMonth} onChange={e => setFilterMonth(e.target.value ? parseInt(e.target.value) : '')} style={{ width: '150px' }}>
-            <option value="">All Months</option>
-            {monthNames.map((m, i) => <option key={i} value={i + 1}>{m}</option>)}
-          </select>
-        </div>
-        <div>
-          <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', fontWeight: 500 }}>Filter Year</label>
-          <input type="number" className="input" value={filterYear} onChange={e => setFilterYear(e.target.value ? parseInt(e.target.value) : '')} placeholder="e.g. 2026" style={{ width: '120px' }} />
-        </div>
-        <div>
-          <button className="btn btn-primary" style={{ padding: '0.5rem 1rem' }} onClick={() => fetchPayments()}>
-            <Filter size={18} style={{ marginRight: '0.5rem' }} /> Apply Filter
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1.5rem', marginBottom: '2.5rem' }}>
+        <div className="card" style={{ display: 'flex', gap: '1rem', alignItems: 'flex-end', padding: '1.5rem' }}>
+          <div style={{ flex: 1 }}>
+            <label className="reset-label">Select Month</label>
+            <select className="input" value={filterMonth} onChange={e => setFilterMonth(e.target.value ? parseInt(e.target.value) : '')}>
+              <option value="">All Months</option>
+              {monthNames.map((m, i) => <option key={i} value={i + 1}>{m}</option>)}
+            </select>
+          </div>
+          <div style={{ width: '120px' }}>
+            <label className="reset-label">Select Year</label>
+            <input type="number" className="input" value={filterYear} onChange={e => setFilterYear(e.target.value ? parseInt(e.target.value) : '')} placeholder="2026" />
+          </div>
+          <button className="btn btn-primary" onClick={() => fetchPayments()}>
+            <Filter size={18} /> Filter
           </button>
         </div>
-      </div>
 
-      <div className="card" style={{ marginBottom: '2rem', background: '#fef3c7', border: '1px solid #fde68a' }}>
-        <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', color: '#92400e' }}>
-          <AlertCircle size={24} />
+        <div className="card" style={{ background: 'rgba(245, 158, 11, 0.03)', borderColor: 'rgba(245, 158, 11, 0.15)', display: 'flex', gap: '1.25rem', alignItems: 'center', padding: '1.5rem' }}>
+          <div style={{ width: 48, height: 48, borderRadius: 14, background: 'rgba(245, 158, 11, 0.1)', color: '#f59e0b', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+            <AlertCircle size={24} />
+          </div>
           <div>
-            <h4 style={{ fontWeight: 600 }}>System Notice: Auto-Fine Applied</h4>
-            <p style={{ fontSize: '0.875rem' }}>Members who have not paid by the 10th of the month have been automatically charged a ৳100 late fine.</p>
+            <h4 style={{ fontWeight: 700, color: '#f59e0b', fontSize: '0.95rem', marginBottom: '0.25rem' }}>Late Fine Policy</h4>
+            <p style={{ fontSize: '0.8125rem', color: 'var(--text-muted)', lineHeight: 1.4 }}>৳100 auto-applied for payments after the 10th of each month.</p>
+          </div>
+        </div>
+      </div>
+
+      <div className="stats-grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', marginBottom: '2.5rem' }}>
+        <div className="card stat-card" style={{ background: 'rgba(34, 197, 94, 0.05)', borderColor: 'rgba(34, 197, 94, 0.2)' }}>
+          <div className="stat-icon" style={{ background: 'rgba(34, 197, 94, 0.1)', color: '#22c55e' }}><CheckCircle size={24} /></div>
+          <div className="stat-info">
+            <h3>Collected (Paid)</h3>
+            <p>৳ {totalCollected.toLocaleString()}</p>
+          </div>
+        </div>
+        <div className="card stat-card" style={{ background: 'rgba(239, 68, 68, 0.05)', borderColor: 'rgba(239, 68, 68, 0.2)' }}>
+          <div className="stat-icon" style={{ background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444' }}><AlertCircle size={24} /></div>
+          <div className="stat-info">
+            <h3>Total Outstanding</h3>
+            <p>৳ {totalDue.toLocaleString()}</p>
           </div>
         </div>
       </div>
 
       <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
-        <div style={{ overflowX: 'auto' }}>
+        <div className="table-container">
           <table>
             <thead>
               <tr>
-                <th>Member</th>
-                <th>Period</th>
-                <th>Monthly Fee</th>
-                <th>Late Fine</th>
-                <th>Total Due</th>
+                <th>Member Information</th>
+                <th>Billing Period</th>
+                <th>Collection Details</th>
                 <th>Status</th>
-                <th>Action</th>
+                <th style={{ textAlign: 'right' }}>Management</th>
               </tr>
             </thead>
             <tbody>
               {loading ? (
-                <tr><td colSpan={7} style={{ textAlign: 'center' }}>Loading payments...</td></tr>
+                [...Array(5)].map((_, i) => (
+                  <tr key={i}><td colSpan={5} className="skeleton" style={{ height: '70px' }}></td></tr>
+                ))
               ) : payments.length === 0 ? (
-                <tr><td colSpan={7} style={{ textAlign: 'center' }}>No payments found for the selected period.</td></tr>
+                <tr><td colSpan={5} style={{ textAlign: 'center', padding: '4rem', color: 'var(--text-muted)' }}>No collection records found.</td></tr>
               ) : (
                 payments.map((payment) => (
                   <tr key={payment.id}>
                     <td>
-                      <div style={{ fontWeight: 600 }}>{payment.user?.name || 'Unknown'}</div>
-                      <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{payment.user?.memberNo}</div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                        <div style={{ width: 36, height: 36, borderRadius: 10, background: 'rgba(255, 255, 255, 0.05)', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800 }}>
+                          {payment.user?.name?.charAt(0).toUpperCase() || '?'}
+                        </div>
+                        <div>
+                          <div style={{ fontWeight: 700, fontSize: '0.9375rem' }}>{payment.user?.name || 'Deleted User'}</div>
+                          <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{payment.user?.memberNo || '—'}</div>
+                        </div>
+                      </div>
                     </td>
-                    <td>{monthNames[payment.month - 1]} {payment.year}</td>
-                    <td>৳ {payment.amount}</td>
-                    <td style={{ color: payment.fine > 0 ? 'var(--danger)' : 'inherit' }}>৳ {payment.fine}</td>
-                    <td style={{ fontWeight: 600 }}>{payment.isPaid ? <span style={{ color: 'var(--text-muted)' }}>৳ 0</span> : `৳ ${payment.amount + payment.fine}`}</td>
                     <td>
-                      <span className={`badge ${payment.isPaid ? 'badge-success' : 'badge-danger'}`}>
-                        {payment.isPaid ? 'PAID' : 'UNPAID'}
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.875rem', fontWeight: 500 }}>
+                        <Calendar size={14} className="text-muted" />
+                        {monthNames[payment.month - 1]} {payment.year}
+                      </div>
+                    </td>
+                    <td>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                        <div style={{ fontSize: '0.875rem', fontWeight: 600 }}>৳ {(payment.amount + payment.fine).toLocaleString()}</div>
+                        <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>
+                          Base: ৳{payment.amount.toLocaleString()} {payment.fine > 0 && <span style={{ color: '#ef4444' }}>+ Fine: ৳{payment.fine.toLocaleString()}</span>}
+                        </div>
+                      </div>
+                    </td>
+                    <td>
+                      <span className={`badge ${payment.isPaid ? 'badge-success' : 'badge-danger'}`} style={{ letterSpacing: '0.025em' }}>
+                        {payment.isPaid ? 'CONFIRMED' : 'DUE'}
                       </span>
                     </td>
-                    <td>
-                      <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-                        <button className="btn btn-outline" style={{ padding: '0.25rem 0.5rem', fontSize: '0.75rem' }} onClick={() => openEditModal(payment)} title="Edit Fee/Fine">
+                    <td style={{ textAlign: 'right' }}>
+                      <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end', alignItems: 'center' }}>
+                        <button className="btn btn-outline" style={{ width: 32, height: 32, padding: 0 }} onClick={() => openEditModal(payment)} title="Edit Record">
                           <Edit2 size={14} />
                         </button>
-                        <button className="btn btn-outline" style={{ padding: '0.25rem 0.5rem', fontSize: '0.75rem', color: 'var(--danger)', borderColor: 'var(--danger)' }} onClick={() => setDeleteId(payment.id)} title="Delete Payment">
+                        <button className="btn btn-outline" style={{ width: 32, height: 32, padding: 0, color: '#ef4444', borderColor: 'rgba(239, 68, 68, 0.2)' }} onClick={() => setDeleteId(payment.id)} title="Delete Record">
                           <Trash2 size={14} />
                         </button>
                         {!payment.isPaid ? (
-                          <button className="btn btn-primary" style={{ padding: '0.25rem 0.75rem', fontSize: '0.75rem' }} onClick={() => handleMarkPaid(payment.id)}>
-                            Mark Paid
+                          <button className="btn btn-primary" style={{ padding: '0.4rem 0.875rem', fontSize: '0.75rem' }} onClick={() => handleMarkPaid(payment.id)}>
+                            Collect
                           </button>
                         ) : (
-                          <span style={{ color: 'var(--success)', display: 'flex', alignItems: 'center', gap: '0.25rem', fontSize: '0.875rem', fontWeight: 500 }}>
-                            <CheckCircle size={16} /> {new Date(payment.paidAt).toLocaleDateString()}
-                          </span>
+                          <div style={{ color: '#22c55e', display: 'flex', alignItems: 'center', gap: '0.375rem', fontSize: '0.8125rem', fontWeight: 600, padding: '0 0.5rem' }}>
+                            <CheckCircle size={14} /> {new Date(payment.paidAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
+                          </div>
                         )}
                       </div>
                     </td>
@@ -312,57 +342,52 @@ export default function PaymentsPage() {
                 ))
               )}
             </tbody>
-            {payments.length > 0 && (
-              <tfoot>
-                <tr style={{ background: '#f0fdf4', fontWeight: 700, borderTop: '2px solid var(--border)' }}>
-                  <td colSpan={4} style={{ textAlign: 'right', color: 'var(--text-muted)' }}>TOTAL COLLECTED (PAID):</td>
-                  <td style={{ color: 'var(--success)', fontSize: '1.1rem' }}>৳ {totalCollected}</td>
-                  <td colSpan={2}></td>
-                </tr>
-                <tr style={{ background: '#fef2f2', fontWeight: 700 }}>
-                  <td colSpan={4} style={{ textAlign: 'right', color: 'var(--text-muted)' }}>TOTAL DUE (UNPAID):</td>
-                  <td style={{ color: 'var(--danger)', fontSize: '1.1rem' }}>৳ {totalDue}</td>
-                  <td colSpan={2}></td>
-                </tr>
-              </tfoot>
-            )}
           </table>
         </div>
       </div>
 
       {/* Edit Payment Modal */}
       {showEditModal && (
-        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100 }}>
-          <div className="card" style={{ width: '100%', maxWidth: '400px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-              <h3 style={{ fontSize: '1.25rem', fontWeight: 600 }}>Edit Payment Details</h3>
-              <button onClick={() => setShowEditModal(false)} style={{ background: 'transparent', border: 'none', cursor: 'pointer' }}><X size={24} /></button>
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(15, 23, 42, 0.9)', backdropFilter: 'blur(12px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100, padding: '1.5rem' }} onClick={() => setShowEditModal(false)}>
+          <div className="card" style={{ width: '100%', maxWidth: '420px', background: 'var(--background)', border: '1px solid var(--border)', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)' }} onClick={e => e.stopPropagation()}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
+              <h3 style={{ fontSize: '1.5rem', fontWeight: 800, letterSpacing: '-0.025em' }}>Adjust Record</h3>
+              <button onClick={() => setShowEditModal(false)} style={{ background: 'rgba(255,255,255,0.05)', border: 'none', width: 36, height: 36, borderRadius: 12, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', transition: 'all 0.2s' }}><X size={20} /></button>
             </div>
             
-            <div style={{ marginBottom: '1.5rem', padding: '0.75rem', background: 'var(--background)', borderRadius: '8px', border: '1px solid var(--border)' }}>
-              <p style={{ fontWeight: 600, color: 'var(--text-main)' }}>{editForm.userName} <span style={{ color: 'var(--text-muted)', fontSize: '0.875rem', fontWeight: 400 }}>({editForm.memberNo})</span></p>
-              <p style={{ fontSize: '0.875rem', color: 'var(--primary)' }}>{monthNames[editForm.month - 1]} {editForm.year}</p>
+            <div style={{ marginBottom: '2rem', padding: '1rem', background: 'rgba(255,255,255,0.02)', borderRadius: '12px', border: '1px solid var(--border)', display: 'flex', alignItems: 'center', gap: '1rem' }}>
+               <div style={{ width: 40, height: 40, borderRadius: 10, background: 'var(--primary)', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800 }}>
+                 {editForm.userName.charAt(0).toUpperCase()}
+               </div>
+               <div>
+                 <p style={{ fontWeight: 700, color: 'white', fontSize: '0.95rem' }}>{editForm.userName}</p>
+                 <p style={{ fontSize: '0.75rem', color: 'var(--primary-light)' }}>{monthNames[editForm.month - 1]} {editForm.year} Statement</p>
+               </div>
             </div>
 
-            {error && <div style={{ background: 'var(--danger)', color: 'white', padding: '0.5rem', borderRadius: '4px', marginBottom: '1rem', fontSize: '0.875rem' }}>{error}</div>}
-            <form onSubmit={handleEditPayment} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-              <div>
-                <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', fontWeight: 500 }}>Monthly Fee Amount (৳)</label>
-                <input type="number" className="input" value={editForm.amount} onChange={e => setEditForm({...editForm, amount: parseInt(e.target.value) || 0})} required />
+            {error && <div className="reset-error" style={{ marginBottom: '1.5rem' }}>{error}</div>}
+            <form onSubmit={handleEditPayment} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                <div>
+                  <label className="reset-label">Base Fee (৳)</label>
+                  <input type="number" className="input" value={editForm.amount} onChange={e => setEditForm({...editForm, amount: parseInt(e.target.value) || 0})} required />
+                </div>
+                <div>
+                  <label className="reset-label">Penalty (৳)</label>
+                  <input type="number" className="input" value={editForm.fine} onChange={e => setEditForm({...editForm, fine: parseInt(e.target.value) || 0})} required />
+                </div>
               </div>
-              <div>
-                <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', fontWeight: 500 }}>Late Fine (৳)</label>
-                <input type="number" className="input" value={editForm.fine} onChange={e => setEditForm({...editForm, fine: parseInt(e.target.value) || 0})} required />
-              </div>
-              <div>
-                <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', marginTop: '0.5rem' }}>
-                  <input type="checkbox" checked={editForm.isPaid} onChange={e => setEditForm({...editForm, isPaid: e.target.checked})} />
-                  <span style={{ fontWeight: 500 }}>Is Paid?</span>
+              
+              <div style={{ padding: '0.75rem', background: 'rgba(255,255,255,0.03)', borderRadius: '10px' }}>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', cursor: 'pointer' }}>
+                  <input type="checkbox" checked={editForm.isPaid} onChange={e => setEditForm({...editForm, isPaid: e.target.checked})} style={{ width: 18, height: 18 }} />
+                  <span style={{ fontWeight: 600, fontSize: '0.9rem' }}>Mark as Verified Payment</span>
                 </label>
               </div>
+
               <div style={{ marginTop: '1rem', display: 'flex', justifyContent: 'flex-end', gap: '1rem' }}>
-                <button type="button" className="btn btn-outline" onClick={() => setShowEditModal(false)}>Cancel</button>
-                <button type="submit" className="btn btn-primary" disabled={submitLoading}>{submitLoading ? 'Saving...' : 'Save Changes'}</button>
+                <button type="button" className="btn btn-outline" onClick={() => setShowEditModal(false)}>Discard</button>
+                <button type="submit" className="btn btn-primary" disabled={submitLoading} style={{ flex: 1 }}>{submitLoading ? 'Updating...' : 'Apply Changes'}</button>
               </div>
             </form>
           </div>
@@ -371,55 +396,60 @@ export default function PaymentsPage() {
 
       {/* Add Payment Modal */}
       {showAddModal && (
-        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100 }}>
-          <div className="card" style={{ width: '100%', maxWidth: '500px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-              <h3 style={{ fontSize: '1.25rem', fontWeight: 600 }}>Add Individual Payment</h3>
-              <button onClick={() => setShowAddModal(false)} style={{ background: 'transparent', border: 'none', cursor: 'pointer' }}><X size={24} /></button>
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(15, 23, 42, 0.9)', backdropFilter: 'blur(12px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100, padding: '1.5rem' }} onClick={() => setShowAddModal(false)}>
+          <div className="card" style={{ width: '100%', maxWidth: '500px', maxHeight: '90vh', overflowY: 'auto', border: '1px solid var(--border)', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)' }} onClick={e => e.stopPropagation()}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
+              <h3 style={{ fontSize: '1.5rem', fontWeight: 800, letterSpacing: '-0.025em' }}>Create Transaction</h3>
+              <button onClick={() => setShowAddModal(false)} style={{ background: 'rgba(255,255,255,0.05)', border: 'none', width: 36, height: 36, borderRadius: 12, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white' }}><X size={20} /></button>
             </div>
-            {error && <div style={{ background: 'var(--danger)', color: 'white', padding: '0.5rem', borderRadius: '4px', marginBottom: '1rem', fontSize: '0.875rem' }}>{error}</div>}
-            <form onSubmit={handleAddPayment} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-              <div>
-                <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', fontWeight: 500 }}>Select Member *</label>
-                <select className="input" required value={addForm.userId} onChange={e => setAddForm({...addForm, userId: e.target.value})}>
-                  <option value="">-- Choose Member --</option>
-                  {members.map(m => <option key={m.id} value={m.id}>{m.name} ({m.memberNo})</option>)}
-                </select>
 
-                {/* History Section */}
+            {error && <div className="reset-error" style={{ marginBottom: '1.5rem' }}>{error}</div>}
+            
+            <form onSubmit={handleAddPayment} style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+              <div>
+                <label className="reset-label">Associate Member</label>
+                <div style={{ position: 'relative' }}>
+                  <User style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} size={16} />
+                  <select className="input" style={{ paddingLeft: '2.75rem' }} required value={addForm.userId} onChange={e => setAddForm({...addForm, userId: e.target.value})}>
+                    <option value="">-- Search and Select Member --</option>
+                    {members.map(m => <option key={m.id} value={m.id}>{m.name} ({m.memberNo})</option>)}
+                  </select>
+                </div>
+
                 {addForm.userId && (
-                  <div style={{ marginTop: '0.75rem', padding: '0.75rem', background: 'var(--background)', borderRadius: '8px', border: '1px solid var(--border)' }}>
-                    <h4 style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-muted)', marginBottom: '0.5rem', textTransform: 'uppercase' }}>Previous 3 Months History</h4>
+                  <div style={{ marginTop: '1.25rem', padding: '1.25rem', background: 'rgba(255, 255, 255, 0.02)', borderRadius: '12px', border: '1px solid var(--border)' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
+                      <Activity size={14} className="text-primary" />
+                      <h4 style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Recent Payment History</h4>
+                    </div>
                     {historyLoading ? (
-                      <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Loading history...</p>
+                      <div className="skeleton" style={{ height: '60px' }}></div>
                     ) : (
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                         {(() => {
                           const prevMonths = [];
                           let m = addForm.month;
                           let y = addForm.year;
                           for (let i = 0; i < 3; i++) {
                             m -= 1;
-                            if (m === 0) {
-                              m = 12;
-                              y -= 1;
-                            }
+                            if (m === 0) { m = 12; y -= 1; }
                             prevMonths.push({ month: m, year: y });
                           }
                           
                           return prevMonths.map((pm, idx) => {
                             const record = memberHistory.find(h => h.month === pm.month && h.year === pm.year);
                             return (
-                              <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.875rem' }}>
-                                <span style={{ fontWeight: 500 }}>{monthNames[pm.month - 1]} {pm.year}</span>
+                              <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.875rem', padding: '0.5rem', background: 'rgba(255,255,255,0.02)', borderRadius: '8px' }}>
+                                <span style={{ fontWeight: 600 }}>{monthNames[pm.month - 1]} {pm.year}</span>
                                 {record ? (
-                                  <span className={`badge ${record.isPaid ? 'badge-success' : 'badge-danger'}`} style={{ fontSize: '0.65rem', padding: '0.15rem 0.4rem' }}>
-                                    {record.isPaid ? 'PAID' : 'UNPAID'} (৳{record.amount + record.fine}) {record.fine > 0 ? `| Fine: ৳${record.fine}` : ''}
-                                  </span>
+                                  <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                    <span className={`badge ${record.isPaid ? 'badge-success' : 'badge-danger'}`} style={{ fontSize: '0.65rem' }}>
+                                      {record.isPaid ? 'PAID' : 'DUE'}
+                                    </span>
+                                    <span style={{ fontWeight: 700, fontSize: '0.75rem' }}>৳{record.amount + record.fine}</span>
+                                  </div>
                                 ) : (
-                                  <span className="badge" style={{ background: '#e2e8f0', color: '#475569', fontSize: '0.65rem', padding: '0.15rem 0.4rem' }}>
-                                    NO RECORD
-                                  </span>
+                                  <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)', fontStyle: 'italic' }}>No record found</span>
                                 )}
                               </div>
                             );
@@ -430,37 +460,41 @@ export default function PaymentsPage() {
                   </div>
                 )}
               </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.25rem' }}>
                 <div>
-                  <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', fontWeight: 500 }}>Month</label>
-                  <select className="input" value={addForm.month} onChange={e => setAddForm({...addForm, month: parseInt(e.target.value)})}>
-                    {monthNames.map((m, i) => <option key={i} value={i + 1}>{m}</option>)}
-                  </select>
+                  <label className="reset-label">Collection Period</label>
+                  <div style={{ display: 'flex', gap: '0.5rem' }}>
+                    <select className="input" value={addForm.month} onChange={e => setAddForm({...addForm, month: parseInt(e.target.value)})}>
+                      {monthNames.map((m, i) => <option key={i} value={i + 1}>{m}</option>)}
+                    </select>
+                    <input type="number" className="input" value={addForm.year} onChange={e => setAddForm({...addForm, year: parseInt(e.target.value)})} style={{ width: '90px' }} />
+                  </div>
                 </div>
-                <div>
-                  <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', fontWeight: 500 }}>Year</label>
-                  <input type="number" className="input" value={addForm.year} onChange={e => setAddForm({...addForm, year: parseInt(e.target.value)})} />
-                </div>
-              </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-                <div>
-                  <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', fontWeight: 500 }}>Fee Amount (৳)</label>
-                  <input type="number" className="input" value={addForm.amount} onChange={e => setAddForm({...addForm, amount: parseInt(e.target.value) || 0})} />
-                </div>
-                <div>
-                  <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', fontWeight: 500 }}>Late Fine (৳)</label>
-                  <input type="number" className="input" value={addForm.fine} onChange={e => setAddForm({...addForm, fine: parseInt(e.target.value) || 0})} />
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.375rem' }}>
+                  <label className="reset-label">Amounts (৳)</label>
+                  <div style={{ display: 'flex', gap: '0.5rem' }}>
+                    <input type="number" className="input" value={addForm.amount} onChange={e => setAddForm({...addForm, amount: parseInt(e.target.value) || 0})} placeholder="Fee" />
+                    <input type="number" className="input" value={addForm.fine} onChange={e => setAddForm({...addForm, fine: parseInt(e.target.value) || 0})} placeholder="Fine" />
+                  </div>
                 </div>
               </div>
-              <div>
-                <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', marginTop: '0.5rem' }}>
-                  <input type="checkbox" checked={addForm.isPaid} onChange={e => setAddForm({...addForm, isPaid: e.target.checked})} />
-                  <span style={{ fontWeight: 500 }}>Mark as Paid immediately</span>
+
+              <div style={{ padding: '1rem', background: 'rgba(34, 197, 94, 0.03)', border: '1px solid rgba(34, 197, 94, 0.1)', borderRadius: '12px' }}>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', cursor: 'pointer' }}>
+                  <input type="checkbox" checked={addForm.isPaid} onChange={e => setAddForm({...addForm, isPaid: e.target.checked})} style={{ width: 20, height: 20 }} />
+                  <div>
+                    <span style={{ fontWeight: 700, fontSize: '0.9rem', color: 'white' }}>Instant Receipt</span>
+                    <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Mark as paid and generate transaction timestamp.</p>
+                  </div>
                 </label>
               </div>
+
               <div style={{ marginTop: '1rem', display: 'flex', justifyContent: 'flex-end', gap: '1rem' }}>
                 <button type="button" className="btn btn-outline" onClick={() => setShowAddModal(false)}>Cancel</button>
-                <button type="submit" className="btn btn-primary" disabled={submitLoading}>{submitLoading ? 'Saving...' : 'Add Payment'}</button>
+                <button type="submit" className="btn btn-primary" disabled={submitLoading} style={{ minWidth: '150px' }}>
+                  {submitLoading ? 'Processing...' : 'Secure Transaction'}
+                </button>
               </div>
             </form>
           </div>
@@ -469,36 +503,43 @@ export default function PaymentsPage() {
 
       {/* Bulk Generate Modal */}
       {showBulkModal && (
-        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100 }}>
-          <div className="card" style={{ width: '100%', maxWidth: '400px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-              <h3 style={{ fontSize: '1.25rem', fontWeight: 600 }}>Bulk Generate Fees</h3>
-              <button onClick={() => setShowBulkModal(false)} style={{ background: 'transparent', border: 'none', cursor: 'pointer' }}><X size={24} /></button>
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.8)', backdropFilter: 'blur(10px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100, padding: '1.5rem' }} onClick={() => setShowBulkModal(false)}>
+          <div className="card" style={{ width: '100%', maxWidth: '420px', textAlign: 'center' }} onClick={e => e.stopPropagation()}>
+            <div style={{ width: 72, height: 72, background: 'rgba(34, 197, 94, 0.1)', color: 'var(--primary-light)', borderRadius: 24, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.5rem' }}>
+              <Copy size={36} />
             </div>
-            <p style={{ fontSize: '0.875rem', color: 'var(--text-muted)', marginBottom: '1.5rem' }}>
-              This will automatically create UNPAID monthly fee records for all currently <strong>ACTIVE</strong> members.
+            <h3 style={{ fontSize: '1.5rem', fontWeight: 800, marginBottom: '0.75rem' }}>Bulk Operations</h3>
+            <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem', marginBottom: '2rem' }}>
+              This will batch-generate fee records for all <strong>ACTIVE</strong> members for the specified period.
             </p>
-            {error && <div style={{ background: 'var(--danger)', color: 'white', padding: '0.5rem', borderRadius: '4px', marginBottom: '1rem', fontSize: '0.875rem' }}>{error}</div>}
-            <form onSubmit={handleBulkGenerate} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+
+            {error && <div className="reset-error" style={{ marginBottom: '1.5rem' }}>{error}</div>}
+            
+            <form onSubmit={handleBulkGenerate} style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', textAlign: 'left' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '1rem' }}>
                 <div>
-                  <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', fontWeight: 500 }}>Month</label>
+                  <label className="reset-label">Target Month</label>
                   <select className="input" value={bulkForm.month} onChange={e => setBulkForm({...bulkForm, month: parseInt(e.target.value)})}>
                     {monthNames.map((m, i) => <option key={i} value={i + 1}>{m}</option>)}
                   </select>
                 </div>
                 <div>
-                  <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', fontWeight: 500 }}>Year</label>
+                  <label className="reset-label">Year</label>
                   <input type="number" className="input" value={bulkForm.year} onChange={e => setBulkForm({...bulkForm, year: parseInt(e.target.value)})} />
                 </div>
               </div>
               <div>
-                <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', fontWeight: 500 }}>Default Monthly Fee (৳)</label>
-                <input type="number" className="input" value={bulkForm.amount} onChange={e => setBulkForm({...bulkForm, amount: parseInt(e.target.value) || 0})} />
+                <label className="reset-label">Standard Assessment (৳)</label>
+                <div style={{ position: 'relative' }}>
+                  <DollarSign style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} size={16} />
+                  <input type="number" className="input" style={{ paddingLeft: '2.5rem' }} value={bulkForm.amount} onChange={e => setBulkForm({...bulkForm, amount: parseInt(e.target.value) || 0})} />
+                </div>
               </div>
-              <div style={{ marginTop: '1rem', display: 'flex', justifyContent: 'flex-end', gap: '1rem' }}>
-                <button type="button" className="btn btn-outline" onClick={() => setShowBulkModal(false)}>Cancel</button>
-                <button type="submit" className="btn btn-primary" disabled={submitLoading}>{submitLoading ? 'Generating...' : 'Generate Now'}</button>
+              <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>
+                <button type="button" className="btn btn-outline" onClick={() => setShowBulkModal(false)} style={{ flex: 1 }}>Discard</button>
+                <button type="submit" className="btn btn-primary" disabled={submitLoading} style={{ flex: 1.5 }}>
+                  {submitLoading ? 'Generating...' : 'Start Process'} <ArrowRight size={16} />
+                </button>
               </div>
             </form>
           </div>
@@ -507,21 +548,21 @@ export default function PaymentsPage() {
 
       {/* Delete Confirmation Modal */}
       {deleteId && (
-        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 110 }}>
-          <div className="card" style={{ width: '100%', maxWidth: '400px', padding: '2rem', textAlign: 'center' }}>
-            <div style={{ width: 64, height: 64, background: '#fee2e2', color: '#dc2626', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.5rem' }}>
-              <AlertTriangle size={32} />
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(12px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 110, padding: '1.5rem' }} onClick={() => setDeleteId(null)}>
+          <div className="card" style={{ width: '100%', maxWidth: '380px', padding: '2.5rem', textAlign: 'center', borderColor: 'rgba(239, 68, 68, 0.2)' }} onClick={e => e.stopPropagation()}>
+            <div style={{ width: 72, height: 72, background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444', borderRadius: 24, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.5rem' }}>
+              <AlertTriangle size={36} />
             </div>
-            <h3 style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: '0.75rem', color: '#1e293b' }}>Delete Payment?</h3>
-            <p style={{ color: '#64748b', marginBottom: '2rem', fontSize: '0.9rem', lineHeight: '1.5' }}>
-              Are you sure you want to delete this payment record? This action cannot be undone and will affect total collection calculations.
+            <h3 style={{ fontSize: '1.5rem', fontWeight: 800, marginBottom: '0.75rem' }}>Delete Entry?</h3>
+            <p style={{ color: 'var(--text-muted)', marginBottom: '2.5rem', fontSize: '0.875rem', lineHeight: 1.6 }}>
+              This record will be permanently purged from the registry. This may impact financial reporting.
             </p>
             <div style={{ display: 'flex', gap: '1rem' }}>
-              <button className="btn btn-outline" style={{ flex: 1, padding: '0.75rem' }} onClick={() => setDeleteId(null)} disabled={submitLoading}>
-                Cancel
+              <button className="btn btn-outline" style={{ flex: 1 }} onClick={() => setDeleteId(null)} disabled={submitLoading}>
+                Go Back
               </button>
-              <button className="btn" style={{ flex: 1, background: '#ef4444', color: 'white', padding: '0.75rem', border: 'none' }} onClick={() => handleDelete(deleteId)} disabled={submitLoading}>
-                {submitLoading ? 'Deleting...' : 'Yes, Delete'}
+              <button className="btn" style={{ flex: 1, background: '#ef4444', color: 'white', border: 'none' }} onClick={() => handleDelete(deleteId)} disabled={submitLoading}>
+                {submitLoading ? 'Purging...' : 'Delete Forever'}
               </button>
             </div>
           </div>

@@ -220,8 +220,8 @@ export default function ReportsPage() {
             </div>
             
             <div style={{ display: 'flex', gap: '0.5rem' }}>
-              <button className="btn btn-primary no-print" style={{ flex: 1, background: 'var(--text-main)', borderColor: 'var(--text-main)' }} onClick={() => handleViewReport('monthly')} disabled={previewLoading}>
-                <FileText size={18} style={{ marginRight: '0.5rem' }} /> View
+              <button className="btn btn-primary no-print" style={{ flex: 1 }} onClick={() => handleViewReport('monthly')} disabled={previewLoading}>
+                <FileText size={18} /> View
               </button>
               <button className="btn btn-outline no-print" style={{ flex: 1 }} onClick={() => handleDownloadPDF('monthly')} disabled={loadingType === 'monthly-pdf'}>
                 <Download size={18} style={{ marginRight: '0.5rem' }} /> {loadingType === 'monthly-pdf' ? '...' : 'PDF'}
@@ -246,8 +246,8 @@ export default function ReportsPage() {
             </select>
             
             <div style={{ display: 'flex', gap: '0.5rem' }}>
-              <button className="btn btn-primary no-print" style={{ flex: 1, background: 'var(--text-main)', borderColor: 'var(--text-main)' }} onClick={() => handleViewReport('annual')} disabled={previewLoading}>
-                <FileText size={18} style={{ marginRight: '0.5rem' }} /> View
+              <button className="btn btn-primary no-print" style={{ flex: 1 }} onClick={() => handleViewReport('annual')} disabled={previewLoading}>
+                <FileText size={18} /> View
               </button>
               <button className="btn btn-outline no-print" style={{ flex: 1 }} onClick={() => handleDownloadPDF('annual')} disabled={loadingType === 'annual-pdf'}>
                 <Download size={18} style={{ marginRight: '0.5rem' }} /> {loadingType === 'annual-pdf' ? '...' : 'PDF'}
@@ -271,7 +271,8 @@ export default function ReportsPage() {
         const netBalance = totalCollected + totalProfits - totalExpenses;
 
         return (
-          <div id="report-preview-pane" className="card" style={{ marginTop: '2rem', padding: '2rem', background: 'white' }}>
+          <div style={{ marginTop: '3rem', padding: '1rem', background: 'rgba(255, 255, 255, 0.02)', borderRadius: '20px', border: '1px solid var(--border)' }}>
+            <div id="report-preview-pane" className="card" style={{ padding: '3rem', background: 'white', color: '#1e293b', border: 'none', borderRadius: '16px' }}>
 
             {/* Action bar - hidden in PDF */}
             <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '1rem' }} data-html2canvas-ignore="true">
@@ -491,6 +492,7 @@ export default function ReportsPage() {
               </table>
             </div>
           </div>
+        </div>
         );
       })()}
     </div>
