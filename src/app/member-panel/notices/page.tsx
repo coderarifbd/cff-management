@@ -8,10 +8,17 @@ export default function MemberNoticesPage() {
   const [selectedNotice, setSelectedNotice] = useState<any | null>(null);
 
   useEffect(() => {
+    const savedHidden = localStorage.getItem('cff_read_notices');
+    const localHiddenIds = savedHidden ? JSON.parse(savedHidden) : [];
+
     fetch('/api/notices')
       .then(res => res.json())
       .then(data => {
-        setNotices(data || []);
+        const mergedNotices = (Array.isArray(data) ? data : []).map(n => ({
+          ...n,
+          isRead: n.isRead || localHiddenIds.includes(n.id)
+        }));
+        setNotices(mergedNotices);
         setLoading(false);
       })
       .catch(console.error);
@@ -37,7 +44,25 @@ export default function MemberNoticesPage() {
               key={notice.id} 
               className="card" 
               style={{ padding: '1.5rem', cursor: 'pointer', transition: 'transform 0.2s', border: '1px solid transparent' }}
-              onClick={() => setSelectedNotice(notice)}
+              onClick={() => {
+                setSelectedNotice(notice);
+                if (!notice.isRead) {
+                  // Local fallback
+                  const savedHidden = localStorage.getItem('cff_read_notices');
+                  const localHiddenIds = savedHidden ? JSON.parse(savedHidden) : [];
+                  if (!localHiddenIds.includes(notice.id)) {
+                    localStorage.setItem('cff_read_notices', JSON.stringify([...localHiddenIds, notice.id]));
+                  }
+
+                  fetch('/api/notices/read', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ noticeId: notice.id })
+                  }).then(() => {
+                    setNotices(prev => prev.map(n => n.id === notice.id ? { ...n, isRead: true } : n));
+                  }).catch(console.error);
+                }
+              }}
               onMouseEnter={(e) => e.currentTarget.style.borderColor = 'var(--primary)'}
               onMouseLeave={(e) => e.currentTarget.style.borderColor = 'transparent'}
             >
@@ -47,7 +72,14 @@ export default function MemberNoticesPage() {
                 </div>
                 <div style={{ flex: 1 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.5rem' }}>
-                    <h3 style={{ fontSize: '1.125rem', fontWeight: 700 }}>{notice.title}</h3>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                      <h3 style={{ fontSize: '1.125rem', fontWeight: 700 }}>{notice.title}</h3>
+                      {!notice.isRead && (
+                        <span style={{ padding: '0.15rem 0.5rem', background: 'rgba(34, 197, 94, 0.1)', color: '#22c55e', borderRadius: '6px', fontSize: '0.65rem', fontWeight: 800, textTransform: 'uppercase' }}>
+                          New
+                        </span>
+                      )}
+                    </div>
                     <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
                       <Calendar size={14} /> {new Date(notice.createdAt).toLocaleDateString()}
                     </span>

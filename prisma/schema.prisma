@@ -23,6 +23,7 @@ model User {
 
   payments  Payment[]
   deposits  Deposit[]
+  noticeReads NoticeRead[]
 }
 
 model Payment {
@@ -94,6 +95,19 @@ model Notice {
   status     String   @default("ACTIVE") // ACTIVE, ARCHIVED
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
+  reads      NoticeRead[]
+}
+
+model NoticeRead {
+  id        String   @id @default(uuid())
+  noticeId  String
+  userId    String
+  readAt    DateTime @default(now())
+  
+  notice    Notice   @relation(fields: [noticeId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([noticeId, userId])
 }
 
 model Income {

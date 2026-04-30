@@ -1,6 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { Plus, Edit2, Trash2, X, Wallet, AlertTriangle } from 'lucide-react';
+import { Plus, Edit2, Trash2, X, Wallet, AlertTriangle, Search } from 'lucide-react';
 
 export default function IncomesPage() {
   const [incomes, setIncomes] = useState<any[]>([]);
@@ -21,6 +21,12 @@ export default function IncomesPage() {
   const [manageCustomCat, setManageCustomCat] = useState(false);
 
   const uniqueCategories = Array.from(new Set(['Donation', 'Sponsorship', 'Bank Interest', 'Settlement Reversal', ...incomes.map(e => e.category)]));
+  
+  // Search and Filter
+  const [searchTerm, setSearchTerm] = useState('');
+  const [categoryFilter, setCategoryFilter] = useState('ALL');
+  const [selectedMonth, setSelectedMonth] = useState('ALL');
+  const [selectedYear, setSelectedYear] = useState('ALL');
 
   const fetchIncomes = async () => {
     setLoading(true);
@@ -38,6 +44,28 @@ export default function IncomesPage() {
   useEffect(() => {
     fetchIncomes();
   }, []);
+
+  // Filter Helpers
+  const availableYears = Array.from(new Set(incomes.map(e => new Date(e.date).getFullYear()))).sort((a, b) => b - a);
+  const months = [
+    { name: 'January', value: 0 }, { name: 'February', value: 1 }, { name: 'March', value: 2 },
+    { name: 'April', value: 3 }, { name: 'May', value: 4 }, { name: 'June', value: 5 },
+    { name: 'July', value: 6 }, { name: 'August', value: 7 }, { name: 'September', value: 8 },
+    { name: 'October', value: 9 }, { name: 'November', value: 10 }, { name: 'December', value: 11 }
+  ];
+
+  // Filtering Logic
+  const filteredIncomes = incomes.filter(inc => {
+    const incDate = new Date(inc.date);
+    const matchesSearch = inc.title?.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                         inc.description?.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                         inc.category.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesCategory = categoryFilter === 'ALL' || inc.category === categoryFilter;
+    const matchesMonth = selectedMonth === 'ALL' || incDate.getMonth() === parseInt(selectedMonth);
+    const matchesYear = selectedYear === 'ALL' || incDate.getFullYear() === parseInt(selectedYear);
+    
+    return matchesSearch && matchesCategory && matchesMonth && matchesYear;
+  });
 
   const handleAddSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -121,6 +149,57 @@ export default function IncomesPage() {
         </button>
       </div>
 
+      {/* Search & Filter Section */}
+      <div className="card" style={{ marginBottom: '1.5rem', display: 'grid', gridTemplateColumns: '1fr auto auto auto', gap: '1rem', alignItems: 'center' }}>
+        <div style={{ position: 'relative' }}>
+          <Search size={18} style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
+          <input 
+            type="text" 
+            className="input" 
+            style={{ paddingLeft: '2.75rem' }}
+            placeholder="Search incomes..." 
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+        </div>
+        <div style={{ width: '160px' }}>
+          <select 
+            className="input" 
+            value={categoryFilter}
+            onChange={(e) => setCategoryFilter(e.target.value)}
+          >
+            <option value="ALL">All Categories</option>
+            {uniqueCategories.map(cat => (
+              <option key={cat} value={cat}>{cat}</option>
+            ))}
+          </select>
+        </div>
+        <div style={{ width: '140px' }}>
+          <select 
+            className="input" 
+            value={selectedMonth}
+            onChange={(e) => setSelectedMonth(e.target.value)}
+          >
+            <option value="ALL">All Months</option>
+            {months.map(m => (
+              <option key={m.value} value={m.value}>{m.name}</option>
+            ))}
+          </select>
+        </div>
+        <div style={{ width: '120px' }}>
+          <select 
+            className="input" 
+            value={selectedYear}
+            onChange={(e) => setSelectedYear(e.target.value)}
+          >
+            <option value="ALL">All Years</option>
+            {availableYears.map(year => (
+              <option key={year} value={year}>{year}</option>
+            ))}
+          </select>
+        </div>
+      </div>
+
       <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
         <div style={{ overflowX: 'auto' }}>
           <table>
@@ -137,10 +216,10 @@ export default function IncomesPage() {
             <tbody>
               {loading ? (
                 <tr><td colSpan={6} style={{ textAlign: 'center' }}>Loading incomes...</td></tr>
-              ) : incomes.length === 0 ? (
+              ) : filteredIncomes.length === 0 ? (
                 <tr><td colSpan={6} style={{ textAlign: 'center' }}>No extra income records found.</td></tr>
               ) : (
-                incomes.map((income) => (
+                filteredIncomes.map((income) => (
                   <tr key={income.id}>
                     <td>{new Date(income.date).toLocaleDateString()}</td>
                     <td style={{ fontWeight: 600 }}>{income.title}</td>
@@ -165,6 +244,15 @@ export default function IncomesPage() {
                 ))
               )}
             </tbody>
+            {filteredIncomes.length > 0 && (
+              <tfoot>
+                <tr style={{ background: 'rgba(255, 255, 255, 0.02)', fontWeight: 700 }}>
+                  <td colSpan={4} style={{ textAlign: 'right', padding: '1.25rem' }}>Total Filtered Incomes:</td>
+                  <td style={{ color: 'var(--success)', padding: '1.25rem', fontSize: '1.125rem' }}>+ ৳ {filteredIncomes.reduce((sum, e) => sum + e.amount, 0).toLocaleString()}</td>
+                  <td></td>
+                </tr>
+              </tfoot>
+            )}
           </table>
         </div>
       </div>

@@ -6,12 +6,10 @@ export default function MemberDashboardPage() {
   const [data, setData] = useState<any>(null);
   const [notices, setNotices] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [hiddenIds, setHiddenIds] = useState<string[]>([]);
 
   useEffect(() => {
-    // Load hidden notices from local storage
-    const saved = localStorage.getItem('cff_hidden_notices');
-    if (saved) setHiddenIds(JSON.parse(saved));
+    const savedHidden = localStorage.getItem('cff_read_notices');
+    const localHiddenIds = savedHidden ? JSON.parse(savedHidden) : [];
 
     Promise.all([
       fetch('/api/member/dashboard').then(res => res.json()),
@@ -20,7 +18,14 @@ export default function MemberDashboardPage() {
     .then(([dashData, noticesData]) => {
       if (dashData.error) throw new Error('Unauthorized');
       setData(dashData);
-      setNotices(noticesData || []);
+      
+      // Merge server-side read status with local-side hidden status
+      const mergedNotices = (Array.isArray(noticesData) ? noticesData : []).map(n => ({
+        ...n,
+        isRead: n.isRead || localHiddenIds.includes(n.id)
+      }));
+      
+      setNotices(mergedNotices);
       setLoading(false);
     })
     .catch(err => {
@@ -29,10 +34,27 @@ export default function MemberDashboardPage() {
     });
   }, []);
 
-  const hideNotice = (id: string) => {
-    const updated = [...hiddenIds, id];
-    setHiddenIds(updated);
-    localStorage.setItem('cff_hidden_notices', JSON.stringify(updated));
+  const hideNotice = async (id: string) => {
+    try {
+      // 1. Optimistic UI update
+      setNotices(prev => prev.map(n => n.id === id ? { ...n, isRead: true } : n));
+      
+      // 2. Local fallback persistence
+      const savedHidden = localStorage.getItem('cff_read_notices');
+      const localHiddenIds = savedHidden ? JSON.parse(savedHidden) : [];
+      if (!localHiddenIds.includes(id)) {
+        localStorage.setItem('cff_read_notices', JSON.stringify([...localHiddenIds, id]));
+      }
+
+      // 3. Server-side persistence
+      await fetch('/api/notices/read', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ noticeId: id })
+      });
+    } catch (err) {
+      console.error('Failed to mark notice as read', err);
+    }
   };
 
   if (loading || !data) {
@@ -46,7 +68,7 @@ export default function MemberDashboardPage() {
     );
   }
 
-  const visibleNotices = notices.filter(n => !hiddenIds.includes(n.id)).slice(0, 3);
+  const visibleNotices = notices.filter(n => !n.isRead).slice(0, 3);
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
