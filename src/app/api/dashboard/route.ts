@@ -3,127 +3,112 @@ import { prisma } from '@/lib/prisma';
 
 export const dynamic = 'force-dynamic';
 
-export async function GET() {
+export async function GET(request: Request) {
+  const { searchParams } = new URL(request.url);
+  const mode = searchParams.get('mode') || 'yearly';
+  const selectedYear = parseInt(searchParams.get('year') || new Date().getFullYear().toString());
+
   try {
-    // Total members (ACTIVE or BANNED, but maybe just count all users who are not ADMIN)
-    const totalMembers = await prisma.user.count({
-      where: {
-        role: { in: ['MEMBER', 'MANAGER'] }
-      }
-    });
+    // Current Stats (Global)
+    const [totalMembers, totalFees, totalFines, investments, expenses, activeInvestmentsCount, investmentTotals, allDeposits, allOtherIncomes] = await Promise.all([
+      prisma.user.count({ where: { role: { in: ['MEMBER', 'MANAGER'] } } }),
+      prisma.payment.aggregate({ _sum: { amount: true }, where: { isPaid: true } }),
+      prisma.payment.aggregate({ _sum: { fine: true }, where: { isPaid: true } }),
+      prisma.investment.aggregate({ _sum: { amount: true } }),
+      prisma.expense.aggregate({ _sum: { amount: true } }),
+      prisma.investment.count({ where: { status: 'RUNNING' } }),
+      prisma.investment.aggregate({ _sum: { profit: true, refund: true } }),
+      prisma.deposit.aggregate({ _sum: { amount: true } }),
+      prisma.income.aggregate({ _sum: { amount: true } })
+    ]);
 
-    const totalFees = await prisma.payment.aggregate({
-      _sum: { amount: true },
-      where: { isPaid: true }
-    });
-    
     const monthlyCollection = totalFees._sum.amount || 0;
-    const totalFines = await prisma.payment.aggregate({
-      _sum: { fine: true },
-      where: { isPaid: true }
-    });
-
-    const investments = await prisma.investment.aggregate({
-      _sum: { amount: true }
-    });
-
-    const expenses = await prisma.expense.aggregate({
-      _sum: { amount: true }
-    });
-
-    const activeInvestmentsCount = await prisma.investment.count({
-      where: { status: 'RUNNING' }
-    });
-
-    const investmentTotals = await prisma.investment.aggregate({
-      _sum: { profit: true, refund: true }
-    });
-    
     const totalInvestmentProfit = investmentTotals._sum.profit || 0;
     const totalInvestmentRefund = investmentTotals._sum.refund || 0;
-
-    // Net profit calculation: 
-    // Collections + Fines + Deposits + Investment Profit + Investment Refund - Expenses - Investment Principal
-    const allCollections = await prisma.payment.aggregate({
-      _sum: { amount: true },
-      where: { isPaid: true }
-    });
-    const allDeposits = await prisma.deposit.aggregate({
-      _sum: { amount: true }
-    });
-    
-    const allOtherIncomes = await prisma.income.aggregate({
-      _sum: { amount: true }
-    });
-    
-    const totalIncome = (allCollections._sum.amount || 0) + (totalFines._sum.fine || 0) + (allDeposits._sum.amount || 0) + (allOtherIncomes._sum.amount || 0);
+    const totalIncome = (totalFees._sum.amount || 0) + (totalFines._sum.fine || 0) + (allDeposits._sum.amount || 0) + (allOtherIncomes._sum.amount || 0);
     const totalInvestments = investments._sum.amount || 0;
     const totalExpenses = expenses._sum.amount || 0;
     
-    // Add profit and refunded principal back to the net balance
     const netProfit = totalIncome + totalInvestmentProfit + totalInvestmentRefund - totalExpenses - totalInvestments;
-
-    // Monthly Chart Data (Last 6 Months)
-    const chartData: any[] = [];
-    const now = new Date();
-    
-    for (let i = 5; i >= 0; i--) {
-      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
-      const m = d.getMonth() + 1;
-      const y = d.getFullYear();
-      const monthName = d.toLocaleString('default', { month: 'short' });
-
-      const mPayments = await prisma.payment.aggregate({
-        _sum: { amount: true, fine: true },
-        where: { month: m, year: y, isPaid: true }
-      });
-      
-      const mOtherIncomes = await prisma.income.aggregate({
-        _sum: { amount: true },
-        where: {
-          date: {
-            gte: new Date(y, m - 1, 1),
-            lt: new Date(y, m, 1)
-          }
-        }
-      });
-
-      const mExpenses = await prisma.expense.aggregate({
-        _sum: { amount: true },
-        where: {
-          date: {
-            gte: new Date(y, m - 1, 1),
-            lt: new Date(y, m, 1)
-          }
-        }
-      });
-
-      const mInvestmentProfits = await prisma.investmentProfit.aggregate({
-        _sum: { amount: true },
-        where: {
-          date: {
-            gte: new Date(y, m - 1, 1),
-            lt: new Date(y, m, 1)
-          }
-        }
-      });
-
-      const totalMIncome = (mPayments._sum.amount || 0) + (mPayments._sum.fine || 0) + (mOtherIncomes._sum.amount || 0) + (mInvestmentProfits._sum.amount || 0);
-      const totalMExpense = mExpenses._sum.amount || 0;
-
-      chartData.push({
-        label: monthName,
-        income: totalMIncome,
-        expense: totalMExpense,
-        profit: totalMIncome - totalMExpense
-      });
-    }
-
     const totalOtherAmount = (allOtherIncomes._sum.amount || 0) + (allDeposits._sum.amount || 0);
-    const totalProfit = totalInvestmentProfit + totalOtherAmount;
-    
-    // User requested formula for Total Amount: Fees + Fines + Investment Profit + Other Amount - Total Expense
+    const totalFederationProfit = totalInvestmentProfit + totalOtherAmount;
     const totalAmount = monthlyCollection + (totalFines._sum.fine || 0) + totalInvestmentProfit + totalOtherAmount - totalExpenses;
+
+    // Growth Chart Data
+    const chartData: any[] = [];
+    
+    if (mode === 'overall') {
+      // Find the first payment year
+      const firstPayment = await prisma.payment.findFirst({
+        where: { isPaid: true },
+        orderBy: { year: 'asc' }
+      });
+      const startYear = firstPayment?.year || selectedYear;
+      const currentYear = new Date().getFullYear();
+
+      for (let y = startYear; y <= currentYear; y++) {
+        const yPayments = await prisma.payment.aggregate({
+          _sum: { amount: true, fine: true },
+          where: { year: y, isPaid: true }
+        });
+        const yOtherIncomes = await prisma.income.aggregate({
+          _sum: { amount: true },
+          where: { date: { gte: new Date(y, 0, 1), lte: new Date(y, 11, 31, 23, 59, 59) } }
+        });
+        const yExpenses = await prisma.expense.aggregate({
+          _sum: { amount: true },
+          where: { date: { gte: new Date(y, 0, 1), lte: new Date(y, 11, 31, 23, 59, 59) } }
+        });
+        const yInvProfits = await prisma.investmentProfit.aggregate({
+          _sum: { amount: true },
+          where: { date: { gte: new Date(y, 0, 1), lte: new Date(y, 11, 31, 23, 59, 59) } }
+        });
+
+        const yIncome = (yPayments._sum.amount || 0) + (yPayments._sum.fine || 0) + (yOtherIncomes._sum.amount || 0) + (yInvProfits._sum.amount || 0);
+        const yExpense = yExpenses._sum.amount || 0;
+
+        chartData.push({
+          label: y.toString(),
+          income: yIncome,
+          expense: yExpense,
+          growth: yIncome - yExpense
+        });
+      }
+    } else {
+      // Yearly Mode (12 Months)
+      const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      for (let m = 1; m <= 12; m++) {
+        const startDate = new Date(selectedYear, m - 1, 1);
+        const endDate = new Date(selectedYear, m, 0, 23, 59, 59);
+
+        const mPayments = await prisma.payment.aggregate({
+          _sum: { amount: true, fine: true },
+          where: { month: m, year: selectedYear, isPaid: true }
+        });
+        const mOtherIncomes = await prisma.income.aggregate({
+          _sum: { amount: true },
+          where: { date: { gte: startDate, lte: endDate } }
+        });
+        const mExpenses = await prisma.expense.aggregate({
+          _sum: { amount: true },
+          where: { date: { gte: startDate, lte: endDate } }
+        });
+        const mInvProfits = await prisma.investmentProfit.aggregate({
+          _sum: { amount: true },
+          where: { date: { gte: startDate, lte: endDate } }
+        });
+
+        const mIncome = (mPayments._sum.amount || 0) + (mPayments._sum.fine || 0) + (mOtherIncomes._sum.amount || 0) + (mInvProfits._sum.amount || 0);
+        const mExpense = mExpenses._sum.amount || 0;
+
+        chartData.push({
+          label: monthNames[m - 1],
+          income: mIncome,
+          expense: mExpense,
+          growth: mIncome - mExpense
+        });
+      }
+    }
 
     return NextResponse.json({
       totalMembers,
@@ -135,7 +120,7 @@ export async function GET() {
       totalExpenses,
       netProfit,
       totalAmount,
-      totalProfit,
+      totalProfit: totalFederationProfit,
       chartData
     });
   } catch (error) {

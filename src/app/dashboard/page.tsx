@@ -1,24 +1,22 @@
 'use client';
 import { useEffect, useState } from 'react';
-import { Users, CreditCard, TrendingUp, Receipt, DollarSign, ArrowUpRight, ArrowDownRight, Activity } from 'lucide-react';
+import { Users, CreditCard, TrendingUp, Receipt, DollarSign, Activity, Calendar, BarChart3 } from 'lucide-react';
 import {
   Chart as ChartJS,
   CategoryScale,
   LinearScale,
-  BarElement,
+  PointElement,
+  LineElement,
   Title,
   Tooltip,
   Legend,
-  PointElement,
-  LineElement,
   Filler
 } from 'chart.js';
-import { Bar, Line } from 'react-chartjs-2';
+import { Line } from 'react-chartjs-2';
 
 ChartJS.register(
   CategoryScale,
   LinearScale,
-  BarElement,
   PointElement,
   LineElement,
   Title,
@@ -42,31 +40,34 @@ export default function DashboardPage() {
     chartData: [] as any[]
   });
   const [loading, setLoading] = useState(true);
+  const [chartMode, setChartMode] = useState<'yearly' | 'overall'>('yearly');
+  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+
+  const fetchStats = async () => {
+    try {
+      const res = await fetch(`/api/dashboard?mode=${chartMode}&year=${selectedYear}`);
+      if (res.ok) {
+        const data = await res.json();
+        setStats(data);
+      }
+    } catch (error) {
+      console.error('Failed to fetch stats', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchStats = async () => {
-      try {
-        const res = await fetch('/api/dashboard');
-        if (res.ok) {
-          const data = await res.json();
-          setStats(data);
-        }
-      } catch (error) {
-        console.error('Failed to fetch stats', error);
-      } finally {
-        setLoading(false);
-      }
-    };
     fetchStats();
-  }, []);
+  }, [chartMode, selectedYear]);
+
+  const years = Array.from({ length: 10 }, (_, i) => new Date().getFullYear() - i);
 
   const chartOptions = {
     responsive: true,
     maintainAspectRatio: false,
     plugins: {
-      legend: {
-        display: false,
-      },
+      legend: { display: false },
       tooltip: {
         backgroundColor: 'rgba(15, 23, 42, 0.9)',
         titleColor: '#fff',
@@ -93,32 +94,14 @@ export default function DashboardPage() {
     labels: stats.chartData.map(d => d.label),
     datasets: [
       {
-        label: 'Net Profit',
-        data: stats.chartData.map(d => d.profit),
+        label: 'Net Growth',
+        data: stats.chartData.map(d => d.growth),
         borderColor: '#22c55e',
         backgroundColor: 'rgba(34, 197, 94, 0.1)',
         fill: true,
         tension: 0.4,
         pointRadius: 4,
         pointBackgroundColor: '#22c55e',
-      }
-    ]
-  };
-
-  const barData = {
-    labels: stats.chartData.map(d => d.label),
-    datasets: [
-      {
-        label: 'Income',
-        data: stats.chartData.map(d => d.income),
-        backgroundColor: '#15803d',
-        borderRadius: 6,
-      },
-      {
-        label: 'Expenses',
-        data: stats.chartData.map(d => d.expense),
-        backgroundColor: '#ef4444',
-        borderRadius: 6,
       }
     ]
   };
@@ -229,33 +212,75 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      <div className="grid-2">
-        <div className="card">
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '2rem' }}>
-            <div>
-              <h3 style={{ fontSize: '1.125rem', fontWeight: 700 }}>Performance</h3>
-              <p style={{ fontSize: '0.875rem', color: 'var(--text-muted)' }}>Net profit growth over time</p>
-            </div>
-            <div style={{ padding: '0.5rem', background: 'rgba(34, 197, 94, 0.1)', borderRadius: '8px', color: '#22c55e', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-              <ArrowUpRight size={16} />
-              <span style={{ fontSize: '0.75rem', fontWeight: 700 }}>Active</span>
-            </div>
+      <div style={{ marginTop: '3rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.5rem' }}>
+          <div>
+            <h2 style={{ fontSize: '1.25rem', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <BarChart3 size={20} style={{ color: 'var(--primary)' }} />
+              Growth Analytics
+            </h2>
+            <p style={{ fontSize: '0.875rem', color: 'var(--text-muted)' }}>
+              {chartMode === 'overall' ? 'Overall yearly growth since start' : `Monthly performance breakdown for ${selectedYear}`}
+            </p>
           </div>
-          <div style={{ height: '320px' }}>
-            <Line options={chartOptions} data={chartData} />
+
+          <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+            <div style={{ display: 'flex', background: 'var(--surface)', padding: '0.25rem', borderRadius: '10px', border: '1px solid var(--border)' }}>
+              <button 
+                onClick={() => setChartMode('yearly')}
+                style={{ 
+                  padding: '0.4rem 1rem', 
+                  borderRadius: '8px', 
+                  fontSize: '0.875rem', 
+                  border: 'none',
+                  cursor: 'pointer',
+                  background: chartMode === 'yearly' ? 'var(--primary)' : 'transparent',
+                  color: chartMode === 'yearly' ? 'white' : 'var(--text-muted)',
+                  transition: 'all 0.2s'
+                }}
+              >
+                Yearly
+              </button>
+              <button 
+                onClick={() => setChartMode('overall')}
+                style={{ 
+                  padding: '0.4rem 1rem', 
+                  borderRadius: '8px', 
+                  fontSize: '0.875rem', 
+                  border: 'none',
+                  cursor: 'pointer',
+                  background: chartMode === 'overall' ? 'var(--primary)' : 'transparent',
+                  color: chartMode === 'overall' ? 'white' : 'var(--text-muted)',
+                  transition: 'all 0.2s'
+                }}
+              >
+                Overall
+              </button>
+            </div>
+
+            {chartMode === 'yearly' && (
+              <select 
+                value={selectedYear}
+                onChange={(e) => setSelectedYear(parseInt(e.target.value))}
+                style={{ 
+                  background: 'var(--surface)', 
+                  border: '1px solid var(--border)', 
+                  color: 'white', 
+                  padding: '0.4rem 1rem', 
+                  borderRadius: '8px',
+                  fontSize: '0.875rem',
+                  outline: 'none',
+                  cursor: 'pointer'
+                }}
+              >
+                {years.map(y => <option key={y} value={y}>{y}</option>)}
+              </select>
+            )}
           </div>
         </div>
 
-        <div className="card">
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '2rem' }}>
-            <div>
-              <h3 style={{ fontSize: '1.125rem', fontWeight: 700 }}>Cash Flow</h3>
-              <p style={{ fontSize: '0.875rem', color: 'var(--text-muted)' }}>Income vs Expenses comparison</p>
-            </div>
-          </div>
-          <div style={{ height: '320px' }}>
-            <Bar options={chartOptions} data={barData} />
-          </div>
+        <div className="card" style={{ height: '400px', padding: '1.5rem' }}>
+          <Line options={chartOptions} data={chartData} />
         </div>
       </div>
     </div>

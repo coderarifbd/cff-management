@@ -40,23 +40,9 @@ export default function ReportsPage() {
         if (data.minYear) setMinYear(data.minYear);
       })
       .catch(console.error);
-    
-    // Initial load for current month
-    handleViewReport('monthly');
   }, []);
 
-  // Reactive updates when parameters change
-  useEffect(() => {
-    if (activeReportType === 'monthly') {
-      handleViewReport('monthly');
-    }
-  }, [monthlyMonth, monthlyYear]);
 
-  useEffect(() => {
-    if (activeReportType === 'annual') {
-      handleViewReport('annual');
-    }
-  }, [annualYear]);
 
   // Generate dynamic years from database minimum to currentYear + 1
   const years = Array.from({ length: currentYear - minYear + 2 }, (_, i) => currentYear + 1 - i);

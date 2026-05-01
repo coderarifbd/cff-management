@@ -76,7 +76,11 @@ export async function GET(request: Request) {
     const totalOutgoings = (totalExpenses._sum.amount || 0);
     
     const netFederationFunds = totalIncomes - totalOutgoings;
-    const equityPerMember = activeMemberCount > 0 ? netFederationFunds / activeMemberCount : 0;
+    
+    // Calculate proportional equity based on member's contribution
+    const totalFederationPaid = allPayments._sum.amount || 0;
+    const userPaidRatio = totalFederationPaid > 0 ? totalPaidFees / totalFederationPaid : 0;
+    const individualEquity = netFederationFunds * userPaidRatio;
 
     return NextResponse.json({
       profile: {
@@ -93,8 +97,8 @@ export async function GET(request: Request) {
         totalDueFines,
         totalPaidAmount: totalPaidFees + totalPaidFines,
         totalDueAmount: totalDueFees + totalDueFines,
-        profitShare: equityPerMember - totalPaidFees, // For display purposes, showing the "bonus" value
-        totalShare: equityPerMember
+        profitShare: individualEquity - totalPaidFees, 
+        totalShare: individualEquity
       },
       payments: user.payments
     });
