@@ -41,11 +41,24 @@ export default function LoginPage() {
   }, [timer]);
 
   const initRecaptcha = () => {
-    if (!recaptchaVerifier.current && typeof window !== 'undefined') {
-      recaptchaVerifier.current = new RecaptchaVerifier(auth, 'recaptcha-container', {
-        size: 'invisible'
-      });
+    if (typeof window === 'undefined') return;
+    
+    const container = document.getElementById('recaptcha-container');
+    if (!container) return;
+
+    // If already initialized, we might need to clear it if the DOM changed
+    if (recaptchaVerifier.current) {
+      try {
+        recaptchaVerifier.current.clear();
+      } catch (e) {
+        console.error('Error clearing recaptcha', e);
+      }
+      recaptchaVerifier.current = null;
     }
+
+    recaptchaVerifier.current = new RecaptchaVerifier(auth, 'recaptcha-container', {
+      size: 'invisible'
+    });
   };
 
   const handleSendOTP = async (e: React.FormEvent) => {
@@ -64,7 +77,11 @@ export default function LoginPage() {
       setTimer(120); // 2 minutes
     } catch (err: any) {
       console.error(err);
-      setError(err.message || 'Failed to send OTP. Please check your number.');
+      if (err.code === 'auth/billing-not-enabled') {
+        setError('Phone login is currently unavailable. Please use your Email & Password instead.');
+      } else {
+        setError(err.message || 'Failed to send OTP. Please check your number.');
+      }
     } finally {
       setLoading(false);
     }
