@@ -5,7 +5,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { 
   LayoutDashboard, Users, CreditCard, TrendingUp, 
   Receipt, FileText, LogOut, ShieldCheck, 
-  Megaphone, Lock, Wallet, X, Menu, Bell
+  Megaphone, Lock, Wallet, X, Menu, Bell, Settings
 } from 'lucide-react';
 import { AuthProvider, useAuth } from '@/lib/auth-context';
 
@@ -48,6 +48,7 @@ function DashboardLayoutInner({ children }: { children: ReactNode }) {
     { name: 'Reports', path: '/dashboard/reports', icon: <FileText size={20} />, roles: ['ADMIN', 'MANAGER'] },
     { name: 'Notices', path: '/dashboard/notices', icon: <Megaphone size={20} />, roles: ['ADMIN', 'MANAGER'] },
     { name: 'Security', path: '/dashboard/change-password', icon: <Lock size={20} />, roles: ['ADMIN', 'MANAGER'] },
+    { name: 'Settings', path: '/dashboard/settings', icon: <Settings size={20} />, roles: ['ADMIN', 'MANAGER'] },
   ];
 
   const navItems = role ? allNavItems.filter(item => item.roles.includes(role)) : [];

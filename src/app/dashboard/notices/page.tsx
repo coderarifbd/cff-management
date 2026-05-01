@@ -1,6 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { Megaphone, Plus, Send, Trash2, X, Edit2, AlertTriangle } from 'lucide-react';
+import { Megaphone, Plus, Send, Trash2, X, Edit2, AlertTriangle, Share2, MessageCircle, Copy, Check } from 'lucide-react';
 
 export default function NoticesPage() {
   const [notices, setNotices] = useState<any[]>([]);
@@ -9,6 +9,7 @@ export default function NoticesPage() {
   const [form, setForm] = useState({ title: '', content: '' });
   const [editId, setEditId] = useState<string | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [copiedId, setCopiedId] = useState<string | null>(null);
   const [submitLoading, setSubmitLoading] = useState(false);
 
   const [error, setError] = useState('');
@@ -83,6 +84,38 @@ export default function NoticesPage() {
     }
   };
 
+  const copyNotice = (notice: any) => {
+    const text = `📢 *${notice.title}*\n\n${notice.content}\n\n_Regards,_\n_CFF Administration_`;
+    navigator.clipboard.writeText(text);
+    setCopiedId(notice.id);
+    setTimeout(() => setCopiedId(null), 2000);
+  };
+
+  const shareNotice = async (notice: any) => {
+    const shareData = {
+      title: notice.title,
+      text: `📢 ${notice.title}\n\n${notice.content}\n\n- CFF Administration`,
+      url: window.location.origin
+    };
+
+    if (navigator.share) {
+      try {
+        await navigator.share(shareData);
+      } catch (err) {
+        console.error('Share failed', err);
+      }
+    } else {
+      copyNotice(notice);
+    }
+  };
+
+  const sendToMessenger = (notice: any) => {
+    const text = `📢 *${notice.title}*\n\n${notice.content}\n\n_Regards,_\n_CFF Administration_`;
+    // Messenger sharing link (direct to messages)
+    const url = `https://www.facebook.com/messages/t/?text=${encodeURIComponent(text)}`;
+    window.open(url, '_blank');
+  };
+
   const sendToWhatsApp = (notice: any) => {
     const text = `📢 *${notice.title}*\n\n${notice.content}\n\n_Regards,_\n_CFF Administration_`;
     const url = `https://wa.me/?text=${encodeURIComponent(text)}`;
@@ -130,14 +163,24 @@ export default function NoticesPage() {
                     <p style={{ whiteSpace: 'pre-wrap', color: 'rgba(255, 255, 255, 0.8)', fontSize: '0.95rem', lineHeight: 1.6 }}>{notice.content}</p>
                   </div>
                 </div>
-                <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'flex-start', flexShrink: 0 }}>
-                  <button className="btn btn-outline" style={{ color: '#25d366', borderColor: 'rgba(37, 211, 102, 0.2)', padding: '0.5rem 0.75rem' }} onClick={() => sendToWhatsApp(notice)} title="Share on WhatsApp">
+                <div style={{ display: 'flex', gap: '0.4rem', alignItems: 'flex-start', flexShrink: 0 }}>
+                  <button className="btn btn-outline" style={{ color: copiedId === notice.id ? '#4ade80' : '#94a3b8', borderColor: copiedId === notice.id ? 'rgba(74, 222, 128, 0.2)' : 'rgba(148, 163, 184, 0.2)', padding: '0.5rem' }} onClick={() => copyNotice(notice)} title="Copy to clipboard">
+                    {copiedId === notice.id ? <Check size={16} /> : <Copy size={16} />}
+                  </button>
+                  <button className="btn btn-outline" style={{ color: '#3b82f6', borderColor: 'rgba(59, 130, 246, 0.2)', padding: '0.5rem' }} onClick={() => shareNotice(notice)} title="Universal Share">
+                    <Share2 size={16} />
+                  </button>
+                  <button className="btn btn-outline" style={{ color: '#00B2FF', borderColor: 'rgba(0, 178, 255, 0.2)', padding: '0.5rem' }} onClick={() => sendToMessenger(notice)} title="Share on Messenger">
+                    <MessageCircle size={16} />
+                  </button>
+                  <button className="btn btn-outline" style={{ color: '#25d366', borderColor: 'rgba(37, 211, 102, 0.2)', padding: '0.5rem' }} onClick={() => sendToWhatsApp(notice)} title="Share on WhatsApp">
                     <Send size={16} />
                   </button>
-                  <button className="btn btn-outline" style={{ padding: '0.5rem 0.75rem' }} onClick={() => openEditModal(notice)} title="Edit Notice">
+                  <div style={{ width: '1px', height: '32px', background: 'var(--border)', margin: '0 0.2rem' }}></div>
+                  <button className="btn btn-outline" style={{ padding: '0.5rem' }} onClick={() => openEditModal(notice)} title="Edit Notice">
                     <Edit2 size={16} />
                   </button>
-                  <button className="btn btn-outline" style={{ color: 'var(--danger)', borderColor: 'rgba(239, 68, 68, 0.2)', padding: '0.5rem 0.75rem' }} onClick={() => setDeleteId(notice.id)} title="Delete Notice">
+                  <button className="btn btn-outline" style={{ color: 'var(--danger)', borderColor: 'rgba(239, 68, 68, 0.2)', padding: '0.5rem' }} onClick={() => setDeleteId(notice.id)} title="Delete Notice">
                     <Trash2 size={16} />
                   </button>
                 </div>
