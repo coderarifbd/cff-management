@@ -1,6 +1,8 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
+import { auth } from '@/lib/firebase';
+import { RecaptchaVerifier, signInWithPhoneNumber, ConfirmationResult } from 'firebase/auth';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -17,7 +19,90 @@ export default function LoginPage() {
   const [resetLoading, setResetLoading] = useState(false);
   const [resetError, setResetError] = useState('');
   const [showResetPw, setShowResetPw] = useState(false);
+  
+  // OTP States
+  const [loginMode, setLoginMode] = useState<'PASSWORD' | 'OTP'>('PASSWORD');
+  const [phoneNumber, setPhoneNumber] = useState('+880');
+  const [otp, setOtp] = useState('');
+  const [otpSent, setOtpSent] = useState(false);
+  const [confirmationResult, setConfirmationResult] = useState<ConfirmationResult | null>(null);
+  const [timer, setTimer] = useState(0);
+  const recaptchaRef = useRef<HTMLDivElement>(null);
+  const recaptchaVerifier = useRef<RecaptchaVerifier | null>(null);
+
   const router = useRouter();
+
+  useEffect(() => {
+    let interval: any;
+    if (timer > 0) {
+      interval = setInterval(() => setTimer(t => t - 1), 1000);
+    }
+    return () => clearInterval(interval);
+  }, [timer]);
+
+  const initRecaptcha = () => {
+    if (!recaptchaVerifier.current && typeof window !== 'undefined') {
+      recaptchaVerifier.current = new RecaptchaVerifier(auth, 'recaptcha-container', {
+        size: 'invisible'
+      });
+    }
+  };
+
+  const handleSendOTP = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+    setLoading(true);
+
+    try {
+      initRecaptcha();
+      const appVerifier = recaptchaVerifier.current;
+      if (!appVerifier) throw new Error('Recaptcha not initialized');
+
+      const result = await signInWithPhoneNumber(auth, phoneNumber, appVerifier);
+      setConfirmationResult(result);
+      setOtpSent(true);
+      setTimer(120); // 2 minutes
+    } catch (err: any) {
+      console.error(err);
+      setError(err.message || 'Failed to send OTP. Please check your number.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleVerifyOTP = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+    setLoading(true);
+
+    try {
+      if (!confirmationResult) throw new Error('No confirmation result found');
+      await confirmationResult.confirm(otp);
+      
+      // If Firebase confirms, tell our backend to issue our JWT
+      const res = await fetch('/api/auth/otp-login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone: phoneNumber })
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        if (data.role === 'ADMIN' || data.role === 'MANAGER') {
+          router.push('/dashboard');
+        } else {
+          router.push('/member-panel');
+        }
+      } else {
+        const data = await res.json();
+        setError(data.error || 'OTP verified but failed to create session');
+      }
+    } catch (err: any) {
+      setError('Invalid OTP code. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const openModal = () => { setShowModal(true); setResetStep(1); setResetEmail(''); setResetKey(''); setResetNewPw(''); setResetConfirmPw(''); setResetError(''); };
   const closeModal = () => { setShowModal(false); };
@@ -763,6 +848,31 @@ export default function LoginPage() {
             <h2 className="card-heading">Welcome back 👋</h2>
             <p className="card-subheading">Sign in to your account to continue</p>
 
+            <div style={{ display: 'flex', background: 'rgba(255,255,255,0.05)', borderRadius: '12px', padding: '0.25rem', marginBottom: '1.5rem', border: '1px solid rgba(255,255,255,0.1)' }}>
+              <button 
+                onClick={() => { setLoginMode('PASSWORD'); setError(''); }}
+                style={{ 
+                  flex: 1, padding: '0.6rem', borderRadius: '10px', fontSize: '0.85rem', fontWeight: 600, border: 'none', cursor: 'pointer',
+                  background: loginMode === 'PASSWORD' ? 'var(--primary)' : 'transparent',
+                  color: loginMode === 'PASSWORD' ? 'white' : 'rgba(255,255,255,0.5)',
+                  transition: 'all 0.2s'
+                }}
+              >
+                Password
+              </button>
+              <button 
+                onClick={() => { setLoginMode('OTP'); setError(''); }}
+                style={{ 
+                  flex: 1, padding: '0.6rem', borderRadius: '10px', fontSize: '0.85rem', fontWeight: 600, border: 'none', cursor: 'pointer',
+                  background: loginMode === 'OTP' ? 'var(--primary)' : 'transparent',
+                  color: loginMode === 'OTP' ? 'white' : 'rgba(255,255,255,0.5)',
+                  transition: 'all 0.2s'
+                }}
+              >
+                OTP (Phone)
+              </button>
+            </div>
+
             {error && (
               <div className="error-banner">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -772,30 +882,31 @@ export default function LoginPage() {
               </div>
             )}
 
-            <form onSubmit={handleLogin}>
-              <div className="field-group">
-                {/* Email */}
-                <div>
-                  <label className="field-label" htmlFor="email">Email Address</label>
-                  <div className="field-input-wrap">
-                    <span className="field-icon">
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
-                        <polyline points="22,6 12,13 2,6"/>
-                      </svg>
-                    </span>
-                    <input
-                      id="email"
-                      type="email"
-                      className="login-input"
-                      placeholder="you@example.com"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      required
-                      autoComplete="email"
-                    />
+            {loginMode === 'PASSWORD' ? (
+              <form onSubmit={handleLogin}>
+                <div className="field-group">
+                  {/* Email */}
+                  <div>
+                    <label className="field-label" htmlFor="email">Email Address</label>
+                    <div className="field-input-wrap">
+                      <span className="field-icon">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+                          <polyline points="22,6 12,13 2,6"/>
+                        </svg>
+                      </span>
+                      <input
+                        id="email"
+                        type="email"
+                        className="login-input"
+                        placeholder="you@example.com"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        required
+                        autoComplete="email"
+                      />
+                    </div>
                   </div>
-                </div>
 
                 {/* Password */}
                 <div>
@@ -866,6 +977,92 @@ export default function LoginPage() {
                 Forgot your password?
               </button>
             </form>
+            ) : (
+              <form onSubmit={otpSent ? handleVerifyOTP : handleSendOTP}>
+                <div className="field-group">
+                  {/* Phone Number */}
+                  <div>
+                    <label className="field-label" htmlFor="phone">Phone Number</label>
+                    <div className="field-input-wrap">
+                      <span className="field-icon">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
+                        </svg>
+                      </span>
+                      <input
+                        id="phone"
+                        type="tel"
+                        className="login-input"
+                        placeholder="+880 1XXX-XXXXXX"
+                        value={phoneNumber}
+                        onChange={(e) => setPhoneNumber(e.target.value)}
+                        required
+                        disabled={otpSent}
+                      />
+                    </div>
+                  </div>
+
+                  {otpSent && (
+                    <div style={{ animation: 'cardSlideUp 0.3s ease both' }}>
+                      <label className="field-label" htmlFor="otp">Enter 6-Digit OTP</label>
+                      <div className="field-input-wrap">
+                        <span className="field-icon">
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                          </svg>
+                        </span>
+                        <input
+                          id="otp"
+                          type="text"
+                          className="login-input"
+                          placeholder="000000"
+                          value={otp}
+                          onChange={(e) => setOtp(e.target.value)}
+                          required
+                          autoFocus
+                          maxLength={6}
+                        />
+                      </div>
+                      <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '0.5rem' }}>
+                        {timer > 0 ? (
+                          <p style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.4)' }}>
+                            Wait {timer}s to resend
+                          </p>
+                        ) : (
+                          <button 
+                            type="button" 
+                            onClick={() => { setOtpSent(false); setOtp(''); }}
+                            style={{ background: 'none', border: 'none', color: '#4ade80', fontSize: '0.75rem', cursor: 'pointer', fontWeight: 600 }}
+                          >
+                            Resend OTP
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                <div id="recaptcha-container" style={{ marginBottom: '1rem' }}></div>
+
+                <button type="submit" className="login-btn" disabled={loading}>
+                  {loading ? (
+                    <><span className="spinner" /> {otpSent ? 'Verifying...' : 'Sending...'}</>
+                  ) : (
+                    <>
+                      {otpSent ? 'Confirm & Login' : 'Send Login OTP'}
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                        <line x1="5" y1="12" x2="19" y2="12"/>
+                        <polyline points="12 5 19 12 12 19"/>
+                      </svg>
+                    </>
+                  )}
+                </button>
+
+                <p style={{ textAlign: 'center', fontSize: '0.8rem', color: 'rgba(255,255,255,0.3)' }}>
+                  A verification code will be sent to your phone.
+                </p>
+              </form>
+            )}
 
             <div className="login-footer">
               © {new Date().getFullYear()} Chakalmua Friends Federation · All rights reserved
