@@ -1,6 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { TrendingUp, Plus, ArrowUpRight, ArrowDownRight, Edit2, X, Trash2, FileText, Upload } from 'lucide-react';
+import { TrendingUp, Plus, ArrowUpRight, ArrowDownRight, Edit2, X, Trash2, FileText, Upload, DollarSign } from 'lucide-react';
 
 export default function InvestmentsPage() {
   const [investments, setInvestments] = useState<any[]>([]);
@@ -157,11 +157,9 @@ export default function InvestmentsPage() {
   };
 
   // Calculations based on filtered data
-  const totalActiveInvestments = filteredInvestments
-    .filter(i => i.status === 'RUNNING')
-    .reduce((sum, i) => sum + (i.amount - i.refund), 0);
-    
+  const totalInvested = filteredInvestments.reduce((sum, i) => sum + i.amount, 0);
   const totalProfit = filteredInvestments.reduce((sum, i) => sum + i.profit, 0);
+  const totalRefunded = filteredInvestments.reduce((sum, i) => sum + i.refund, 0);
 
   return (
     <div>
@@ -173,14 +171,35 @@ export default function InvestmentsPage() {
       </div>
 
       {/* Stats Section */}
-      <div className="grid-2" style={{ marginBottom: '2rem' }}>
-        <div className="card" style={{ background: 'linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%)', color: 'white' }}>
-          <h3 style={{ fontSize: '1rem', color: 'rgba(255,255,255,0.8)', marginBottom: '0.5rem' }}>Active Investments (Running)</h3>
-          <p style={{ fontSize: '2rem', fontWeight: 700 }}>৳ {totalActiveInvestments}</p>
+      <div className="stats-grid" style={{ marginBottom: '2.5rem' }}>
+        <div className="card stat-card" style={{ background: 'rgba(59, 130, 246, 0.05)', borderColor: 'rgba(59, 130, 246, 0.2)' }}>
+          <div className="stat-icon" style={{ background: 'rgba(59, 130, 246, 0.1)', color: '#3b82f6' }}>
+            <ArrowUpRight size={24} />
+          </div>
+          <div className="stat-info">
+            <h3>Total Invested</h3>
+            <p>৳ {totalInvested.toLocaleString()}</p>
+          </div>
         </div>
-        <div className="card" style={{ background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)', color: 'white' }}>
-          <h3 style={{ fontSize: '1rem', color: 'rgba(255,255,255,0.8)', marginBottom: '0.5rem' }}>Total Profit Earned</h3>
-          <p style={{ fontSize: '2rem', fontWeight: 700 }}>৳ {totalProfit}</p>
+
+        <div className="card stat-card" style={{ background: 'rgba(34, 197, 94, 0.05)', borderColor: 'rgba(34, 197, 94, 0.2)' }}>
+          <div className="stat-icon" style={{ background: 'rgba(34, 197, 94, 0.1)', color: '#22c55e' }}>
+            <TrendingUp size={24} />
+          </div>
+          <div className="stat-info">
+            <h3>Total Profit</h3>
+            <p>৳ {totalProfit.toLocaleString()}</p>
+          </div>
+        </div>
+
+        <div className="card stat-card" style={{ background: 'rgba(79, 70, 229, 0.05)', borderColor: 'rgba(79, 70, 229, 0.2)' }}>
+          <div className="stat-icon" style={{ background: 'rgba(79, 70, 229, 0.1)', color: '#4f46e5' }}>
+            <ArrowDownRight size={24} />
+          </div>
+          <div className="stat-info">
+            <h3>Total Returned</h3>
+            <p>৳ {totalRefunded.toLocaleString()}</p>
+          </div>
         </div>
       </div>
 
@@ -262,9 +281,9 @@ export default function InvestmentsPage() {
                       <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.25rem' }}>{inv.type || 'Other Investment'}</div>
                     </td>
                     <td>{new Date(inv.date).toLocaleDateString()}</td>
-                    <td>৳ {inv.amount}</td>
-                    <td style={{ color: 'var(--success)', fontWeight: 600 }}>+ ৳ {inv.profit}</td>
-                    <td>৳ {inv.refund}</td>
+                    <td>৳ {inv.amount.toLocaleString()}</td>
+                    <td style={{ color: 'var(--success)', fontWeight: 600 }}>+ ৳ {inv.profit.toLocaleString()}</td>
+                    <td>৳ {inv.refund.toLocaleString()}</td>
                     <td>
                       <span className={`badge ${inv.status === 'RUNNING' ? 'badge-warning' : inv.status === 'COMPLETED' ? 'badge-success' : 'badge-danger'}`}>
                         {inv.status}
@@ -291,11 +310,11 @@ export default function InvestmentsPage() {
             </tbody>
             {filteredInvestments.length > 0 && (
               <tfoot>
-                <tr style={{ background: '#f8fafc', fontWeight: 700 }}>
-                  <td colSpan={2} style={{ textAlign: 'right', padding: '1rem' }}>Filtered Totals:</td>
-                  <td style={{ padding: '1rem' }}>৳ {filteredInvestments.reduce((sum, i) => sum + i.amount, 0)}</td>
-                  <td style={{ color: 'var(--success)', padding: '1rem' }}>+ ৳ {filteredInvestments.reduce((sum, i) => sum + i.profit, 0)}</td>
-                  <td style={{ padding: '1rem' }}>৳ {filteredInvestments.reduce((sum, i) => sum + i.refund, 0)}</td>
+                <tr style={{ background: 'rgba(255, 255, 255, 0.05)', fontWeight: 700 }}>
+                  <td colSpan={2} style={{ textAlign: 'right', padding: '1rem', color: 'var(--text-muted)' }}>Filtered Totals:</td>
+                  <td style={{ padding: '1rem', color: 'var(--text-main)' }}>৳ {filteredInvestments.reduce((sum, i) => sum + i.amount, 0).toLocaleString()}</td>
+                  <td style={{ color: 'var(--success)', padding: '1rem' }}>+ ৳ {filteredInvestments.reduce((sum, i) => sum + i.profit, 0).toLocaleString()}</td>
+                  <td style={{ padding: '1rem', color: 'var(--text-main)' }}>৳ {filteredInvestments.reduce((sum, i) => sum + i.refund, 0).toLocaleString()}</td>
                   <td colSpan={2}></td>
                 </tr>
               </tfoot>

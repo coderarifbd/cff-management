@@ -29,7 +29,11 @@ export async function GET(request: Request) {
         include: { investment: true }
       });
 
-      return NextResponse.json({ payments, expenses, investments, profits });
+      const incomes = await prisma.income.findMany({
+        where: { date: { gte: startDate, lte: endDate } }
+      });
+
+      return NextResponse.json({ payments, expenses, investments, profits, incomes });
     }
 
     if (type === 'annual') {
@@ -50,8 +54,11 @@ export async function GET(request: Request) {
         where: { date: { gte: startDate, lte: endDate } },
         include: { investment: true }
       });
+      const incomes = await prisma.income.findMany({
+        where: { date: { gte: startDate, lte: endDate } }
+      });
 
-      return NextResponse.json({ payments, expenses, investments, profits });
+      return NextResponse.json({ payments, expenses, investments, profits, incomes });
     }
 
     return NextResponse.json({ error: 'Invalid report type' }, { status: 400 });
