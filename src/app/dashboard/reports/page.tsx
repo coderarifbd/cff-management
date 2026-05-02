@@ -89,46 +89,107 @@ export default function ReportsPage() {
       await handleViewReport(type);
 
       // Wait for DOM to fully render
-      await new Promise(resolve => setTimeout(resolve, 1200));
+      await new Promise(resolve => setTimeout(resolve, 1500));
 
-      const element = document.getElementById('report-preview-pane');
-      if (!element) {
+      const headerElement = document.getElementById('report-header');
+      const bodyElement = document.getElementById('report-body');
+      
+      if (!headerElement || !bodyElement) {
         alert('Please click View first to load the report preview.');
         setLoadingType('');
         return;
       }
 
-      const canvas = await html2canvas(element, {
-        scale: 1.5,
+      // 1. Capture Header & Body separately
+      const headerCanvas = await html2canvas(headerElement, {
+        scale: 2,
         useCORS: true,
         backgroundColor: '#ffffff',
-        logging: false,
+      });
+      
+      const bodyCanvas = await html2canvas(bodyElement, {
+        scale: 2,
+        useCORS: true,
+        backgroundColor: '#ffffff',
       });
 
-      // Use JPEG with 80% quality to keep file size small
-      const imgData = canvas.toDataURL('image/jpeg', 0.80);
       const doc = new jsPDF('p', 'mm', 'a4');
+      const pageWidth = doc.internal.pageSize.getWidth();
+      const pageHeight = doc.internal.pageSize.getHeight();
+      
+      const margin = 10;
+      const contentWidth = pageWidth - (margin * 2);
+      
+      // Calculate Header height in mm
+      const headerImgWidth = contentWidth;
+      const headerImgHeight = (headerCanvas.height * headerImgWidth) / headerCanvas.width;
+      const headerData = headerCanvas.toDataURL('image/png');
 
-      const pageWidth = doc.internal.pageSize.getWidth();   // 210mm
-      const pageHeight = doc.internal.pageSize.getHeight(); // 297mm
+      // Calculate Footer height (fixed text for now)
+      const footerHeight = 10;
+      const footerY = pageHeight - margin;
 
-      const imgWidth = pageWidth;
-      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+      // Calculate available space for body on each page
+      const bodyAvailableHeight = pageHeight - headerImgHeight - footerHeight - (margin * 3);
+      
+      // Body image details
+      const bodyImgWidth = contentWidth;
+      const bodyImgHeight = (bodyCanvas.height * bodyImgWidth) / bodyCanvas.width;
+      const bodyData = bodyCanvas.toDataURL('image/jpeg', 0.9);
 
-      const contentHeight = pageHeight;
-      let heightLeft = imgHeight;
+      let heightLeft = bodyImgHeight;
       let pageNum = 0;
+      let sourceY = 0; // The Y position in the original body canvas (scaled to mm)
 
-      // First page
-      doc.addImage(imgData, 'JPEG', 0, -(pageNum * pageHeight), imgWidth, imgHeight);
-      heightLeft -= contentHeight;
-
-      // Additional pages
-      while (heightLeft > 0) {
+      while (heightLeft > 2) { // Use 2mm threshold to avoid extra blank pages from rounding errors
+        if (pageNum > 0) doc.addPage();
         pageNum++;
-        doc.addPage();
-        doc.addImage(imgData, 'JPEG', 0, -(pageNum * pageHeight), imgWidth, imgHeight);
-        heightLeft -= contentHeight;
+
+        // --- Add Header ---
+        doc.addImage(headerData, 'PNG', margin, margin, headerImgWidth, headerImgHeight);
+
+        // --- Add Body Slice ---
+        const pixelsPerMm = bodyCanvas.width / bodyImgWidth;
+        const remainingHeightPx = bodyCanvas.height - (sourceY * pixelsPerMm);
+        
+        if (remainingHeightPx <= 0) break;
+
+        const sliceHeightPx = Math.min((bodyAvailableHeight * pixelsPerMm), remainingHeightPx);
+        
+        if (sliceHeightPx <= 1) break;
+
+        const sliceCanvas = document.createElement('canvas');
+        sliceCanvas.width = bodyCanvas.width;
+        sliceCanvas.height = sliceHeightPx;
+        
+        const ctx = sliceCanvas.getContext('2d');
+        if (ctx) {
+          ctx.drawImage(
+            bodyCanvas, 
+            0, sourceY * pixelsPerMm, bodyCanvas.width, sliceHeightPx, 
+            0, 0, bodyCanvas.width, sliceHeightPx
+          );
+          
+          const sliceData = sliceCanvas.toDataURL('image/jpeg', 0.9);
+          const sliceHeightMm = (sliceCanvas.height * bodyImgWidth) / sliceCanvas.width;
+          
+          if (!isNaN(sliceHeightMm) && sliceHeightMm > 0) {
+            doc.addImage(sliceData, 'JPEG', margin, margin + headerImgHeight + margin, bodyImgWidth, sliceHeightMm);
+          }
+        }
+
+        // --- Add Footer ---
+        doc.setFontSize(9);
+        doc.setTextColor(150, 150, 150);
+        const footerText = `CFF Financial Report | Generated: ${new Date().toLocaleDateString()} | Page ${pageNum}`;
+        doc.text(footerText, pageWidth / 2, footerY, { align: 'center' });
+        
+        // --- Update loop vars ---
+        const mmAdvanced = (sliceCanvas.height * bodyImgWidth) / bodyCanvas.width;
+        heightLeft -= mmAdvanced;
+        sourceY += mmAdvanced;
+
+        if (mmAdvanced <= 0) break;
       }
 
       const title = type === 'monthly'
@@ -350,7 +411,7 @@ export default function ReportsPage() {
             </div>
 
             {/* Official Report Header - included in PDF */}
-            <div style={{ textAlign: 'center', borderBottom: '3px solid #1a7a4a', paddingBottom: '1.5rem', marginBottom: '2rem' }}>
+            <div id="report-header" style={{ textAlign: 'center', borderBottom: '3px solid #1a7a4a', paddingBottom: '1.5rem', marginBottom: '2rem' }}>
               <div style={{ fontSize: '1.75rem', fontWeight: 800, color: '#1a7a4a', letterSpacing: '0.05em' }}>চাকালমুয়া ফ্রেন্ডস ফেডারেশন</div>
               <div style={{ fontSize: '1rem', color: '#555', marginTop: '0.25rem' }}>Chakalmua Friends Federation (CFF)</div>
               <div style={{ marginTop: '1rem', display: 'inline-block', background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: '6px', padding: '0.4rem 1.5rem' }}>
@@ -358,6 +419,8 @@ export default function ReportsPage() {
               </div>
               <div style={{ marginTop: '0.5rem', fontSize: '0.8rem', color: '#999' }}>Generated on: {new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' })}</div>
             </div>
+
+            <div id="report-body">
 
             {/* Summary Cards */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '1rem', marginBottom: '2rem' }}>
@@ -729,6 +792,7 @@ export default function ReportsPage() {
               <div style={{ marginTop: '4rem', textAlign: 'center', fontSize: '0.75rem', color: '#94a3b8', borderTop: '1px solid #f1f5f9', paddingTop: '1rem' }}>
                 This is a computer-generated report and is valid without a physical signature. Verified by CFF Management System.
               </div>
+            </div>
             </div>
           </div>
         </div>
