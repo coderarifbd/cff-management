@@ -1,6 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { Plus, Receipt, Edit2, Trash2, X, Upload, FileText, AlertTriangle, Search } from 'lucide-react';
+import { uploadFileAction } from '@/app/actions/uploadAction';
 
 export default function ExpensesPage() {
   const [expenses, setExpenses] = useState<any[]>([]);
@@ -12,6 +13,7 @@ export default function ExpensesPage() {
   const [showManageModal, setShowManageModal] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [submitLoading, setSubmitLoading] = useState(false);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
   // Forms
   const [addForm, setAddForm] = useState({ category: 'Events', amount: 0, description: '', date: new Date().toISOString().split('T')[0] });
@@ -77,10 +79,15 @@ export default function ExpensesPage() {
       if (addFile) {
         const formData = new FormData();
         formData.append('file', addFile);
-        const uploadRes = await fetch('/api/upload', { method: 'POST', body: formData });
-        const uploadData = await uploadRes.json();
-        if (uploadData.success) receiptUrl = uploadData.url;
-        else throw new Error('File upload failed');
+        
+        // Use Server Action instead of Route Handler to bypass size limits
+        const uploadData = await uploadFileAction(formData);
+        
+        if (uploadData.success) {
+          receiptUrl = uploadData.url || '';
+        } else {
+          throw new Error(uploadData.error || 'File upload failed');
+        }
       }
 
       const res = await fetch('/api/expenses', {
@@ -125,10 +132,15 @@ export default function ExpensesPage() {
       if (manageFile) {
         const formData = new FormData();
         formData.append('file', manageFile);
-        const uploadRes = await fetch('/api/upload', { method: 'POST', body: formData });
-        const uploadData = await uploadRes.json();
-        if (uploadData.success) receiptUrl = uploadData.url;
-        else throw new Error('File upload failed');
+        
+        // Use Server Action instead of Route Handler to bypass size limits
+        const uploadData = await uploadFileAction(formData);
+        
+        if (uploadData.success) {
+          receiptUrl = uploadData.url || '';
+        } else {
+          throw new Error(uploadData.error || 'File upload failed');
+        }
       }
 
       const res = await fetch(`/api/expenses/${manageForm.id}`, {
@@ -254,9 +266,14 @@ export default function ExpensesPage() {
                     <td>
                       <div style={{ display: 'flex', gap: '0.5rem' }}>
                         {expense.receiptUrl && (
-                          <a href={expense.receiptUrl} target="_blank" rel="noreferrer" className="btn btn-outline" style={{ padding: '0.25rem 0.5rem', fontSize: '0.75rem' }} title="View Receipt">
+                          <button 
+                            className="btn btn-outline" 
+                            style={{ padding: '0.25rem 0.5rem', fontSize: '0.75rem' }} 
+                            onClick={() => setPreviewUrl(expense.receiptUrl)}
+                            title="View Receipt"
+                          >
                             <Receipt size={14} />
-                          </a>
+                          </button>
                         )}
                         <button className="btn btn-outline" style={{ padding: '0.25rem 0.5rem', fontSize: '0.75rem' }} onClick={() => openManageModal(expense)} title="Edit">
                           <Edit2 size={14} />
@@ -330,7 +347,7 @@ export default function ExpensesPage() {
               <div>
                 <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', fontWeight: 500 }}>Attach Receipt (PDF/Image)</label>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                  <input type="file" id="addFile" style={{ display: 'none' }} accept=".pdf,image/*" onChange={e => setAddFile(e.target.files?.[0] || null)} />
+                  <input type="file" id="addFile" style={{ display: 'none' }} accept=".pdf,image/*,.doc,.docx,.xls,.xlsx" onChange={e => setAddFile(e.target.files?.[0] || null)} />
                   <label htmlFor="addFile" className="btn btn-outline" style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                     <Upload size={16} /> Upload Receipt
                   </label>
@@ -395,7 +412,7 @@ export default function ExpensesPage() {
               <div>
                 <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', fontWeight: 500 }}>Update Receipt</label>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                  <input type="file" id="manageFile" style={{ display: 'none' }} accept=".pdf,image/*" onChange={e => setManageFile(e.target.files?.[0] || null)} />
+                  <input type="file" id="manageFile" style={{ display: 'none' }} accept=".pdf,image/*,.doc,.docx,.xls,.xlsx" onChange={e => setManageFile(e.target.files?.[0] || null)} />
                   <label htmlFor="manageFile" className="btn btn-outline" style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                     <Upload size={16} /> Choose New File
                   </label>
@@ -432,6 +449,37 @@ export default function ExpensesPage() {
                 {submitLoading ? 'Deleting...' : 'Yes, Delete'}
               </button>
             </div>
+          </div>
+        </div>
+      )}
+      {/* Document Preview Modal */}
+      {previewUrl && (
+        <div style={{
+          position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+          background: 'rgba(15, 23, 42, 0.95)', backdropFilter: 'blur(10px)',
+          display: 'flex', flexDirection: 'column', zIndex: 1000, padding: '2rem'
+        }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', color: 'white' }}>
+            <h3 style={{ fontSize: '1.25rem', fontWeight: 700 }}>Receipt Preview</h3>
+            <div style={{ display: 'flex', gap: '1rem' }}>
+              <a href={previewUrl} download className="btn btn-primary" style={{ padding: '0.5rem 1.25rem' }}>Download File</a>
+              <button onClick={() => setPreviewUrl(null)} className="btn btn-outline" style={{ borderColor: 'rgba(255,255,255,0.2)', color: 'white' }}>Close Preview</button>
+            </div>
+          </div>
+          
+          <div style={{ flex: 1, background: 'white', borderRadius: '12px', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            {previewUrl.match(/\.(jpg|jpeg|png|gif|webp)$/i) ? (
+              <img src={previewUrl} alt="Receipt" style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }} />
+            ) : previewUrl.toLowerCase().endsWith('.pdf') ? (
+              <embed src={previewUrl} type="application/pdf" style={{ width: '100%', height: '100%', border: 'none' }} />
+            ) : (
+              <div style={{ textAlign: 'center', padding: '2rem' }}>
+                <FileText size={64} color="var(--text-muted)" style={{ marginBottom: '1rem' }} />
+                <p style={{ color: '#1e293b', fontSize: '1.125rem', fontWeight: 600 }}>Preview not available for this file type.</p>
+                <p style={{ color: '#64748b', marginTop: '0.5rem' }}>Please download the file to view it on your device.</p>
+                <a href={previewUrl} download className="btn btn-primary" style={{ marginTop: '1.5rem' }}>Download Now</a>
+              </div>
+            )}
           </div>
         </div>
       )}

@@ -9,6 +9,9 @@ export async function GET(request: Request, context: any) {
       include: {
         profits: {
           orderBy: { date: 'desc' }
+        },
+        documents: {
+          orderBy: { createdAt: 'desc' }
         }
       }
     });

@@ -60,10 +60,20 @@ model Investment {
   refund      Float    @default(0)
   status      String   @default("RUNNING")
   date        DateTime @default(now())
-  documentUrl String?
+  documentUrl String? // Legacy single document field
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   profits     InvestmentProfit[]
+  documents   InvestmentDocument[]
+}
+
+model InvestmentDocument {
+  id           String     @id @default(uuid())
+  investmentId String
+  investment   Investment @relation(fields: [investmentId], references: [id], onDelete: Cascade)
+  url          String
+  name         String
+  createdAt    DateTime   @default(now())
 }
 
 model InvestmentProfit {
