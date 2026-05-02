@@ -50,11 +50,20 @@ export async function GET(request: Request) {
     const totalDueFees = unpaidPayments.reduce((sum, p) => sum + p.amount, 0);
     const totalDueFines = unpaidPayments.reduce((sum, p) => sum + p.fine, 0);
 
-    // Federation-wide inclusive equity calculation
-    const [allPayments, totalInvProfit, totalExtraIncome, totalExpenses, activeMemberCount] = await Promise.all([
+    // Federation-wide inclusive equity calculation (Balanced Fund Approach)
+    const [allPayments, activePaymentsAgg, totalInvProfit, totalExtraIncome, totalExpenses, activeMemberCount] = await Promise.all([
+      // 1. All historical payments (for total fund calculation)
       prisma.payment.aggregate({ 
         where: { isPaid: true },
         _sum: { amount: true, fine: true } 
+      }),
+      // 2. ACTIVE members' payments only (for share ratio)
+      prisma.payment.aggregate({ 
+        where: { 
+          isPaid: true,
+          user: { status: 'ACTIVE' }
+        },
+        _sum: { amount: true } 
       }),
       prisma.investmentProfit.aggregate({ _sum: { amount: true } }),
       prisma.income.aggregate({ _sum: { amount: true } }),
@@ -67,6 +76,7 @@ export async function GET(request: Request) {
       })
     ]);
 
+    // Total Incomes must include ALL money that entered the federation
     const totalIncomes = 
       (allPayments._sum.amount || 0) + 
       (allPayments._sum.fine || 0) + 
@@ -74,12 +84,11 @@ export async function GET(request: Request) {
       (totalExtraIncome._sum.amount || 0);
     
     const totalOutgoings = (totalExpenses._sum.amount || 0);
-    
     const netFederationFunds = totalIncomes - totalOutgoings;
     
-    // Calculate proportional equity based on member's contribution
-    const totalFederationPaid = allPayments._sum.amount || 0;
-    const userPaidRatio = totalFederationPaid > 0 ? totalPaidFees / totalFederationPaid : 0;
+    // Divide the net federation funds proportionally among ACTIVE members
+    const totalFederationPaidByActive = activePaymentsAgg._sum.amount || 0;
+    const userPaidRatio = totalFederationPaidByActive > 0 ? totalPaidFees / totalFederationPaidByActive : 0;
     const individualEquity = netFederationFunds * userPaidRatio;
 
     return NextResponse.json({

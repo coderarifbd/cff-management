@@ -244,16 +244,17 @@ export default function MembersPage() {
                 <th>Basic Information</th>
                 <th>Role & Status</th>
                 <th>Joining Date</th>
+                <th>Equity & Payments</th>
                 <th style={{ textAlign: 'right' }}>Actions</th>
               </tr>
             </thead>
             <tbody>
               {loading ? (
                 [...Array(5)].map((_, i) => (
-                  <tr key={i}><td colSpan={5} className="skeleton" style={{ height: '70px' }}></td></tr>
+                  <tr key={i}><td colSpan={6} className="skeleton" style={{ height: '70px' }}></td></tr>
                 ))
               ) : filteredMembers.length === 0 ? (
-                <tr><td colSpan={5} style={{ textAlign: 'center', padding: '4rem', color: 'var(--text-muted)' }}>No members matching your search.</td></tr>
+                <tr><td colSpan={6} style={{ textAlign: 'center', padding: '4rem', color: 'var(--text-muted)' }}>No members matching your search.</td></tr>
               ) : (
                 filteredMembers.map((member) => (
                   <tr key={member.id}>
@@ -295,6 +296,28 @@ export default function MembersPage() {
                     <td>
                       <div style={{ fontSize: '0.875rem', fontWeight: 500 }}>
                         {new Date(member.joinDate).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}
+                      </div>
+                    </td>
+                    <td>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                        {member.status === 'ACTIVE' ? (
+                          <div style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--primary-light)', display: 'flex', alignItems: 'center', gap: '0.375rem' }}>
+                            <ShieldCheck size={14} /> ৳{Math.round(member.netEquity || 0).toLocaleString()}
+                            <span style={{ fontSize: '0.7rem', opacity: 0.7, fontWeight: 400 }}>(Equity)</span>
+                          </div>
+                        ) : (
+                          <div style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-muted)', fontStyle: 'italic' }}>
+                            Settled / No Equity
+                          </div>
+                        )}
+                        <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'flex', gap: '0.75rem' }}>
+                          <span style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                            <span style={{ color: '#22c55e' }}>●</span> P: ৳{(member.totalPaidFees || 0).toLocaleString()}
+                          </span>
+                          <span style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                            <span style={{ color: '#ef4444' }}>●</span> F: ৳{(member.totalPaidFines || 0).toLocaleString()}
+                          </span>
+                        </div>
                       </div>
                     </td>
                     <td style={{ textAlign: 'right' }}>
