@@ -19,9 +19,9 @@ export default function PaymentsPage() {
   const [filterYear, setFilterYear] = useState<number | ''>(new Date().getFullYear());
 
   // Form states
-  const [addForm, setAddForm] = useState({ userId: '', month: new Date().getMonth() + 1, year: new Date().getFullYear(), amount: 500, fine: 0, isPaid: false });
+  const [addForm, setAddForm] = useState({ userId: '', month: new Date().getMonth() + 1, year: new Date().getFullYear(), amount: 500, fine: 0, isPaid: false, notes: '' });
   const [bulkForm, setBulkForm] = useState({ month: new Date().getMonth() + 1, year: new Date().getFullYear(), amount: 500 });
-  const [editForm, setEditForm] = useState({ id: '', amount: 0, fine: 0, isPaid: false, userName: '', memberNo: '', month: 1, year: 2026 });
+  const [editForm, setEditForm] = useState({ id: '', amount: 0, fine: 0, isPaid: false, notes: '', userName: '', memberNo: '', month: 1, year: 2026 });
 
   // History state
   const [memberHistory, setMemberHistory] = useState<any[]>([]);
@@ -149,6 +149,7 @@ export default function PaymentsPage() {
       amount: payment.amount,
       fine: payment.fine,
       isPaid: payment.isPaid,
+      notes: payment.notes || '',
       userName: payment.user?.name || 'Unknown',
       memberNo: payment.user?.memberNo || '',
       month: payment.month,
@@ -169,12 +170,13 @@ export default function PaymentsPage() {
         body: JSON.stringify({
           amount: editForm.amount,
           fine: editForm.fine,
-          isPaid: editForm.isPaid
+          isPaid: editForm.isPaid,
+          notes: editForm.notes
         })
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
-      setPayments(prev => prev.map(p => p.id === editForm.id ? { ...p, amount: editForm.amount, fine: editForm.fine, isPaid: editForm.isPaid, paidAt: editForm.isPaid && !p.isPaid ? new Date().toISOString() : p.paidAt } : p));
+      setPayments(prev => prev.map(p => p.id === editForm.id ? { ...p, amount: editForm.amount, fine: editForm.fine, isPaid: editForm.isPaid, notes: editForm.notes, paidAt: editForm.isPaid && !p.isPaid ? new Date().toISOString() : p.paidAt } : p));
       setShowEditModal(false);
       await fetchPayments(true);
     } catch (err: any) {
@@ -312,6 +314,11 @@ export default function PaymentsPage() {
                         <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>
                           Base: ৳{payment.amount.toLocaleString()} {payment.fine > 0 && <span style={{ color: '#ef4444' }}>+ Fine: ৳{payment.fine.toLocaleString()}</span>}
                         </div>
+                        {payment.notes && (
+                          <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.25rem', fontStyle: 'italic', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                            <Edit2 size={12} /> {payment.notes}
+                          </div>
+                        )}
                       </div>
                     </td>
                     <td>
@@ -378,6 +385,11 @@ export default function PaymentsPage() {
                 </div>
               </div>
               
+              <div>
+                <label className="reset-label">Remarks / Notes</label>
+                <input type="text" className="input" value={editForm.notes} onChange={e => setEditForm({...editForm, notes: e.target.value})} placeholder="Optional notes" />
+              </div>
+
               <div style={{ padding: '0.75rem', background: 'rgba(255,255,255,0.03)', borderRadius: '10px' }}>
                 <label style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', cursor: 'pointer' }}>
                   <input type="checkbox" checked={editForm.isPaid} onChange={e => setEditForm({...editForm, isPaid: e.target.checked})} style={{ width: 18, height: 18 }} />
@@ -439,17 +451,24 @@ export default function PaymentsPage() {
                           return prevMonths.map((pm, idx) => {
                             const record = memberHistory.find(h => h.month === pm.month && h.year === pm.year);
                             return (
-                              <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.875rem', padding: '0.5rem', background: 'rgba(255,255,255,0.02)', borderRadius: '8px' }}>
-                                <span style={{ fontWeight: 600 }}>{monthNames[pm.month - 1]} {pm.year}</span>
-                                {record ? (
-                                  <div style={{ display: 'flex', gap: '0.5rem' }}>
-                                    <span className={`badge ${record.isPaid ? 'badge-success' : 'badge-danger'}`} style={{ fontSize: '0.65rem' }}>
-                                      {record.isPaid ? 'PAID' : 'DUE'}
-                                    </span>
-                                    <span style={{ fontWeight: 700, fontSize: '0.75rem' }}>৳{record.amount + record.fine}</span>
+                              <div key={idx} style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', padding: '0.5rem', background: 'rgba(255,255,255,0.02)', borderRadius: '8px' }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.875rem' }}>
+                                  <span style={{ fontWeight: 600 }}>{monthNames[pm.month - 1]} {pm.year}</span>
+                                  {record ? (
+                                    <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                      <span className={`badge ${record.isPaid ? 'badge-success' : 'badge-danger'}`} style={{ fontSize: '0.65rem' }}>
+                                        {record.isPaid ? 'PAID' : 'DUE'}
+                                      </span>
+                                      <span style={{ fontWeight: 700, fontSize: '0.75rem' }}>৳{record.amount + record.fine}</span>
+                                    </div>
+                                  ) : (
+                                    <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)', fontStyle: 'italic' }}>No record found</span>
+                                  )}
+                                </div>
+                                {record?.notes && (
+                                  <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontStyle: 'italic', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                                    <Edit2 size={10} /> {record.notes}
                                   </div>
-                                ) : (
-                                  <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)', fontStyle: 'italic' }}>No record found</span>
                                 )}
                               </div>
                             );
@@ -478,6 +497,11 @@ export default function PaymentsPage() {
                     <input type="number" className="input" value={addForm.fine} onChange={e => setAddForm({...addForm, fine: parseInt(e.target.value) || 0})} placeholder="Fine" />
                   </div>
                 </div>
+              </div>
+
+              <div>
+                <label className="reset-label">Remarks / Notes</label>
+                <input type="text" className="input" value={addForm.notes} onChange={e => setAddForm({...addForm, notes: e.target.value})} placeholder="Optional notes" />
               </div>
 
               <div style={{ padding: '1rem', background: 'rgba(34, 197, 94, 0.03)', border: '1px solid rgba(34, 197, 94, 0.1)', borderRadius: '12px' }}>

@@ -22,6 +22,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
     
     if (body.fine !== undefined) updatedData.fine = parseFloat(body.fine);
     if (body.amount !== undefined) updatedData.amount = parseFloat(body.amount);
+    if (body.notes !== undefined) updatedData.notes = body.notes;
 
     const payment = await prisma.payment.update({
       where: { id },

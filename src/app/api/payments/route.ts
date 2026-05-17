@@ -38,7 +38,7 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   try {
     const data = await request.json();
-    const { userId, month, year, amount, fine, isPaid, paidAt } = data;
+    const { userId, month, year, amount, fine, isPaid, paidAt, notes } = data;
 
     const existing = await prisma.payment.findUnique({
       where: { userId_month_year: { userId, month: parseInt(month), year: parseInt(year) } }
@@ -56,7 +56,8 @@ export async function POST(request: Request) {
         amount: parseFloat(amount),
         fine: parseFloat(fine || 0),
         isPaid: Boolean(isPaid),
-        paidAt: isPaid && paidAt ? new Date(paidAt) : null
+        paidAt: isPaid && paidAt ? new Date(paidAt) : null,
+        notes: notes || null
       },
       include: { user: true }
     });
