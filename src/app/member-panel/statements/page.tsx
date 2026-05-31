@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import { CheckCircle, AlertCircle, Download } from 'lucide-react';
 import * as XLSX from 'xlsx';
+import { formatDate } from '@/lib/utils';
 
 const monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December'];
 
@@ -33,7 +34,7 @@ export default function MemberStatementsPage() {
       'Late Fine': p.fine,
       'Total': p.amount + p.fine,
       'Status': p.isPaid ? 'PAID' : 'DUE',
-      'Date Paid': p.paidAt ? new Date(p.paidAt).toLocaleDateString() : '-'
+      'Date Paid': formatDate(p.paidAt)
     }));
     const wb = XLSX.utils.book_new();
     const ws = XLSX.utils.json_to_sheet(rows);
@@ -117,7 +118,7 @@ export default function MemberStatementsPage() {
                   {p.isPaid ? (
                     <span style={{ color: 'var(--success)', display: 'flex', alignItems: 'center', gap: '0.25rem', justifyContent: 'flex-end', fontSize: '0.875rem' }}>
                       <CheckCircle size={14} />
-                      {p.paidAt ? new Date(p.paidAt).toLocaleDateString('en-GB') : 'Paid'}
+                      {p.paidAt ? formatDate(p.paidAt) : 'Paid'}
                     </span>
                   ) : (
                     <span style={{ color: 'var(--danger)', display: 'flex', alignItems: 'center', gap: '0.25rem', justifyContent: 'flex-end', fontSize: '0.875rem' }}>

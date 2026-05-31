@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import { Plus, Receipt, Edit2, Trash2, X, Upload, FileText, AlertTriangle, Search } from 'lucide-react';
 import { uploadFileAction } from '@/app/actions/uploadAction';
+import { formatDate } from '@/lib/utils';
 
 export default function ExpensesPage() {
   const [expenses, setExpenses] = useState<any[]>([]);
@@ -255,7 +256,7 @@ export default function ExpensesPage() {
               ) : (
                 filteredExpenses.map((expense) => (
                   <tr key={expense.id}>
-                    <td>{new Date(expense.date).toLocaleDateString()}</td>
+                    <td>{formatDate(expense.date)}</td>
                     <td>
                       <span className="badge" style={{ background: 'rgba(148, 163, 184, 0.1)', color: 'var(--text-muted)' }}>
                         {expense.category}

@@ -1,6 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { Plus, Edit2, Trash2, X, Wallet, AlertTriangle, Search } from 'lucide-react';
+import { formatDate } from '@/lib/utils';
 
 export default function IncomesPage() {
   const [incomes, setIncomes] = useState<any[]>([]);
@@ -221,7 +222,7 @@ export default function IncomesPage() {
               ) : (
                 filteredIncomes.map((income) => (
                   <tr key={income.id}>
-                    <td>{new Date(income.date).toLocaleDateString()}</td>
+                    <td>{formatDate(income.date)}</td>
                     <td style={{ fontWeight: 600 }}>{income.title}</td>
                     <td>
                       <span className="badge" style={{ background: 'rgba(34, 197, 94, 0.1)', color: 'var(--primary-light)' }}>

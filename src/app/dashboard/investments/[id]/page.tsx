@@ -1,8 +1,9 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { ArrowLeft, FileText, Plus, Printer, TrendingUp, Upload, X, CheckCircle2, Trash2, Eye } from 'lucide-react';
+import { ArrowLeft, FileText, Plus, Printer, TrendingUp, Upload, X, CheckCircle2, Trash2, Eye, Bell } from 'lucide-react';
 import { uploadFileAction } from '@/app/actions/uploadAction';
+import { formatDate } from '@/lib/utils';
 
 export default function InvestmentDetailsPage() {
   const { id } = useParams();
@@ -135,6 +136,59 @@ export default function InvestmentDetailsPage() {
     </div>
   );
 
+  // Helper to determine if a profit is due/overdue
+  const isProfitOverdue = (inv: any): { overdue: boolean; nextDueDate?: string } => {
+    if (inv.status !== 'RUNNING') return { overdue: false };
+    if (!inv.profitPeriod || inv.profitPeriod === 'NONE') return { overdue: false };
+
+    const startDate = new Date(inv.date);
+    const currentDate = new Date();
+    
+    // Find the date of the last profit, or default to the investment start date
+    let referenceDate = startDate;
+    if (inv.profits && inv.profits.length > 0) {
+      const profitDates = inv.profits.map((p: any) => new Date(p.date).getTime());
+      const maxTime = Math.max(...profitDates);
+      referenceDate = new Date(maxTime);
+    }
+
+    // Calculate next due date from referenceDate
+    const getNextDate = (ref: Date, period: string): Date => {
+      const d = new Date(ref);
+      let monthsToAdd = 0;
+      if (period === 'YEARLY') {
+        monthsToAdd = 12;
+      } else if (period === 'EVERY_6_MONTHS') {
+        monthsToAdd = 6;
+      } else if (period === 'EVERY_3_MONTHS') {
+        monthsToAdd = 3;
+      } else {
+        // Default to MONTHLY (1 month)
+        monthsToAdd = 1;
+      }
+      
+      const targetMonth = ref.getMonth() + monthsToAdd;
+      d.setMonth(targetMonth);
+      if (d.getMonth() !== (targetMonth % 12 + 12) % 12) {
+        d.setDate(0);
+      }
+      return d;
+    };
+
+    const nextDueDate = getNextDate(referenceDate, inv.profitPeriod);
+
+    if (nextDueDate <= currentDate) {
+      return {
+        overdue: true,
+        nextDueDate: formatDate(nextDueDate)
+      };
+    }
+
+    return { overdue: false };
+  };
+
+  const overdueCheck = isProfitOverdue(investment);
+
   return (
     <div className="print-container">
       {/* Header Actions (Hidden when printing) */}
@@ -147,18 +201,51 @@ export default function InvestmentDetailsPage() {
         </button>
       </div>
 
+      {overdueCheck.overdue && (
+        <div className="no-print" style={{ 
+          background: 'rgba(245, 158, 11, 0.1)', 
+          border: '1px solid rgba(245, 158, 11, 0.3)', 
+          borderRadius: '16px', 
+          padding: '1.25rem 1.5rem', 
+          marginBottom: '2rem', 
+          display: 'flex', 
+          alignItems: 'center', 
+          gap: '1.25rem',
+          color: '#fbbf24'
+        }}>
+          <div className="pulse-warning-icon" style={{ display: 'flex', width: '36px', height: '36px', alignItems: 'center', justifyContent: 'center', boxSizing: 'border-box' }}>
+            <Bell size={18} />
+          </div>
+          <div>
+            <p style={{ fontWeight: 700, fontSize: '1rem', color: 'var(--text-main)' }}>Profit Overdue Notice</p>
+            <p style={{ fontSize: '0.875rem', color: 'var(--text-muted)', marginTop: '0.25rem' }}>
+              A profit payment has been due since <strong>{overdueCheck.nextDueDate}</strong> for this investment. Please record the new profit under the **Profit History** section below.
+            </p>
+          </div>
+        </div>
+      )}
+
       <div className="card" style={{ marginBottom: '2rem' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', borderBottom: '1px solid var(--border)', paddingBottom: '1.5rem', marginBottom: '1.5rem' }}>
           <div>
             <h2 style={{ fontSize: '1.75rem', fontWeight: 700, color: 'var(--text-main)', marginBottom: '0.5rem' }}>
               {investment.title}
             </h2>
-            <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+            <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', flexWrap: 'wrap' }}>
               <span className={`badge ${investment.status === 'RUNNING' ? 'badge-warning' : investment.status === 'COMPLETED' ? 'badge-success' : 'badge-danger'}`}>
                 {investment.status}
               </span>
               <span style={{ color: 'var(--text-muted)', fontSize: '0.875rem' }}>• {investment.type || 'Other Investment'}</span>
-              <span style={{ color: 'var(--text-muted)', fontSize: '0.875rem' }}>• Started: {new Date(investment.date).toLocaleDateString()}</span>
+              <span style={{ color: 'var(--text-muted)', fontSize: '0.875rem' }}>• Started: {formatDate(investment.date)}</span>
+              {investment.status === 'RUNNING' && investment.profitPeriod && investment.profitPeriod !== 'NONE' && (
+                <span style={{ color: overdueCheck.overdue ? 'var(--danger-text, #f87171)' : 'var(--text-muted)', fontSize: '0.875rem', fontWeight: overdueCheck.overdue ? 600 : 400 }}>
+                  • Cycle: {
+                    investment.profitPeriod === 'YEARLY' ? 'Yearly' :
+                    investment.profitPeriod === 'EVERY_6_MONTHS' ? '6 Months' :
+                    investment.profitPeriod === 'EVERY_3_MONTHS' ? '3 Months' : 'Monthly'
+                  } ({overdueCheck.overdue ? 'Overdue since' : 'Next due'}: {overdueCheck.nextDueDate})
+                </span>
+              )}
             </div>
           </div>
           <button 
@@ -241,7 +328,7 @@ export default function InvestmentDetailsPage() {
                 ) : (
                   investment.profits.map((p: any) => (
                     <tr key={p.id}>
-                      <td>{new Date(p.date).toLocaleDateString()}</td>
+                      <td>{formatDate(p.date)}</td>
                       <td style={{ color: 'var(--success)', fontWeight: 600 }}>+ ৳ {p.amount}</td>
                       <td>{p.note || '-'}</td>
                     </tr>
@@ -281,7 +368,7 @@ export default function InvestmentDetailsPage() {
                       <FileText size={20} color="var(--primary)" />
                       <div style={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
                         <span style={{ fontSize: '0.875rem', fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{doc.name}</span>
-                        <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>{new Date(doc.createdAt).toLocaleDateString()}</span>
+                        <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>{formatDate(doc.createdAt)}</span>
                       </div>
                     </div>
                     <div style={{ display: 'flex', gap: '0.5rem' }}>

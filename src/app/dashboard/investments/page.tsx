@@ -1,7 +1,8 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { TrendingUp, Plus, ArrowUpRight, ArrowDownRight, Edit2, X, Trash2, FileText, Upload, DollarSign } from 'lucide-react';
+import { TrendingUp, Plus, ArrowUpRight, ArrowDownRight, Edit2, X, Trash2, FileText, Upload, DollarSign, Bell } from 'lucide-react';
 import { uploadFileAction } from '@/app/actions/uploadAction';
+import { formatDate } from '@/lib/utils';
 
 export default function InvestmentsPage() {
   const [investments, setInvestments] = useState<any[]>([]);
@@ -15,10 +16,10 @@ export default function InvestmentsPage() {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
   // Forms
-  const [addForm, setAddForm] = useState({ title: '', type: 'Other Investment', amount: 0, date: new Date().toISOString().split('T')[0] });
+  const [addForm, setAddForm] = useState({ title: '', type: 'Other Investment', amount: 0, date: new Date().toISOString().split('T')[0], profitPeriod: 'NONE' });
   const [addFile, setAddFile] = useState<File | null>(null);
 
-  const [manageForm, setManageForm] = useState({ id: '', title: '', type: 'Other Investment', amount: 0, profit: 0, refund: 0, status: 'RUNNING', date: '', documentUrl: '' });
+  const [manageForm, setManageForm] = useState({ id: '', title: '', type: 'Other Investment', amount: 0, profit: 0, refund: 0, status: 'RUNNING', date: '', documentUrl: '', profitPeriod: 'NONE' });
   const [manageFile, setManageFile] = useState<File | null>(null);
 
   // Search and Filter
@@ -94,7 +95,7 @@ export default function InvestmentsPage() {
       if (!res.ok) throw new Error(data.error);
       
       setShowAddModal(false);
-      setAddForm({ title: '', type: 'Other Investment', amount: 0, date: new Date().toISOString().split('T')[0] });
+      setAddForm({ title: '', type: 'Other Investment', amount: 0, date: new Date().toISOString().split('T')[0], profitPeriod: 'NONE' });
       setAddFile(null);
       await fetchInvestments();
     } catch (err: any) {
@@ -114,7 +115,8 @@ export default function InvestmentsPage() {
       refund: inv.refund,
       status: inv.status,
       date: new Date(inv.date).toISOString().split('T')[0],
-      documentUrl: inv.documentUrl || ''
+      documentUrl: inv.documentUrl || '',
+      profitPeriod: inv.profitPeriod || 'NONE'
     });
     setManageFile(null);
     setError('');
@@ -166,6 +168,57 @@ export default function InvestmentsPage() {
     } catch (err) {
       console.error(err);
     }
+  };
+
+  // Helper to determine if a profit is due/overdue
+  const isProfitOverdue = (inv: any): { overdue: boolean; nextDueDate?: string } => {
+    if (inv.status !== 'RUNNING') return { overdue: false };
+    if (!inv.profitPeriod || inv.profitPeriod === 'NONE') return { overdue: false };
+
+    const startDate = new Date(inv.date);
+    const currentDate = new Date();
+    
+    // Find the date of the last profit, or default to the investment start date
+    let referenceDate = startDate;
+    if (inv.profits && inv.profits.length > 0) {
+      const profitDates = inv.profits.map((p: any) => new Date(p.date).getTime());
+      const maxTime = Math.max(...profitDates);
+      referenceDate = new Date(maxTime);
+    }
+
+    // Calculate next due date from referenceDate
+    const getNextDate = (ref: Date, period: string): Date => {
+      const d = new Date(ref);
+      let monthsToAdd = 0;
+      if (period === 'YEARLY') {
+        monthsToAdd = 12;
+      } else if (period === 'EVERY_6_MONTHS') {
+        monthsToAdd = 6;
+      } else if (period === 'EVERY_3_MONTHS') {
+        monthsToAdd = 3;
+      } else {
+        // Default to MONTHLY (1 month)
+        monthsToAdd = 1;
+      }
+      
+      const targetMonth = ref.getMonth() + monthsToAdd;
+      d.setMonth(targetMonth);
+      if (d.getMonth() !== (targetMonth % 12 + 12) % 12) {
+        d.setDate(0);
+      }
+      return d;
+    };
+
+    const nextDueDate = getNextDate(referenceDate, inv.profitPeriod);
+
+    if (nextDueDate <= currentDate) {
+      return {
+        overdue: true,
+        nextDueDate: formatDate(nextDueDate)
+      };
+    }
+
+    return { overdue: false };
   };
 
   // Calculations based on filtered data
@@ -292,7 +345,7 @@ export default function InvestmentsPage() {
                       </a>
                       <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.25rem' }}>{inv.type || 'Other Investment'}</div>
                     </td>
-                    <td>{new Date(inv.date).toLocaleDateString()}</td>
+                    <td>{formatDate(inv.date)}</td>
                     <td>৳ {inv.amount.toLocaleString()}</td>
                     <td style={{ color: 'var(--success)', fontWeight: 600 }}>+ ৳ {inv.profit.toLocaleString()}</td>
                     <td>৳ {inv.refund.toLocaleString()}</td>
@@ -302,7 +355,27 @@ export default function InvestmentsPage() {
                       </span>
                     </td>
                     <td>
-                      <div style={{ display: 'flex', gap: '0.5rem' }}>
+                      <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                        {(() => {
+                          const showBell = inv.status === 'RUNNING';
+                          if (!showBell) return null;
+                          const check = isProfitOverdue(inv);
+                          return (
+                            <div className="tooltip-wrapper" style={{ marginRight: '0.25rem' }}>
+                              <span className={check.overdue ? "bell-icon-overdue" : "bell-icon-normal"}>
+                                <Bell size={14} />
+                                {check.overdue && <span className="bell-red-dot" />}
+                              </span>
+                              <span className="tooltip-text">
+                                {check.overdue 
+                                  ? `Profit due since ${check.nextDueDate}! Go to details to add profit.`
+                                  : check.nextDueDate 
+                                    ? `Next profit due on ${check.nextDueDate}`
+                                    : 'No due'}
+                              </span>
+                            </div>
+                          );
+                        })()}
                         {inv.documentUrl && (
                           <button 
                             className="btn btn-outline" 
@@ -354,13 +427,25 @@ export default function InvestmentsPage() {
                 <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', fontWeight: 500 }}>Investment Title / Project Name *</label>
                 <input type="text" className="input" required value={addForm.title} onChange={e => setAddForm({...addForm, title: e.target.value})} placeholder="e.g. Agricultural Land" />
               </div>
-              <div>
-                <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', fontWeight: 500 }}>Investment Type</label>
-                <select className="input" value={addForm.type} onChange={e => setAddForm({...addForm, type: e.target.value})}>
-                  <option value="Land agreement">Land agreement</option>
-                  <option value="Bank FDR">Bank FDR</option>
-                  <option value="Other Investment">Other Investment</option>
-                </select>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                <div>
+                  <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', fontWeight: 500 }}>Investment Type</label>
+                  <select className="input" value={addForm.type} onChange={e => setAddForm({...addForm, type: e.target.value})}>
+                    <option value="Land agreement">Land agreement</option>
+                    <option value="Bank FDR">Bank FDR</option>
+                    <option value="Other Investment">Other Investment</option>
+                  </select>
+                </div>
+                <div>
+                  <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', fontWeight: 500 }}>Profit Period / Cycle</label>
+                  <select className="input" value={addForm.profitPeriod} onChange={e => setAddForm({...addForm, profitPeriod: e.target.value})}>
+                    <option value="NONE">None</option>
+                    <option value="MONTHLY">Monthly (1 Month)</option>
+                    <option value="EVERY_3_MONTHS">3 Months Cycle</option>
+                    <option value="EVERY_6_MONTHS">6 Months Cycle</option>
+                    <option value="YEARLY">Yearly (12 Months)</option>
+                  </select>
+                </div>
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                 <div>
@@ -434,9 +519,9 @@ export default function InvestmentsPage() {
                   <input type="number" className="input" required min="0" value={manageForm.profit} onChange={e => setManageForm({...manageForm, profit: parseInt(e.target.value) || 0})} />
                 </div>
               </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1rem' }}>
                 <div>
-                  <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', fontWeight: 500 }}>Principal Refunded (৳)</label>
+                  <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', fontWeight: 500 }}>Principal Refunded</label>
                   <input type="number" className="input" required min="0" value={manageForm.refund} onChange={e => setManageForm({...manageForm, refund: parseInt(e.target.value) || 0})} />
                 </div>
                 <div>
@@ -445,6 +530,16 @@ export default function InvestmentsPage() {
                     <option value="RUNNING">RUNNING</option>
                     <option value="COMPLETED">COMPLETED</option>
                     <option value="FAILED">FAILED</option>
+                  </select>
+                </div>
+                <div>
+                  <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', fontWeight: 500 }}>Profit Period</label>
+                  <select className="input" value={manageForm.profitPeriod} onChange={e => setManageForm({...manageForm, profitPeriod: e.target.value})}>
+                    <option value="NONE">None</option>
+                    <option value="MONTHLY">Monthly (1 Month)</option>
+                    <option value="EVERY_3_MONTHS">3 Months Cycle</option>
+                    <option value="EVERY_6_MONTHS">6 Months Cycle</option>
+                    <option value="YEARLY">Yearly (12 Months)</option>
                   </select>
                 </div>
               </div>

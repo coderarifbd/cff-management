@@ -6,6 +6,7 @@ import autoTable from 'jspdf-autotable';
 import * as XLSX from 'xlsx';
 import { NotoSansBengaliBase64 } from '@/lib/fonts/NotoSansBengali';
 import html2canvas from 'html2canvas';
+import { formatDate } from '@/lib/utils';
 
 export default function ReportsPage() {
   const currentYear = new Date().getFullYear();
@@ -181,7 +182,7 @@ export default function ReportsPage() {
         // --- Add Footer ---
         doc.setFontSize(9);
         doc.setTextColor(150, 150, 150);
-        const footerText = `CFF Financial Report | Generated: ${new Date().toLocaleDateString()} | Page ${pageNum}`;
+        const footerText = `CFF Financial Report | Generated: ${formatDate(new Date())} | Page ${pageNum}`;
         doc.text(footerText, pageWidth / 2, footerY, { align: 'center' });
         
         // --- Update loop vars ---
@@ -229,7 +230,7 @@ export default function ReportsPage() {
       // Other Incomes Sheet
       if (filters.otherIncome) {
         const otherIncomesData = data.incomes.map((inc: any) => ({
-          'Date': new Date(inc.date).toLocaleDateString(),
+          'Date': formatDate(inc.date),
           'Category': inc.category,
           'Description': inc.description,
           'Amount': inc.amount
@@ -241,7 +242,7 @@ export default function ReportsPage() {
       // Expenses Sheet
       if (filters.expense) {
         const expensesData = data.expenses.map((e: any) => ({
-          'Date': new Date(e.date).toLocaleDateString(),
+          'Date': formatDate(e.date),
           'Category': e.category,
           'Description': e.description,
           'Amount': e.amount
@@ -253,7 +254,7 @@ export default function ReportsPage() {
       // Investments Sheet
       if (filters.invest) {
         const investmentsData = data.investments.map((inv: any) => ({
-          'Date': new Date(inv.date).toLocaleDateString(),
+          'Date': formatDate(inv.date),
           'Investment Project': inv.title,
           'Type': inv.type || '-',
           'Amount Invested': inv.amount
@@ -414,10 +415,10 @@ export default function ReportsPage() {
             <div id="report-header" style={{ textAlign: 'center', borderBottom: '3px solid #1a7a4a', paddingBottom: '1.5rem', marginBottom: '2rem' }}>
               <div style={{ fontSize: '1.75rem', fontWeight: 800, color: '#1a7a4a', letterSpacing: '0.05em' }}>চাকালমুয়া ফ্রেন্ডস ফেডারেশন</div>
               <div style={{ fontSize: '1rem', color: '#555', marginTop: '0.25rem' }}>Chakalmua Friends Federation (CFF)</div>
-              <div style={{ marginTop: '1rem', display: 'inline-block', background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: '6px', padding: '0.4rem 1.5rem' }}>
+              <div style={{ marginTop: '1.5rem', display: 'inline-block', background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: '6px', padding: '0.4rem 1.5rem' }}>
                 <span style={{ fontSize: '1.125rem', fontWeight: 700, color: '#15803d' }}>{previewTitle}</span>
               </div>
-              <div style={{ marginTop: '0.5rem', fontSize: '0.8rem', color: '#999' }}>Generated on: {new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' })}</div>
+              <div style={{ marginTop: '0.5rem', fontSize: '0.8rem', color: '#999' }}>Generated on: {formatDate(new Date())}</div>
             </div>
 
             <div id="report-body">
@@ -615,7 +616,7 @@ export default function ReportsPage() {
                       {previewData.incomes.length === 0 && <tr><td colSpan={4} style={{ textAlign: 'center' }}>No other incomes found</td></tr>}
                       {previewData.incomes.map((inc: any) => (
                         <tr key={inc.id}>
-                          <td>{new Date(inc.date).toLocaleDateString()}</td>
+                          <td>{formatDate(inc.date)}</td>
                           <td>{inc.category}</td>
                           <td>{inc.description || '-'}</td>
                           <td style={{ textAlign: 'right', fontWeight: 600, color: 'var(--success)' }}>৳ {inc.amount}</td>
@@ -645,7 +646,7 @@ export default function ReportsPage() {
                       {previewData.expenses.length === 0 && <tr><td colSpan={4} style={{ textAlign: 'center' }}>No expenses found</td></tr>}
                       {previewData.expenses.map((e: any) => (
                         <tr key={e.id}>
-                          <td>{new Date(e.date).toLocaleDateString()}</td>
+                          <td>{formatDate(e.date)}</td>
                           <td>{e.category}</td>
                           <td>{e.description || '-'}</td>
                           <td style={{ textAlign: 'right', fontWeight: 600, color: 'var(--danger)' }}>- ৳ {e.amount}</td>
@@ -675,7 +676,7 @@ export default function ReportsPage() {
                       {previewData.investments.length === 0 && <tr><td colSpan={4} style={{ textAlign: 'center' }}>No new investments started in this period</td></tr>}
                       {previewData.investments.map((inv: any) => (
                         <tr key={inv.id}>
-                          <td>{new Date(inv.date).toLocaleDateString()}</td>
+                          <td>{formatDate(inv.date)}</td>
                           <td style={{ fontWeight: 600 }}>{inv.title}</td>
                           <td>{inv.type || '-'}</td>
                           <td style={{ textAlign: 'right', fontWeight: 600, color: 'var(--primary)' }}>৳ {inv.amount}</td>

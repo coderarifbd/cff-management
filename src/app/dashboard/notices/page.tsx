@@ -1,6 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { Megaphone, Plus, Send, Trash2, X, Edit2, AlertTriangle, Share2, MessageCircle, Copy, Check } from 'lucide-react';
+import { formatDate } from '@/lib/utils';
 
 export default function NoticesPage() {
   const [notices, setNotices] = useState<any[]>([]);
@@ -157,9 +158,9 @@ export default function NoticesPage() {
                   </div>
                   <div>
                     <h3 style={{ fontSize: '1.1rem', fontWeight: 700, color: 'white', marginBottom: '0.25rem' }}>{notice.title}</h3>
-                    <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '0.75rem' }}>
-                      Published on {new Date(notice.createdAt).toLocaleDateString()}
-                    </p>
+                     <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '0.75rem' }}>
+                       Published on {formatDate(notice.createdAt)}
+                     </p>
                     <p style={{ whiteSpace: 'pre-wrap', color: 'rgba(255, 255, 255, 0.8)', fontSize: '0.95rem', lineHeight: 1.6 }}>{notice.content}</p>
                   </div>
                 </div>

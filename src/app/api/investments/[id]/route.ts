@@ -26,7 +26,7 @@ export async function PUT(request: Request, context: any) {
   try {
     const { id } = await context.params;
     const data = await request.json();
-    const { title, type, amount, profit, refund, status, date, documentUrl } = data;
+    const { title, type, amount, profit, refund, status, date, documentUrl, profitPeriod } = data;
 
     const investment = await prisma.investment.update({
       where: { id },
@@ -38,7 +38,8 @@ export async function PUT(request: Request, context: any) {
         refund: refund !== undefined ? parseFloat(refund) : undefined,
         status: status !== undefined ? status : undefined,
         date: date ? new Date(date) : undefined,
-        documentUrl: documentUrl !== undefined ? documentUrl : undefined
+        documentUrl: documentUrl !== undefined ? documentUrl : undefined,
+        profitPeriod: profitPeriod !== undefined ? profitPeriod : undefined
       }
     });
 

@@ -1,6 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { CheckCircle, AlertCircle, TrendingUp, Megaphone, X, Calendar, Wallet, Receipt, Info } from 'lucide-react';
+import { formatDate } from '@/lib/utils';
 
 export default function MemberDashboardPage() {
   const [data, setData] = useState<any>(null);
@@ -120,7 +121,7 @@ export default function MemberDashboardPage() {
                 <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)', lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>{notice.content}</p>
                 <div style={{ marginTop: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.75rem', color: 'rgba(255, 255, 255, 0.4)' }}>
                   <Calendar size={14} />
-                  <span>{new Date(notice.createdAt).toLocaleDateString()}</span>
+                  <span>{formatDate(notice.createdAt)}</span>
                 </div>
               </div>
             ))}
@@ -205,7 +206,7 @@ export default function MemberDashboardPage() {
                       {item.isPaid ? (
                         <div style={{ color: '#34d399', display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.875rem', fontWeight: 600 }}>
                           <CheckCircle size={16} /> 
-                          <span>{item.paidAt ? new Date(item.paidAt).toLocaleDateString() : 'Confirmed'}</span>
+                          <span>{item.paidAt ? formatDate(item.paidAt) : 'Confirmed'}</span>
                         </div>
                       ) : (
                         <span style={{ fontSize: '0.875rem', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>

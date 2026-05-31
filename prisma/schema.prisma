@@ -62,6 +62,7 @@ model Investment {
   status      String   @default("RUNNING")
   date        DateTime @default(now())
   documentUrl String? // Legacy single document field
+  profitPeriod String   @default("NONE")
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   profits     InvestmentProfit[]

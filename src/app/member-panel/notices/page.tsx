@@ -1,6 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { Megaphone, Calendar, User, X } from 'lucide-react';
+import { formatDate } from '@/lib/utils';
 
 export default function MemberNoticesPage() {
   const [notices, setNotices] = useState<any[]>([]);
@@ -81,7 +82,7 @@ export default function MemberNoticesPage() {
                       )}
                     </div>
                     <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-                      <Calendar size={14} /> {new Date(notice.createdAt).toLocaleDateString()}
+                      <Calendar size={14} /> {formatDate(notice.createdAt)}
                     </span>
                   </div>
                   <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>
@@ -118,7 +119,7 @@ export default function MemberNoticesPage() {
                   <User size={14} /> Posted by: <strong>{selectedNotice.authorName}</strong>
                 </div>
                 <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                  <Calendar size={14} /> Date: {new Date(selectedNotice.createdAt).toLocaleDateString()}
+                  <Calendar size={14} /> Date: {formatDate(selectedNotice.createdAt)}
                 </div>
               </div>
             </div>

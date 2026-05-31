@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import { Plus, Edit2, Trash2, X, Key, Eye, EyeOff, ShieldCheck, Info, User, Mail, Phone, Calendar, Search, Lock } from 'lucide-react';
 import { useAuth } from '@/lib/auth-context';
+import { formatDate } from '@/lib/utils';
 
 export default function MembersPage() {
   const { isAdmin } = useAuth();
@@ -295,7 +296,7 @@ export default function MembersPage() {
                     </td>
                     <td>
                       <div style={{ fontSize: '0.875rem', fontWeight: 500 }}>
-                        {new Date(member.joinDate).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}
+                        {formatDate(member.joinDate)}
                       </div>
                     </td>
                     <td>

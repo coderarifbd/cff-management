@@ -4,6 +4,11 @@ import { prisma } from '@/lib/prisma';
 export async function GET() {
   try {
     const investments = await prisma.investment.findMany({
+      include: {
+        profits: {
+          orderBy: { date: 'desc' }
+        }
+      },
       orderBy: { date: 'desc' }
     });
     return NextResponse.json(investments);
@@ -15,7 +20,7 @@ export async function GET() {
 export async function POST(request: Request) {
   try {
     const data = await request.json();
-    const { title, type, amount, date, documentUrl } = data;
+    const { title, type, amount, date, documentUrl, profitPeriod } = data;
 
     const investment = await prisma.investment.create({
       data: {
@@ -23,7 +28,8 @@ export async function POST(request: Request) {
         type: type || 'Other Investment',
         amount: parseFloat(amount),
         date: date ? new Date(date) : undefined,
-        documentUrl
+        documentUrl,
+        profitPeriod: profitPeriod || 'NONE'
       }
     });
 

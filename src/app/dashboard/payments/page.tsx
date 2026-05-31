@@ -1,6 +1,7 @@
 'use client';
 import { useState, useEffect, useCallback } from 'react';
 import { Search, AlertCircle, CheckCircle, Plus, Copy, X, Edit2, Filter, Trash2, AlertTriangle, Calendar, Wallet, DollarSign, ArrowRight, User, Activity } from 'lucide-react';
+import { formatDate } from '@/lib/utils';
 
 export default function PaymentsPage() {
   const [payments, setPayments] = useState<any[]>([]);
@@ -340,7 +341,7 @@ export default function PaymentsPage() {
                           </button>
                         ) : (
                           <div style={{ color: '#22c55e', display: 'flex', alignItems: 'center', gap: '0.375rem', fontSize: '0.8125rem', fontWeight: 600, padding: '0 0.5rem' }}>
-                            <CheckCircle size={14} /> {new Date(payment.paidAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
+                            <CheckCircle size={14} /> {formatDate(payment.paidAt)}
                           </div>
                         )}
                       </div>
