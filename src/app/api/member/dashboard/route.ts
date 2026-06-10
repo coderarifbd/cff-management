@@ -30,7 +30,7 @@ export async function GET(request: Request) {
     const user = await prisma.user.findUnique({
       where: { id: userId },
       select: {
-        id: true, name: true, email: true, phone: true, memberNo: true, joinDate: true,
+        id: true, name: true, email: true, phone: true, role: true, memberNo: true, joinDate: true,
         payments: {
           orderBy: [{ year: 'desc' }, { month: 'desc' }]
         }
@@ -97,7 +97,8 @@ export async function GET(request: Request) {
         email: user.email,
         phone: user.phone,
         memberNo: user.memberNo,
-        joinDate: user.joinDate
+        joinDate: user.joinDate,
+        role: user.role
       },
       stats: {
         totalPaidFees,

@@ -5,7 +5,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { 
   LayoutDashboard, Users, CreditCard, TrendingUp, 
   Receipt, FileText, LogOut, ShieldCheck, 
-  Megaphone, Lock, Wallet, X, Menu, Bell, Settings
+  Megaphone, Lock, Wallet, X, Menu, Bell, Settings, User
 } from 'lucide-react';
 import { AuthProvider, useAuth } from '@/lib/auth-context';
 
@@ -110,6 +110,16 @@ function DashboardLayoutInner({ children }: { children: ReactNode }) {
               {item.name}
             </Link>
           ))}
+
+          <div style={{ marginTop: '1.5rem', padding: '0 1rem 0.5rem', fontSize: '0.65rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.1em', fontWeight: 600 }}>Personal</div>
+          <Link
+            href="/member-panel"
+            className="nav-item"
+            style={{ border: '1px solid rgba(16, 185, 129, 0.15)', background: 'rgba(16, 185, 129, 0.02)', color: '#34d399' }}
+          >
+            <User size={20} />
+            My Member Panel
+          </Link>
         </nav>
 
         <div style={{ padding: '1.5rem', borderTop: '1px solid var(--border)' }}>
@@ -172,9 +182,16 @@ function DashboardLayoutInner({ children }: { children: ReactNode }) {
               </div>
               <h3 style={{ fontSize: '1.5rem', fontWeight: 800, marginBottom: '1rem' }}>Access Denied</h3>
               <p style={{ color: 'var(--text-muted)', marginBottom: '2rem' }}>You do not have the required permissions to view the <strong>{currentRouteName}</strong> module.</p>
-              <button onClick={() => router.push('/dashboard')} className="btn btn-primary" style={{ display: 'inline-flex' }}>
-                Go to Overview
-              </button>
+              <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center' }}>
+                <button onClick={() => router.push('/member-panel')} className="btn btn-primary" style={{ display: 'inline-flex' }}>
+                  Go to Member Panel
+                </button>
+                {hasPermission('overview', 'VIEW') && (
+                  <button onClick={() => router.push('/dashboard')} className="btn btn-outline" style={{ display: 'inline-flex' }}>
+                    Go to Overview
+                  </button>
+                )}
+              </div>
             </div>
           ) : (
             children

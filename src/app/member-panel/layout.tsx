@@ -71,6 +71,20 @@ export default function MemberPanelLayout({ children }: { children: ReactNode })
         </div>
 
         <nav className="sidebar-nav">
+          {(profile?.role === 'ADMIN' || profile?.role === 'MANAGER') && (
+            <>
+              <div style={{ padding: '0 1rem 0.5rem', fontSize: '0.65rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.1em', fontWeight: 600 }}>Management</div>
+              <Link 
+                href="/dashboard" 
+                className="nav-item"
+                style={{ marginBottom: '1.5rem', border: '1px solid rgba(129, 140, 248, 0.15)', background: 'rgba(129, 140, 248, 0.02)', color: '#a78bfa' }}
+              >
+                <Shield size={20} />
+                Management Panel
+              </Link>
+            </>
+          )}
+
           <div style={{ padding: '0 1rem 0.5rem', fontSize: '0.65rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.1em', fontWeight: 600 }}>Personal</div>
           {navItems.map((item) => (
             <Link 
