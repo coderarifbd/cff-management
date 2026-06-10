@@ -1,6 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { TrendingUp, Plus, ArrowUpRight, ArrowDownRight, Edit2, X, Trash2, FileText, Upload, DollarSign, Bell } from 'lucide-react';
+import { TrendingUp, Plus, ArrowUpRight, ArrowDownRight, Edit2, X, Trash2, FileText, Upload, DollarSign, Bell, ArrowUp, ArrowDown, ArrowUpDown } from 'lucide-react';
 import { uploadFileAction } from '@/app/actions/uploadAction';
 import { formatDate } from '@/lib/utils';
 
@@ -27,6 +27,8 @@ export default function InvestmentsPage() {
   const [statusFilter, setStatusFilter] = useState('ALL');
   const [selectedMonth, setSelectedMonth] = useState('ALL');
   const [selectedYear, setSelectedYear] = useState('ALL');
+  const [sortField, setSortField] = useState<string>('date');
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
 
   const fetchInvestments = async () => {
     setLoading(true);
@@ -64,6 +66,48 @@ export default function InvestmentsPage() {
     const matchesYear = selectedYear === 'ALL' || invDate.getFullYear() === parseInt(selectedYear);
     
     return matchesSearch && matchesStatus && matchesMonth && matchesYear;
+  });
+
+  // Sorting Logic
+  const handleSort = (field: string) => {
+    if (sortField === field) {
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortField(field);
+      // Default to desc for amounts and dates, asc for text and status
+      if (['amount', 'profit', 'refund', 'date'].includes(field)) {
+        setSortDirection('desc');
+      } else {
+        setSortDirection('asc');
+      }
+    }
+  };
+
+  const sortedInvestments = [...filteredInvestments].sort((a, b) => {
+    let aVal = a[sortField];
+    let bVal = b[sortField];
+
+    // Handle null/undefined values
+    if (aVal === undefined || aVal === null) aVal = '';
+    if (bVal === undefined || bVal === null) bVal = '';
+
+    if (sortField === 'date') {
+      const aTime = new Date(aVal).getTime() || 0;
+      const bTime = new Date(bVal).getTime() || 0;
+      return sortDirection === 'asc' ? aTime - bTime : bTime - aTime;
+    }
+
+    if (typeof aVal === 'string' && typeof bVal === 'string') {
+      return sortDirection === 'asc' 
+        ? aVal.localeCompare(bVal, undefined, { sensitivity: 'base' })
+        : bVal.localeCompare(aVal, undefined, { sensitivity: 'base' });
+    }
+
+    if (typeof aVal === 'number' && typeof bVal === 'number') {
+      return sortDirection === 'asc' ? aVal - bVal : bVal - aVal;
+    }
+
+    return 0;
   });
 
   const handleAddSubmit = async (e: React.FormEvent) => {
@@ -315,6 +359,27 @@ export default function InvestmentsPage() {
             ))}
           </select>
         </div>
+        <div style={{ minWidth: '170px' }}>
+          <select 
+            className="input" 
+            value={`${sortField}-${sortDirection}`}
+            onChange={(e) => {
+              const [field, direction] = e.target.value.split('-');
+              setSortField(field);
+              setSortDirection(direction as 'asc' | 'desc');
+            }}
+          >
+            <option value="date-desc">Sort: Date (Newest)</option>
+            <option value="date-asc">Sort: Date (Oldest)</option>
+            <option value="amount-desc">Sort: Amount (High to Low)</option>
+            <option value="amount-asc">Sort: Amount (Low to High)</option>
+            <option value="profit-desc">Sort: Profit (High to Low)</option>
+            <option value="profit-asc">Sort: Profit (Low to High)</option>
+            <option value="title-asc">Sort: Title (A to Z)</option>
+            <option value="title-desc">Sort: Title (Z to A)</option>
+            <option value="status-asc">Sort: Status (A to Z)</option>
+          </select>
+        </div>
       </div>
 
       <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
@@ -322,22 +387,88 @@ export default function InvestmentsPage() {
           <table>
             <thead>
               <tr>
-                <th>Investment Details</th>
-                <th>Date Started</th>
-                <th>Invested Amount</th>
-                <th>Profit Generated</th>
-                <th>Refunded</th>
-                <th>Status</th>
+                <th className={`sortable ${sortField === 'title' ? 'active' : ''}`} onClick={() => handleSort('title')}>
+                  <div style={{ display: 'flex', alignItems: 'center' }}>
+                    Investment Details
+                    <span className="sort-icon">
+                      {sortField === 'title' ? (
+                        sortDirection === 'asc' ? <ArrowUp size={14} /> : <ArrowDown size={14} />
+                      ) : (
+                        <ArrowUpDown size={14} style={{ opacity: 0.4 }} />
+                      )}
+                    </span>
+                  </div>
+                </th>
+                <th className={`sortable ${sortField === 'date' ? 'active' : ''}`} onClick={() => handleSort('date')}>
+                  <div style={{ display: 'flex', alignItems: 'center' }}>
+                    Date Started
+                    <span className="sort-icon">
+                      {sortField === 'date' ? (
+                        sortDirection === 'asc' ? <ArrowUp size={14} /> : <ArrowDown size={14} />
+                      ) : (
+                        <ArrowUpDown size={14} style={{ opacity: 0.4 }} />
+                      )}
+                    </span>
+                  </div>
+                </th>
+                <th className={`sortable ${sortField === 'amount' ? 'active' : ''}`} onClick={() => handleSort('amount')}>
+                  <div style={{ display: 'flex', alignItems: 'center' }}>
+                    Invested Amount
+                    <span className="sort-icon">
+                      {sortField === 'amount' ? (
+                        sortDirection === 'asc' ? <ArrowUp size={14} /> : <ArrowDown size={14} />
+                      ) : (
+                        <ArrowUpDown size={14} style={{ opacity: 0.4 }} />
+                      )}
+                    </span>
+                  </div>
+                </th>
+                <th className={`sortable ${sortField === 'profit' ? 'active' : ''}`} onClick={() => handleSort('profit')}>
+                  <div style={{ display: 'flex', alignItems: 'center' }}>
+                    Profit Generated
+                    <span className="sort-icon">
+                      {sortField === 'profit' ? (
+                        sortDirection === 'asc' ? <ArrowUp size={14} /> : <ArrowDown size={14} />
+                      ) : (
+                        <ArrowUpDown size={14} style={{ opacity: 0.4 }} />
+                      )}
+                    </span>
+                  </div>
+                </th>
+                <th className={`sortable ${sortField === 'refund' ? 'active' : ''}`} onClick={() => handleSort('refund')}>
+                  <div style={{ display: 'flex', alignItems: 'center' }}>
+                    Refunded
+                    <span className="sort-icon">
+                      {sortField === 'refund' ? (
+                        sortDirection === 'asc' ? <ArrowUp size={14} /> : <ArrowDown size={14} />
+                      ) : (
+                        <ArrowUpDown size={14} style={{ opacity: 0.4 }} />
+                      )}
+                    </span>
+                  </div>
+                </th>
+                <th className={`sortable ${sortField === 'status' ? 'active' : ''}`} onClick={() => handleSort('status')}>
+                  <div style={{ display: 'flex', alignItems: 'center' }}>
+                    Status
+                    <span className="sort-icon">
+                      {sortField === 'status' ? (
+                        sortDirection === 'asc' ? <ArrowUp size={14} /> : <ArrowDown size={14} />
+                      ) : (
+                        <ArrowUpDown size={14} style={{ opacity: 0.4 }} />
+                      )}
+                    </span>
+                  </div>
+                </th>
                 <th>Actions</th>
               </tr>
             </thead>
             <tbody>
               {loading ? (
                 <tr><td colSpan={7} style={{ textAlign: 'center' }}>Loading investments...</td></tr>
-              ) : filteredInvestments.length === 0 ? (
+              ) : sortedInvestments.length === 0 ? (
                 <tr><td colSpan={7} style={{ textAlign: 'center' }}>No investment records found.</td></tr>
               ) : (
-                filteredInvestments.map((inv) => (
+                sortedInvestments.map((inv) => (
                   <tr key={inv.id}>
                     <td>
                       <a href={`/dashboard/investments/${inv.id}`} style={{ fontWeight: 600, color: 'var(--primary)', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
@@ -398,13 +529,13 @@ export default function InvestmentsPage() {
                 ))
               )}
             </tbody>
-            {filteredInvestments.length > 0 && (
+            {sortedInvestments.length > 0 && (
               <tfoot>
                 <tr style={{ background: 'rgba(255, 255, 255, 0.05)', fontWeight: 700 }}>
                   <td colSpan={2} style={{ textAlign: 'right', padding: '1rem', color: 'var(--text-muted)' }}>Filtered Totals:</td>
-                  <td style={{ padding: '1rem', color: 'var(--text-main)' }}>৳ {filteredInvestments.reduce((sum, i) => sum + i.amount, 0).toLocaleString()}</td>
-                  <td style={{ color: 'var(--success)', padding: '1rem' }}>+ ৳ {filteredInvestments.reduce((sum, i) => sum + i.profit, 0).toLocaleString()}</td>
-                  <td style={{ padding: '1rem', color: 'var(--text-main)' }}>৳ {filteredInvestments.reduce((sum, i) => sum + i.refund, 0).toLocaleString()}</td>
+                  <td style={{ padding: '1rem', color: 'var(--text-main)' }}>৳ {sortedInvestments.reduce((sum, i) => sum + i.amount, 0).toLocaleString()}</td>
+                  <td style={{ color: 'var(--success)', padding: '1rem' }}>+ ৳ {sortedInvestments.reduce((sum, i) => sum + i.profit, 0).toLocaleString()}</td>
+                  <td style={{ padding: '1rem', color: 'var(--text-main)' }}>৳ {sortedInvestments.reduce((sum, i) => sum + i.refund, 0).toLocaleString()}</td>
                   <td colSpan={2}></td>
                 </tr>
               </tfoot>

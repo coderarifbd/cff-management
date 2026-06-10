@@ -337,6 +337,37 @@ th {
   letter-spacing: 0.05em;
 }
 
+/* Sortable table header styling */
+th.sortable {
+  cursor: pointer;
+  user-select: none;
+  position: relative;
+  transition: all 0.2s ease;
+}
+
+th.sortable:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--text-main);
+}
+
+th.sortable.active {
+  color: var(--primary-light);
+  background: rgba(21, 128, 61, 0.08);
+}
+
+th.sortable .sort-icon {
+  display: inline-flex;
+  align-items: center;
+  margin-left: 0.5rem;
+  transition: all 0.2s ease;
+  vertical-align: middle;
+}
+
+th.sortable.active .sort-icon {
+  color: var(--primary-light);
+}
+
+
 tr:last-child td {
   border-bottom: none;
 }
