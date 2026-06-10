@@ -91,6 +91,18 @@ export default function InvestmentsPage() {
     if (aVal === undefined || aVal === null) aVal = '';
     if (bVal === undefined || bVal === null) bVal = '';
 
+    if (sortField === 'month') {
+      const aDate = new Date(a.date);
+      const bDate = new Date(b.date);
+      const aMonth = aDate.getMonth();
+      const bMonth = bDate.getMonth();
+      if (aMonth !== bMonth) {
+        return sortDirection === 'asc' ? aMonth - bMonth : bMonth - aMonth;
+      }
+      // Sub-sort chronologically if months are the same
+      return aDate.getTime() - bDate.getTime();
+    }
+
     if (sortField === 'date') {
       const aTime = new Date(aVal).getTime() || 0;
       const bTime = new Date(bVal).getTime() || 0;
@@ -371,6 +383,8 @@ export default function InvestmentsPage() {
           >
             <option value="date-desc">Sort: Date (Newest)</option>
             <option value="date-asc">Sort: Date (Oldest)</option>
+            <option value="month-asc">Sort: Month (Jan to Dec)</option>
+            <option value="month-desc">Sort: Month (Dec to Jan)</option>
             <option value="amount-desc">Sort: Amount (High to Low)</option>
             <option value="amount-asc">Sort: Amount (Low to High)</option>
             <option value="profit-desc">Sort: Profit (High to Low)</option>
