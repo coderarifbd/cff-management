@@ -16,6 +16,7 @@ model User {
   phone     String?
   role      String   @default("MEMBER")
   status    String   @default("ACTIVE")
+  permissions Json?
   bannedAt  DateTime?
   joinDate  DateTime @default(now())
   createdAt DateTime @default(now())

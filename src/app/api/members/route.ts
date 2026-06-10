@@ -1,9 +1,15 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import bcrypt from 'bcryptjs';
+import { verifyPermission } from '@/lib/api-auth';
 
 export async function GET(request: Request) {
   try {
+    const auth = await verifyPermission(request, 'members', 'VIEW');
+    if (!auth.authorized) {
+      return NextResponse.json({ error: auth.error }, { status: auth.status });
+    }
+
     const { searchParams } = new URL(request.url);
     const membersOnly = searchParams.get('membersOnly') === 'true';
 
@@ -83,8 +89,18 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
+    const auth = await verifyPermission(request, 'members', 'EDIT');
+    if (!auth.authorized) {
+      return NextResponse.json({ error: auth.error }, { status: auth.status });
+    }
+
     const data = await request.json();
-    const { memberNo, name, email, phone, role, status, joinDate } = data;
+    const { memberNo, name, email, phone, role, status, joinDate, permissions } = data;
+
+    // Guard: Only administrators can create manager roles or define custom permissions
+    if ((role === 'MANAGER' || permissions) && auth.user?.role !== 'ADMIN') {
+      return NextResponse.json({ error: 'Only administrators can create managers or set custom permissions.' }, { status: 403 });
+    }
 
     // Check if email or memberNo already exists
     const existingUser = await prisma.user.findFirst({
@@ -111,7 +127,8 @@ export async function POST(request: Request) {
         role: role || 'MEMBER',
         status: status || 'ACTIVE',
         joinDate: joinDate ? new Date(joinDate) : new Date(),
-        password: hashedPassword
+        password: hashedPassword,
+        permissions: permissions || undefined
       }
     });
 

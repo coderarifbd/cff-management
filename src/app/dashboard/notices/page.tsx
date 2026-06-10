@@ -2,8 +2,13 @@
 import { useState, useEffect } from 'react';
 import { Megaphone, Plus, Send, Trash2, X, Edit2, AlertTriangle, Share2, MessageCircle, Copy, Check } from 'lucide-react';
 import { formatDate } from '@/lib/utils';
+import { useAuth } from '@/lib/auth-context';
 
 export default function NoticesPage() {
+  const { hasPermission } = useAuth();
+  const canEdit = hasPermission('notices', 'EDIT');
+  const canDelete = hasPermission('notices', 'FULL');
+
   const [notices, setNotices] = useState<any[]>([]);
   const [showModal, setShowModal] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -130,9 +135,11 @@ export default function NoticesPage() {
           <h2 style={{ fontSize: '1.5rem', fontWeight: 600 }}>Notice Board</h2>
           <p style={{ color: 'var(--text-muted)' }}>Publish and share federation updates.</p>
         </div>
-        <button className="btn btn-primary" onClick={() => setShowModal(true)}>
-          <Plus size={18} style={{ marginRight: '0.5rem' }} /> Create Notice
-        </button>
+        {canEdit && (
+          <button className="btn btn-primary" onClick={() => setShowModal(true)}>
+            <Plus size={18} style={{ marginRight: '0.5rem' }} /> Create Notice
+          </button>
+        )}
       </div>
 
       <div style={{ display: 'grid', gap: '1rem' }}>
@@ -177,13 +184,19 @@ export default function NoticesPage() {
                   <button className="btn btn-outline" style={{ color: '#25d366', borderColor: 'rgba(37, 211, 102, 0.2)', padding: '0.5rem' }} onClick={() => sendToWhatsApp(notice)} title="Share on WhatsApp">
                     <Send size={16} />
                   </button>
-                  <div style={{ width: '1px', height: '32px', background: 'var(--border)', margin: '0 0.2rem' }}></div>
-                  <button className="btn btn-outline" style={{ padding: '0.5rem' }} onClick={() => openEditModal(notice)} title="Edit Notice">
-                    <Edit2 size={16} />
-                  </button>
-                  <button className="btn btn-outline" style={{ color: 'var(--danger)', borderColor: 'rgba(239, 68, 68, 0.2)', padding: '0.5rem' }} onClick={() => setDeleteId(notice.id)} title="Delete Notice">
-                    <Trash2 size={16} />
-                  </button>
+                  {canEdit && (
+                    <>
+                      <div style={{ width: '1px', height: '32px', background: 'var(--border)', margin: '0 0.2rem' }}></div>
+                      <button className="btn btn-outline" style={{ padding: '0.5rem' }} onClick={() => openEditModal(notice)} title="Edit Notice">
+                        <Edit2 size={16} />
+                      </button>
+                    </>
+                  )}
+                  {canDelete && (
+                    <button className="btn btn-outline" style={{ color: 'var(--danger)', borderColor: 'rgba(239, 68, 68, 0.2)', padding: '0.5rem' }} onClick={() => setDeleteId(notice.id)} title="Delete Notice">
+                      <Trash2 size={16} />
+                    </button>
+                  )}
                 </div>
               </div>
             </div>

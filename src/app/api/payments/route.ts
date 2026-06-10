@@ -1,14 +1,19 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { verifyPermission } from '@/lib/api-auth';
 
 export async function GET(request: Request) {
-  const { searchParams } = new URL(request.url);
-  const month = searchParams.get('month');
-  const year = searchParams.get('year');
-  const userId = searchParams.get('userId');
-  const limit = searchParams.get('limit');
-
   try {
+    const auth = await verifyPermission(request, 'payments', 'VIEW');
+    if (!auth.authorized) {
+      return NextResponse.json({ error: auth.error }, { status: auth.status });
+    }
+
+    const { searchParams } = new URL(request.url);
+    const month = searchParams.get('month');
+    const year = searchParams.get('year');
+    const userId = searchParams.get('userId');
+    const limit = searchParams.get('limit');
     const query: any = {
       include: { user: true },
       orderBy: [
@@ -37,6 +42,11 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
+    const auth = await verifyPermission(request, 'payments', 'EDIT');
+    if (!auth.authorized) {
+      return NextResponse.json({ error: auth.error }, { status: auth.status });
+    }
+
     const data = await request.json();
     const { userId, month, year, amount, fine, isPaid, paidAt, notes } = data;
 

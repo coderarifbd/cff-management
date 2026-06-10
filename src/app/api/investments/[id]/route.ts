@@ -1,8 +1,13 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { verifyPermission } from '@/lib/api-auth';
 
 export async function GET(request: Request, context: any) {
   try {
+    const auth = await verifyPermission(request, 'investments', 'VIEW');
+    if (!auth.authorized) {
+      return NextResponse.json({ error: auth.error }, { status: auth.status });
+    }
     const { id } = await context.params;
     const investment = await prisma.investment.findUnique({
       where: { id },
@@ -24,6 +29,10 @@ export async function GET(request: Request, context: any) {
 
 export async function PUT(request: Request, context: any) {
   try {
+    const auth = await verifyPermission(request, 'investments', 'EDIT');
+    if (!auth.authorized) {
+      return NextResponse.json({ error: auth.error }, { status: auth.status });
+    }
     const { id } = await context.params;
     const data = await request.json();
     const { title, type, amount, profit, refund, status, date, documentUrl, profitPeriod } = data;
@@ -51,6 +60,10 @@ export async function PUT(request: Request, context: any) {
 
 export async function DELETE(request: Request, context: any) {
   try {
+    const auth = await verifyPermission(request, 'investments', 'FULL');
+    if (!auth.authorized) {
+      return NextResponse.json({ error: auth.error }, { status: auth.status });
+    }
     const { id } = await context.params;
     await prisma.investment.delete({
       where: { id }

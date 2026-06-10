@@ -1,10 +1,15 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { verifyPermission } from '@/lib/api-auth';
 
 export const dynamic = 'force-dynamic';
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
+    const auth = await verifyPermission(request, 'expenses', 'VIEW');
+    if (!auth.authorized) {
+      return NextResponse.json({ error: auth.error }, { status: auth.status });
+    }
     const expenses = await prisma.expense.findMany({
       orderBy: { date: 'desc' }
     });
@@ -16,6 +21,11 @@ export async function GET() {
 
 export async function POST(request: Request) {
   try {
+    const auth = await verifyPermission(request, 'expenses', 'EDIT');
+    if (!auth.authorized) {
+      return NextResponse.json({ error: auth.error }, { status: auth.status });
+    }
+
     const data = await request.json();
     const { category, amount, description, date, receiptUrl } = data;
 

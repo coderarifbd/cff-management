@@ -1,8 +1,13 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { verifyPermission } from '@/lib/api-auth';
 
 export async function POST(request: Request, context: any) {
   try {
+    const auth = await verifyPermission(request, 'investments', 'EDIT');
+    if (!auth.authorized) {
+      return NextResponse.json({ error: auth.error }, { status: auth.status });
+    }
     const { id: investmentId } = await context.params;
     const { url, name } = await request.json();
 
@@ -27,6 +32,10 @@ export async function POST(request: Request, context: any) {
 
 export async function DELETE(request: Request) {
   try {
+    const auth = await verifyPermission(request, 'investments', 'FULL');
+    if (!auth.authorized) {
+      return NextResponse.json({ error: auth.error }, { status: auth.status });
+    }
     const { searchParams } = new URL(request.url);
     const docId = searchParams.get('docId');
 

@@ -1,8 +1,11 @@
 'use client';
 import { useState } from 'react';
 import { Download, Upload, ShieldAlert, Database, CheckCircle2, AlertTriangle, FileJson } from 'lucide-react';
+import { useAuth } from '@/lib/auth-context';
 
 export default function SettingsPage() {
+  const { hasPermission } = useAuth();
+  const canEdit = hasPermission('settings', 'EDIT');
   const [loading, setLoading] = useState(false);
   const [restoreLoading, setRestoreLoading] = useState(false);
   const [restoreStep, setRestoreStep] = useState<string>('');
@@ -191,58 +194,59 @@ export default function SettingsPage() {
           </button>
         </div>
 
-        {/* Restore Card */}
-        <div className="card" style={{ padding: '2rem', border: '1px solid rgba(239, 68, 68, 0.2)' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1.5rem' }}>
-            <div style={{ background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444', padding: '0.75rem', borderRadius: '12px' }}>
-              <ShieldAlert size={24} />
+        {canEdit && (
+          <div className="card" style={{ padding: '2rem', border: '1px solid rgba(239, 68, 68, 0.2)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1.5rem' }}>
+              <div style={{ background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444', padding: '0.75rem', borderRadius: '12px' }}>
+                <ShieldAlert size={24} />
+              </div>
+              <div>
+                <h3 style={{ fontSize: '1.25rem', fontWeight: 700 }}>System Restore</h3>
+                <p style={{ fontSize: '0.875rem', color: 'var(--text-muted)' }}>Restore your database from a previous backup file.</p>
+              </div>
             </div>
-            <div>
-              <h3 style={{ fontSize: '1.25rem', fontWeight: 700 }}>System Restore</h3>
-              <p style={{ fontSize: '0.875rem', color: 'var(--text-muted)' }}>Restore your database from a previous backup file.</p>
+
+            <div style={{ background: 'rgba(239, 68, 68, 0.05)', border: '1px solid rgba(239, 68, 68, 0.1)', borderRadius: '12px', padding: '1rem', marginBottom: '2rem', display: 'flex', gap: '0.75rem' }}>
+              <AlertTriangle size={20} style={{ color: '#ef4444', flexShrink: 0 }} />
+              <p style={{ fontSize: '0.8rem', color: '#fca5a5', lineHeight: 1.5 }}>
+                <strong>Caution:</strong> Restoring will replace all current data. 
+                Make sure you have a current backup before performing this action.
+              </p>
             </div>
-          </div>
 
-          <div style={{ background: 'rgba(239, 68, 68, 0.05)', border: '1px solid rgba(239, 68, 68, 0.1)', borderRadius: '12px', padding: '1rem', marginBottom: '2rem', display: 'flex', gap: '0.75rem' }}>
-            <AlertTriangle size={20} style={{ color: '#ef4444', flexShrink: 0 }} />
-            <p style={{ fontSize: '0.8rem', color: '#fca5a5', lineHeight: 1.5 }}>
-              <strong>Caution:</strong> Restoring will replace all current data. 
-              Make sure you have a current backup before performing this action.
-            </p>
+            <label 
+              style={{ 
+                width: '100%', 
+                display: 'flex', 
+                alignItems: 'center', 
+                justifyContent: 'center', 
+                gap: '0.75rem', 
+                padding: '1.1rem', 
+                borderRadius: '14px',
+                border: '1px solid rgba(255,255,255,0.1)',
+                background: 'rgba(255,255,255,0.03)',
+                color: 'white',
+                fontSize: '1rem',
+                fontWeight: 600,
+                cursor: restoreLoading ? 'not-allowed' : 'pointer', 
+                opacity: restoreLoading ? 0.6 : 1,
+                transition: 'all 0.3s'
+              }}
+              onMouseOver={(e) => { if(!restoreLoading) e.currentTarget.style.background = 'rgba(255,255,255,0.08)' }}
+              onMouseOut={(e) => { if(!restoreLoading) e.currentTarget.style.background = 'rgba(255,255,255,0.03)' }}
+            >
+              {restoreLoading ? <span className="spinner" /> : <Upload size={22} />}
+              {restoreLoading ? 'Restoring Data...' : 'Upload & Restore Database'}
+              <input 
+                type="file" 
+                accept=".json" 
+                onChange={handleFileSelect} 
+                style={{ display: 'none' }} 
+                disabled={restoreLoading}
+              />
+            </label>
           </div>
-
-          <label 
-            style={{ 
-              width: '100%', 
-              display: 'flex', 
-              alignItems: 'center', 
-              justifyContent: 'center', 
-              gap: '0.75rem', 
-              padding: '1.1rem', 
-              borderRadius: '14px',
-              border: '1px solid rgba(255,255,255,0.1)',
-              background: 'rgba(255,255,255,0.03)',
-              color: 'white',
-              fontSize: '1rem',
-              fontWeight: 600,
-              cursor: restoreLoading ? 'not-allowed' : 'pointer', 
-              opacity: restoreLoading ? 0.6 : 1,
-              transition: 'all 0.3s'
-            }}
-            onMouseOver={(e) => { if(!restoreLoading) e.currentTarget.style.background = 'rgba(255,255,255,0.08)' }}
-            onMouseOut={(e) => { if(!restoreLoading) e.currentTarget.style.background = 'rgba(255,255,255,0.03)' }}
-          >
-            {restoreLoading ? <span className="spinner" /> : <Upload size={22} />}
-            {restoreLoading ? 'Restoring Data...' : 'Upload & Restore Database'}
-            <input 
-              type="file" 
-              accept=".json" 
-              onChange={handleFileSelect} 
-              style={{ display: 'none' }} 
-              disabled={restoreLoading}
-            />
-          </label>
-        </div>
+        )}
 
         {message && (
           <div style={{ 

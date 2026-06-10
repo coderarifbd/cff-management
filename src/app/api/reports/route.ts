@@ -1,15 +1,21 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { verifyPermission } from '@/lib/api-auth';
 
 export const dynamic = 'force-dynamic';
 
 export async function GET(request: Request) {
-  const { searchParams } = new URL(request.url);
-  const type = searchParams.get('type');
-  const month = parseInt(searchParams.get('month') || '0');
-  const year = parseInt(searchParams.get('year') || '0');
-
   try {
+    const auth = await verifyPermission(request, 'reports', 'VIEW');
+    if (!auth.authorized) {
+      return NextResponse.json({ error: auth.error }, { status: auth.status });
+    }
+
+    const { searchParams } = new URL(request.url);
+    const type = searchParams.get('type');
+    const month = parseInt(searchParams.get('month') || '0');
+    const year = parseInt(searchParams.get('year') || '0');
+
     if (type === 'monthly') {
       const startDate = new Date(year, month - 1, 1);
       const endDate = new Date(year, month, 0, 23, 59, 59);

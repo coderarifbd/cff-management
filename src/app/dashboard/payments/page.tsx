@@ -2,8 +2,13 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Search, AlertCircle, CheckCircle, Plus, Copy, X, Edit2, Filter, Trash2, AlertTriangle, Calendar, Wallet, DollarSign, ArrowRight, User, Activity } from 'lucide-react';
 import { formatDate } from '@/lib/utils';
+import { useAuth } from '@/lib/auth-context';
 
 export default function PaymentsPage() {
+  const { hasPermission } = useAuth();
+  const canEdit = hasPermission('payments', 'EDIT');
+  const canDelete = hasPermission('payments', 'FULL');
+
   const [payments, setPayments] = useState<any[]>([]);
   const [members, setMembers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -214,14 +219,16 @@ export default function PaymentsPage() {
           <h2 style={{ fontSize: '1.875rem', fontWeight: 800, letterSpacing: '-0.025em' }}>Collection Registry</h2>
           <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem' }}>Monitor and manage monthly membership fees and penalties.</p>
         </div>
-        <div style={{ display: 'flex', gap: '1rem' }}>
-          <button className="btn btn-outline" onClick={() => { setError(''); setShowBulkModal(true); }}>
-            <Copy size={18} /> Bulk Generate
-          </button>
-          <button className="btn btn-primary" onClick={() => { setError(''); setShowAddModal(true); }}>
-            <Plus size={18} /> Add Payment
-          </button>
-        </div>
+        {canEdit && (
+          <div style={{ display: 'flex', gap: '1rem' }}>
+            <button className="btn btn-outline" onClick={() => { setError(''); setShowBulkModal(true); }}>
+              <Copy size={18} /> Bulk Generate
+            </button>
+            <button className="btn btn-primary" onClick={() => { setError(''); setShowAddModal(true); }}>
+              <Plus size={18} /> Add Payment
+            </button>
+          </div>
+        )}
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1.5rem', marginBottom: '2.5rem' }}>
@@ -329,16 +336,24 @@ export default function PaymentsPage() {
                     </td>
                     <td style={{ textAlign: 'right' }}>
                       <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end', alignItems: 'center' }}>
-                        <button className="btn btn-outline" style={{ width: 32, height: 32, padding: 0 }} onClick={() => openEditModal(payment)} title="Edit Record">
-                          <Edit2 size={14} />
-                        </button>
-                        <button className="btn btn-outline" style={{ width: 32, height: 32, padding: 0, color: '#ef4444', borderColor: 'rgba(239, 68, 68, 0.2)' }} onClick={() => setDeleteId(payment.id)} title="Delete Record">
-                          <Trash2 size={14} />
-                        </button>
-                        {!payment.isPaid ? (
-                          <button className="btn btn-primary" style={{ padding: '0.4rem 0.875rem', fontSize: '0.75rem' }} onClick={() => handleMarkPaid(payment.id)}>
-                            Collect
+                        {canEdit && (
+                          <button className="btn btn-outline" style={{ width: 32, height: 32, padding: 0 }} onClick={() => openEditModal(payment)} title="Edit Record">
+                            <Edit2 size={14} />
                           </button>
+                        )}
+                        {canDelete && (
+                          <button className="btn btn-outline" style={{ width: 32, height: 32, padding: 0, color: '#ef4444', borderColor: 'rgba(239, 68, 68, 0.2)' }} onClick={() => setDeleteId(payment.id)} title="Delete Record">
+                            <Trash2 size={14} />
+                          </button>
+                        )}
+                        {!payment.isPaid ? (
+                          canEdit ? (
+                            <button className="btn btn-primary" style={{ padding: '0.4rem 0.875rem', fontSize: '0.75rem' }} onClick={() => handleMarkPaid(payment.id)}>
+                              Collect
+                            </button>
+                          ) : (
+                            <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontStyle: 'italic', padding: '0 0.5rem' }}>DUE</span>
+                          )
                         ) : (
                           <div style={{ color: '#22c55e', display: 'flex', alignItems: 'center', gap: '0.375rem', fontSize: '0.8125rem', fontWeight: 600, padding: '0 0.5rem' }}>
                             <CheckCircle size={14} /> {formatDate(payment.paidAt)}

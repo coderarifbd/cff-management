@@ -4,10 +4,14 @@ import { useParams, useRouter } from 'next/navigation';
 import { ArrowLeft, FileText, Plus, Printer, TrendingUp, Upload, X, CheckCircle2, Trash2, Eye, Bell } from 'lucide-react';
 import { uploadFileAction } from '@/app/actions/uploadAction';
 import { formatDate } from '@/lib/utils';
+import { useAuth } from '@/lib/auth-context';
 
 export default function InvestmentDetailsPage() {
   const { id } = useParams();
   const router = useRouter();
+  const { hasPermission } = useAuth();
+  const canEdit = hasPermission('investments', 'EDIT');
+  const canDelete = hasPermission('investments', 'FULL');
   
   const [investment, setInvestment] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -284,9 +288,11 @@ export default function InvestmentDetailsPage() {
             <h3 style={{ fontSize: '1.25rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
               <TrendingUp size={20} color="var(--primary)" /> Profit History
             </h3>
-            <button className="btn btn-primary no-print" onClick={() => setShowProfitForm(!showProfitForm)} style={{ padding: '0.5rem 1rem', fontSize: '0.875rem' }}>
-              <Plus size={16} style={{ marginRight: '0.25rem' }} /> Add Profit
-            </button>
+            {canEdit && (
+              <button className="btn btn-primary no-print" onClick={() => setShowProfitForm(!showProfitForm)} style={{ padding: '0.5rem 1rem', fontSize: '0.875rem' }}>
+                <Plus size={16} style={{ marginRight: '0.25rem' }} /> Add Profit
+              </button>
+            )}
           </div>
 
           {showProfitForm && (
@@ -373,19 +379,23 @@ export default function InvestmentDetailsPage() {
                     </div>
                     <div style={{ display: 'flex', gap: '0.5rem' }}>
                       <button onClick={() => setPreviewUrl(doc.url)} className="btn btn-outline" style={{ padding: '0.4rem' }} title="View"><Eye size={16} /></button>
-                      <button onClick={() => handleDeleteDoc(doc.id)} className="btn btn-outline" style={{ padding: '0.4rem', color: 'var(--danger)', borderColor: 'rgba(239, 68, 68, 0.2)' }} title="Delete"><Trash2 size={16} /></button>
+                      {canDelete && (
+                        <button onClick={() => handleDeleteDoc(doc.id)} className="btn btn-outline" style={{ padding: '0.4rem', color: 'var(--danger)', borderColor: 'rgba(239, 68, 68, 0.2)' }} title="Delete"><Trash2 size={16} /></button>
+                      )}
                     </div>
                   </div>
                 ))}
               </>
             )}
-            <button 
-              onClick={() => setShowDocModal(true)} 
-              className="btn btn-outline no-print" 
-              style={{ marginTop: '0.5rem', width: '100%', borderStyle: 'dashed' }}
-            >
-              <Plus size={16} style={{ marginRight: '0.5rem' }} /> Add New Paper
-            </button>
+            {canEdit && (
+              <button 
+                onClick={() => setShowDocModal(true)} 
+                className="btn btn-outline no-print" 
+                style={{ marginTop: '0.5rem', width: '100%', borderStyle: 'dashed' }}
+              >
+                <Plus size={16} style={{ marginRight: '0.5rem' }} /> Add New Paper
+              </button>
+            )}
           </div>
         </div>
       </div>

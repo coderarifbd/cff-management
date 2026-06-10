@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { verifyPermission } from '@/lib/api-auth';
 
 export async function PATCH(request: Request, { params }: { params: Promise<{ id: string }> }) {
   return PUT(request, { params });
@@ -8,10 +9,23 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
 export async function PUT(request: Request, { params }: { params: Promise<{ id: string }> }) {
   console.log(">>> Member Update Request Received");
   try {
+    const auth = await verifyPermission(request, 'members', 'EDIT');
+    if (!auth.authorized) {
+      return NextResponse.json({ error: auth.error }, { status: auth.status });
+    }
     const { id } = await params;
     const data = await request.json();
     const currentUser = await prisma.user.findUnique({ where: { id } });
-    const { memberNo, name, email, phone, role, status, joinDate, bannedDate, refundAmount } = data;
+    const { memberNo, name, email, phone, role, status, joinDate, bannedDate, refundAmount, permissions } = data;
+
+    // Guard: Only administrators can modify roles or custom permissions
+    const isEditingRoleOrPermissions = 
+      (role !== undefined && role !== currentUser?.role) || 
+      (permissions !== undefined && JSON.stringify(permissions) !== JSON.stringify(currentUser?.permissions));
+    
+    if (isEditingRoleOrPermissions && auth.user?.role !== 'ADMIN') {
+      return NextResponse.json({ error: 'Only administrators can modify roles or custom permissions.' }, { status: 403 });
+    }
 
     // Optional: check if email or memberNo is being used by another user
     const existing = await prisma.user.findFirst({
@@ -99,6 +113,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
         status,
         bannedAt: safeBannedAt,
         joinDate: safeJoinDate,
+        permissions: permissions !== undefined ? permissions : undefined
       }
     });
 
@@ -111,6 +126,10 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
 
 export async function DELETE(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
+    const auth = await verifyPermission(request, 'members', 'FULL');
+    if (!auth.authorized) {
+      return NextResponse.json({ error: auth.error }, { status: auth.status });
+    }
     const { id } = await params;
     
     // Check if member has related payments or investments before deleting

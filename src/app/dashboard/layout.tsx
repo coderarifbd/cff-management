@@ -12,7 +12,7 @@ import { AuthProvider, useAuth } from '@/lib/auth-context';
 function DashboardLayoutInner({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
-  const { role, isAdmin, isManager, loading } = useAuth();
+  const { role, isAdmin, isManager, hasPermission, loading } = useAuth();
   const [userName, setUserName] = useState('');
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
@@ -39,21 +39,32 @@ function DashboardLayoutInner({ children }: { children: ReactNode }) {
   };
 
   const allNavItems = [
-    { name: 'Overview', path: '/dashboard', icon: <LayoutDashboard size={20} />, roles: ['ADMIN', 'MANAGER'] },
-    { name: 'Members', path: '/dashboard/members', icon: <Users size={20} />, roles: ['ADMIN', 'MANAGER'] },
-    { name: 'Payments', path: '/dashboard/payments', icon: <CreditCard size={20} />, roles: ['ADMIN', 'MANAGER'] },
-    { name: 'Investments', path: '/dashboard/investments', icon: <TrendingUp size={20} />, roles: ['ADMIN', 'MANAGER'] },
-    { name: 'Expenses', path: '/dashboard/expenses', icon: <Receipt size={20} />, roles: ['ADMIN', 'MANAGER'] },
-    { name: 'Other Incomes', path: '/dashboard/incomes', icon: <Wallet size={20} />, roles: ['ADMIN', 'MANAGER'] },
-    { name: 'Reports', path: '/dashboard/reports', icon: <FileText size={20} />, roles: ['ADMIN', 'MANAGER'] },
-    { name: 'Notices', path: '/dashboard/notices', icon: <Megaphone size={20} />, roles: ['ADMIN', 'MANAGER'] },
-    { name: 'Security', path: '/dashboard/change-password', icon: <Lock size={20} />, roles: ['ADMIN', 'MANAGER'] },
-    { name: 'Settings', path: '/dashboard/settings', icon: <Settings size={20} />, roles: ['ADMIN', 'MANAGER'] },
+    { name: 'Overview', path: '/dashboard', icon: <LayoutDashboard size={20} />, key: 'overview' },
+    { name: 'Members', path: '/dashboard/members', icon: <Users size={20} />, key: 'members' },
+    { name: 'Payments', path: '/dashboard/payments', icon: <CreditCard size={20} />, key: 'payments' },
+    { name: 'Investments', path: '/dashboard/investments', icon: <TrendingUp size={20} />, key: 'investments' },
+    { name: 'Expenses', path: '/dashboard/expenses', icon: <Receipt size={20} />, key: 'expenses' },
+    { name: 'Other Incomes', path: '/dashboard/incomes', icon: <Wallet size={20} />, key: 'incomes' },
+    { name: 'Reports', path: '/dashboard/reports', icon: <FileText size={20} />, key: 'reports' },
+    { name: 'Notices', path: '/dashboard/notices', icon: <Megaphone size={20} />, key: 'notices' },
+    { name: 'Security', path: '/dashboard/change-password', icon: <Lock size={20} />, key: 'security' },
+    { name: 'Settings', path: '/dashboard/settings', icon: <Settings size={20} />, key: 'settings' },
   ];
 
-  const navItems = role ? allNavItems.filter(item => item.roles.includes(role)) : [];
+  const navItems = role ? allNavItems.filter(item => {
+    if (item.key === 'security') return true;
+    return hasPermission(item.key, 'VIEW');
+  }) : [];
 
-  const currentRouteName = allNavItems.find(item => item.path === pathname)?.name || 'Dashboard';
+  const currentNav = allNavItems
+    .filter(item => item.path !== '/dashboard')
+    .find(item => pathname.startsWith(item.path)) 
+    || allNavItems.find(item => item.path === '/dashboard');
+  const hasAccess = role 
+    ? (currentNav ? (currentNav.key === 'security' || hasPermission(currentNav.key, 'VIEW')) : true)
+    : false;
+
+  const currentRouteName = currentNav?.name || 'Dashboard';
 
   return (
     <div className="layout">
@@ -147,7 +158,27 @@ function DashboardLayoutInner({ children }: { children: ReactNode }) {
         )}
 
         <div className="page-content">
-          {children}
+          {loading ? (
+            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '40vh', color: 'var(--text-muted)' }}>
+              <div style={{ textAlign: 'center' }}>
+                <div className="spinner" style={{ marginBottom: '1rem' }}></div>
+                <p>Checking permissions...</p>
+              </div>
+            </div>
+          ) : !hasAccess ? (
+            <div className="card" style={{ padding: '3rem', textAlign: 'center', maxWidth: '500px', margin: '4rem auto' }}>
+              <div style={{ width: 64, height: 64, background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.5rem' }}>
+                <Lock size={32} />
+              </div>
+              <h3 style={{ fontSize: '1.5rem', fontWeight: 800, marginBottom: '1rem' }}>Access Denied</h3>
+              <p style={{ color: 'var(--text-muted)', marginBottom: '2rem' }}>You do not have the required permissions to view the <strong>{currentRouteName}</strong> module.</p>
+              <button onClick={() => router.push('/dashboard')} className="btn btn-primary" style={{ display: 'inline-flex' }}>
+                Go to Overview
+              </button>
+            </div>
+          ) : (
+            children
+          )}
         </div>
       </main>
     </div>

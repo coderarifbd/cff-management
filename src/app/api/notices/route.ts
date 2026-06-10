@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import jwt from 'jsonwebtoken';
+import { verifyPermission } from '@/lib/api-auth';
 
 export async function GET(request: Request) {
   try {
@@ -55,6 +56,10 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
+    const auth = await verifyPermission(request, 'notices', 'EDIT');
+    if (!auth.authorized) {
+      return NextResponse.json({ error: auth.error }, { status: auth.status });
+    }
     const { title, content } = await request.json();
     const notice = await prisma.notice.create({
       data: { title, content }

@@ -4,8 +4,35 @@ import { Plus, Edit2, Trash2, X, Key, Eye, EyeOff, ShieldCheck, Info, User, Mail
 import { useAuth } from '@/lib/auth-context';
 import { formatDate } from '@/lib/utils';
 
+const DEFAULT_PERMISSIONS = {
+  overview: 'FULL',
+  members: 'FULL',
+  payments: 'FULL',
+  investments: 'FULL',
+  expenses: 'FULL',
+  incomes: 'FULL',
+  reports: 'FULL',
+  notices: 'FULL',
+  settings: 'NONE'
+};
+
+const MODULES = [
+  { key: 'overview', label: 'Dashboard Overview' },
+  { key: 'members', label: 'Member Directory' },
+  { key: 'payments', label: 'Collection Registry (Payments)' },
+  { key: 'investments', label: 'Investment Portfolio' },
+  { key: 'expenses', label: 'Expense Registry' },
+  { key: 'incomes', label: 'Other Incomes' },
+  { key: 'reports', label: 'Financial Reports' },
+  { key: 'notices', label: 'Notice Board' },
+  { key: 'settings', label: 'System Settings & Backups' }
+];
+
 export default function MembersPage() {
-  const { isAdmin } = useAuth();
+  const { isAdmin, hasPermission } = useAuth();
+  const canEditMembers = hasPermission('members', 'EDIT');
+  const canDeleteMembers = hasPermission('members', 'FULL');
+  
   const [members, setMembers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -18,8 +45,16 @@ export default function MembersPage() {
   const [newPassword, setNewPassword] = useState('');
   const [showPass, setShowPass] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [formData, setFormData] = useState({
-    memberNo: '', name: '', email: '', phone: '', role: 'MEMBER', status: 'ACTIVE', joinDate: ''
+  const [showPermissions, setShowPermissions] = useState(false);
+  const [formData, setFormData] = useState<any>({
+    memberNo: '',
+    name: '',
+    email: '',
+    phone: '',
+    role: 'MEMBER',
+    status: 'ACTIVE',
+    joinDate: '',
+    permissions: { ...DEFAULT_PERMISSIONS }
   });
   const [submitLoading, setSubmitLoading] = useState(false);
   const [error, setError] = useState('');
@@ -98,6 +133,7 @@ export default function MembersPage() {
 
   const handleOpenModal = (member?: any) => {
     setError('');
+    setShowPermissions(member?.role === 'MANAGER');
     if (member) {
       setEditingId(member.id);
       setFormData({
@@ -107,7 +143,8 @@ export default function MembersPage() {
         phone: member.phone || '',
         role: member.role || 'MEMBER',
         status: member.status || 'ACTIVE',
-        joinDate: member.joinDate ? new Date(member.joinDate).toISOString().split('T')[0] : ''
+        joinDate: member.joinDate ? new Date(member.joinDate).toISOString().split('T')[0] : '',
+        permissions: member.permissions || { ...DEFAULT_PERMISSIONS }
       });
       if (member.bannedAt) {
         setBannedDate(new Date(member.bannedAt).toISOString().split('T')[0]);
@@ -117,11 +154,28 @@ export default function MembersPage() {
     } else {
       setEditingId(null);
       setFormData({
-        memberNo: '', name: '', email: '', phone: '', role: 'MEMBER', status: 'ACTIVE', joinDate: new Date().toISOString().split('T')[0]
+        memberNo: '',
+        name: '',
+        email: '',
+        phone: '',
+        role: 'MEMBER',
+        status: 'ACTIVE',
+        joinDate: new Date().toISOString().split('T')[0],
+        permissions: { ...DEFAULT_PERMISSIONS }
       });
       setBannedDate(new Date().toISOString().split('T')[0]);
     }
     setShowModal(true);
+  };
+
+  const handlePermissionChange = (moduleKey: string, val: string) => {
+    setFormData((prev: any) => ({
+      ...prev,
+      permissions: {
+        ...(prev.permissions || DEFAULT_PERMISSIONS),
+        [moduleKey]: val
+      }
+    }));
   };
 
   const handleCloseModal = () => setShowModal(false);
@@ -228,7 +282,7 @@ export default function MembersPage() {
               onChange={e => setSearchTerm(e.target.value)}
             />
           </div>
-          {isAdmin && (
+          {canEditMembers && (
             <button className="btn btn-primary" onClick={() => handleOpenModal()}>
               <Plus size={18} /> Add New Member
             </button>
@@ -323,7 +377,7 @@ export default function MembersPage() {
                     </td>
                     <td style={{ textAlign: 'right' }}>
                       <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
-                        {isAdmin && (
+                        {canEditMembers && (
                           <>
                             <button className="btn btn-outline" style={{ width: 36, height: 36, padding: 0 }} onClick={() => handleOpenModal(member)} title="Edit Member">
                               <Edit2 size={16} />
@@ -331,12 +385,14 @@ export default function MembersPage() {
                             <button className="btn btn-outline" style={{ width: 36, height: 36, padding: 0, color: '#818cf8', borderColor: 'rgba(129, 140, 248, 0.2)' }} onClick={() => handleResetPassword(member)} title="Reset Password">
                               <Key size={16} />
                             </button>
-                            <button className="btn" style={{ width: 36, height: 36, padding: 0, background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444' }} onClick={() => handleDelete(member.id)} title="Delete Member">
-                              <Trash2 size={16} />
-                            </button>
                           </>
                         )}
-                        {!isAdmin && <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Read Only</span>}
+                        {canDeleteMembers && (
+                          <button className="btn" style={{ width: 36, height: 36, padding: 0, background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444' }} onClick={() => handleDelete(member.id)} title="Delete Member">
+                            <Trash2 size={16} />
+                          </button>
+                        )}
+                        {!canEditMembers && <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Read Only</span>}
                       </div>
                     </td>
                   </tr>
@@ -419,6 +475,76 @@ export default function MembersPage() {
                   </select>
                 </div>
               </div>
+
+              {formData.role === 'MANAGER' && isAdmin && (
+                <div style={{
+                  border: '1px solid rgba(129, 140, 248, 0.2)',
+                  background: 'rgba(129, 140, 248, 0.02)',
+                  borderRadius: '16px',
+                  padding: '1.25rem',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '1rem',
+                  marginTop: '0.5rem'
+                }}>
+                  <div 
+                    onClick={() => setShowPermissions(!showPermissions)} 
+                    style={{ 
+                      display: 'flex', 
+                      justifyContent: 'space-between', 
+                      alignItems: 'center', 
+                      cursor: 'pointer',
+                      userSelect: 'none'
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#818cf8', fontWeight: 700 }}>
+                      <ShieldCheck size={18} />
+                      <span>Manager Permissions Configuration</span>
+                    </div>
+                    <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
+                      {showPermissions ? 'Collapse ▴' : 'Expand ▾'}
+                    </span>
+                  </div>
+
+                  {showPermissions && (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginTop: '0.5rem' }}>
+                      <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                        Set granular access levels for each module.
+                      </p>
+                      
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                        {MODULES.map(m => {
+                          const currentVal = (formData.permissions && formData.permissions[m.key]) || (m.key === 'settings' ? 'NONE' : 'FULL');
+                          return (
+                            <div key={m.key} style={{ 
+                              display: 'flex', 
+                              justifyContent: 'space-between', 
+                              alignItems: 'center', 
+                              background: 'rgba(255, 255, 255, 0.02)', 
+                              padding: '0.5rem 0.75rem', 
+                              borderRadius: '10px',
+                              border: '1px solid var(--border)'
+                            }}>
+                              <span style={{ fontSize: '0.875rem', fontWeight: 600 }}>{m.label}</span>
+                              <select 
+                                className="input" 
+                                style={{ width: '120px', padding: '0.25rem 0.5rem', height: '36px', fontSize: '0.85rem' }} 
+                                value={currentVal}
+                                onChange={e => handlePermissionChange(m.key, e.target.value)}
+                              >
+                                <option value="NONE">NONE</option>
+                                <option value="VIEW">VIEW</option>
+                                <option value="EDIT">EDIT</option>
+                                <option value="FULL">FULL</option>
+                              </select>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
 
               {formData.status === 'BANNED' && (
                 <div style={{ background: 'rgba(239, 68, 68, 0.05)', border: '1px solid rgba(239, 68, 68, 0.1)', borderRadius: '12px', padding: '1.25rem' }}>

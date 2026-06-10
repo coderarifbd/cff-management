@@ -1,10 +1,15 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { verifyPermission } from '@/lib/api-auth';
 
 export const dynamic = 'force-dynamic';
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
+    const auth = await verifyPermission(request, 'settings', 'FULL');
+    if (!auth.authorized) {
+      return NextResponse.json({ error: auth.error }, { status: auth.status });
+    }
     const [users, payments, deposits, investments, invProfits, expenses, notices, noticeReads, incomes] = await Promise.all([
       prisma.user.findMany(),
       prisma.payment.findMany(),
@@ -47,6 +52,11 @@ export async function GET() {
 
 export async function POST(request: Request) {
   try {
+    const auth = await verifyPermission(request, 'settings', 'FULL');
+    if (!auth.authorized) {
+      return NextResponse.json({ error: auth.error }, { status: auth.status });
+    }
+
     const backup = await request.json();
     const { data } = backup;
 

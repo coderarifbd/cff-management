@@ -1,8 +1,13 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { verifyPermission } from '@/lib/api-auth';
 
 export async function POST(request: Request) {
   try {
+    const auth = await verifyPermission(request, 'payments', 'EDIT');
+    if (!auth.authorized) {
+      return NextResponse.json({ error: auth.error }, { status: auth.status });
+    }
     const { month, year, amount } = await request.json();
 
     const activeMembers = await prisma.user.findMany({

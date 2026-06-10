@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import jwt from 'jsonwebtoken';
+import { prisma } from '@/lib/prisma';
 
 export const dynamic = 'force-dynamic';
 
@@ -18,7 +19,22 @@ export async function GET(request: Request) {
     }
 
     const decoded: any = jwt.verify(tokenCookie, process.env.JWT_SECRET || 'fallback-secret');
-    return NextResponse.json({ id: decoded.id, role: decoded.role });
+    const user = await prisma.user.findUnique({
+      where: { id: decoded.id },
+      select: { id: true, name: true, email: true, role: true, permissions: true }
+    });
+    
+    if (!user) {
+      return NextResponse.json({ error: 'User not found' }, { status: 404 });
+    }
+
+    return NextResponse.json({
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+      permissions: user.permissions
+    });
   } catch {
     return NextResponse.json({ error: 'Invalid token' }, { status: 401 });
   }

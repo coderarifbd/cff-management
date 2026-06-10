@@ -3,8 +3,13 @@ import { useState, useEffect } from 'react';
 import { Plus, Receipt, Edit2, Trash2, X, Upload, FileText, AlertTriangle, Search } from 'lucide-react';
 import { uploadFileAction } from '@/app/actions/uploadAction';
 import { formatDate } from '@/lib/utils';
+import { useAuth } from '@/lib/auth-context';
 
 export default function ExpensesPage() {
+  const { hasPermission } = useAuth();
+  const canEdit = hasPermission('expenses', 'EDIT');
+  const canDelete = hasPermission('expenses', 'FULL');
+
   const [expenses, setExpenses] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -180,9 +185,11 @@ export default function ExpensesPage() {
     <div>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
         <h2 style={{ fontSize: '1.5rem', fontWeight: 600 }}>Expenses Overview</h2>
-        <button className="btn btn-primary" onClick={() => setShowAddModal(true)}>
-          <Plus size={18} style={{ marginRight: '0.5rem' }} /> Add Expense
-        </button>
+        {canEdit && (
+          <button className="btn btn-primary" onClick={() => setShowAddModal(true)}>
+            <Plus size={18} style={{ marginRight: '0.5rem' }} /> Add Expense
+          </button>
+        )}
       </div>
 
       {/* Search & Filter Section */}
@@ -276,12 +283,16 @@ export default function ExpensesPage() {
                             <Receipt size={14} />
                           </button>
                         )}
-                        <button className="btn btn-outline" style={{ padding: '0.25rem 0.5rem', fontSize: '0.75rem' }} onClick={() => openManageModal(expense)} title="Edit">
-                          <Edit2 size={14} />
-                        </button>
-                        <button className="btn btn-outline" style={{ padding: '0.25rem 0.5rem', fontSize: '0.75rem', color: 'var(--danger)', borderColor: 'var(--danger)' }} onClick={() => setDeleteId(expense.id)} title="Delete">
-                          <Trash2 size={14} />
-                        </button>
+                        {canEdit && (
+                          <button className="btn btn-outline" style={{ padding: '0.25rem 0.5rem', fontSize: '0.75rem' }} onClick={() => openManageModal(expense)} title="Edit">
+                            <Edit2 size={14} />
+                          </button>
+                        )}
+                        {canDelete && (
+                          <button className="btn btn-outline" style={{ padding: '0.25rem 0.5rem', fontSize: '0.75rem', color: 'var(--danger)', borderColor: 'var(--danger)' }} onClick={() => setDeleteId(expense.id)} title="Delete">
+                            <Trash2 size={14} />
+                          </button>
+                        )}
                       </div>
                     </td>
                   </tr>
