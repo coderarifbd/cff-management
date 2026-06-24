@@ -18,11 +18,13 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
     
     if (body.isPaid !== undefined) {
       updatedData.isPaid = body.isPaid;
-      if (body.isPaid && !existing.isPaid) {
-        updatedData.paidAt = new Date();
-      } else if (!body.isPaid) {
+      if (body.isPaid) {
+        updatedData.paidAt = body.paidAt ? new Date(body.paidAt) : (existing.paidAt || new Date());
+      } else {
         updatedData.paidAt = null;
       }
+    } else if (body.paidAt !== undefined) {
+      updatedData.paidAt = body.paidAt ? new Date(body.paidAt) : null;
     }
     
     if (body.fine !== undefined) updatedData.fine = parseFloat(body.fine);

@@ -48,14 +48,13 @@ export async function GET(request: Request) {
       const key = `${p.month}-${p.year}`;
       const totalAmount = p.amount + p.fine;
       
-      // Determine a representative date for the month (last day of that month)
-      // Note: month in JS Date is 0-indexed, so 0 is last day of previous month, month is next month
-      const lastDay = new Date(p.year, p.month, 0);
+      // Determine a representative date for the month (10th day of that month)
+      const tenthDay = new Date(p.year, p.month - 1, 10);
 
       if (!paymentGroups[key]) {
         paymentGroups[key] = {
           amount: 0,
-          date: lastDay,
+          date: tenthDay,
           month: p.month,
           year: p.year
         };
@@ -124,7 +123,7 @@ export async function GET(request: Request) {
       if (inv.refund > 0) {
         ledgerRows.push({
           id: `investment-refund-${inv.id}`,
-          date: inv.updatedAt,
+          date: inv.closeDate || inv.updatedAt,
           description: `বিনিয়োগ ফেরত: ${inv.title}`,
           income: inv.refund,
           expense: 0,

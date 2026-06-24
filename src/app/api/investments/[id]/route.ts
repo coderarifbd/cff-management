@@ -35,7 +35,7 @@ export async function PUT(request: Request, context: any) {
     }
     const { id } = await context.params;
     const data = await request.json();
-    const { title, type, amount, profit, refund, status, date, documentUrl, profitPeriod } = data;
+    const { title, type, amount, profit, refund, status, date, documentUrl, profitPeriod, closeDate } = data;
 
     const investment = await prisma.investment.update({
       where: { id },
@@ -48,13 +48,15 @@ export async function PUT(request: Request, context: any) {
         status: status !== undefined ? status : undefined,
         date: date ? new Date(date) : undefined,
         documentUrl: documentUrl !== undefined ? documentUrl : undefined,
-        profitPeriod: profitPeriod !== undefined ? profitPeriod : undefined
+        profitPeriod: profitPeriod !== undefined ? profitPeriod : undefined,
+        closeDate: closeDate !== undefined ? (closeDate ? new Date(closeDate) : null) : undefined
       }
     });
 
     return NextResponse.json(investment);
-  } catch (error) {
-    return NextResponse.json({ error: 'Failed to update investment' }, { status: 500 });
+  } catch (error: any) {
+    console.error('Error updating investment:', error);
+    return NextResponse.json({ error: 'Failed to update investment: ' + error.message }, { status: 500 });
   }
 }
 

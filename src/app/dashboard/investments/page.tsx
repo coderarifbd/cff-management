@@ -24,7 +24,7 @@ export default function InvestmentsPage() {
   const [addForm, setAddForm] = useState({ title: '', type: 'Other Investment', amount: 0, date: new Date().toISOString().split('T')[0], profitPeriod: 'NONE' });
   const [addFile, setAddFile] = useState<File | null>(null);
 
-  const [manageForm, setManageForm] = useState({ id: '', title: '', type: 'Other Investment', amount: 0, profit: 0, refund: 0, status: 'RUNNING', date: '', documentUrl: '', profitPeriod: 'NONE' });
+  const [manageForm, setManageForm] = useState({ id: '', title: '', type: 'Other Investment', amount: 0, profit: 0, refund: 0, status: 'RUNNING', date: '', documentUrl: '', profitPeriod: 'NONE', closeDate: '' });
   const [manageFile, setManageFile] = useState<File | null>(null);
 
   // Search and Filter
@@ -177,7 +177,8 @@ export default function InvestmentsPage() {
       status: inv.status,
       date: new Date(inv.date).toISOString().split('T')[0],
       documentUrl: inv.documentUrl || '',
-      profitPeriod: inv.profitPeriod || 'NONE'
+      profitPeriod: inv.profitPeriod || 'NONE',
+      closeDate: inv.closeDate ? new Date(inv.closeDate).toISOString().split('T')[0] : ''
     });
     setManageFile(null);
     setError('');
@@ -505,6 +506,11 @@ export default function InvestmentsPage() {
                       <span className={`badge ${inv.status === 'RUNNING' ? 'badge-warning' : inv.status === 'COMPLETED' ? 'badge-success' : 'badge-danger'}`}>
                         {inv.status}
                       </span>
+                      {inv.closeDate && (
+                        <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.25rem' }}>
+                          Closed: {formatDate(inv.closeDate)}
+                        </div>
+                      )}
                     </td>
                     <td>
                       <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
@@ -682,7 +688,24 @@ export default function InvestmentsPage() {
                 </div>
                 <div>
                   <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', fontWeight: 500 }}>Status</label>
-                  <select className="input" value={manageForm.status} onChange={e => setManageForm({...manageForm, status: e.target.value})}>
+                  <select 
+                    className="input" 
+                    value={manageForm.status} 
+                    onChange={e => {
+                      const newStatus = e.target.value;
+                      let updatedCloseDate = manageForm.closeDate;
+                      if ((newStatus === 'COMPLETED' || newStatus === 'FAILED') && !manageForm.closeDate) {
+                        updatedCloseDate = new Date().toISOString().split('T')[0];
+                      } else if (newStatus === 'RUNNING') {
+                        updatedCloseDate = '';
+                      }
+                      setManageForm({
+                        ...manageForm,
+                        status: newStatus,
+                        closeDate: updatedCloseDate
+                      });
+                    }}
+                  >
                     <option value="RUNNING">RUNNING</option>
                     <option value="COMPLETED">COMPLETED</option>
                     <option value="FAILED">FAILED</option>
@@ -699,6 +722,18 @@ export default function InvestmentsPage() {
                   </select>
                 </div>
               </div>
+              {(manageForm.status === 'COMPLETED' || manageForm.status === 'FAILED') && (
+                <div>
+                  <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', fontWeight: 500 }}>Close Date *</label>
+                  <input 
+                    type="date" 
+                    className="input" 
+                    required 
+                    value={manageForm.closeDate} 
+                    onChange={e => setManageForm({...manageForm, closeDate: e.target.value})} 
+                  />
+                </div>
+              )}
               <div>
                 <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', fontWeight: 500 }}>Update Investment Paper (PDF/Image)</label>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>

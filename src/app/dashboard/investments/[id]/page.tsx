@@ -241,6 +241,9 @@ export default function InvestmentDetailsPage() {
               </span>
               <span style={{ color: 'var(--text-muted)', fontSize: '0.875rem' }}>• {investment.type || 'Other Investment'}</span>
               <span style={{ color: 'var(--text-muted)', fontSize: '0.875rem' }}>• Started: {formatDate(investment.date)}</span>
+              {investment.closeDate && (
+                <span style={{ color: 'var(--text-muted)', fontSize: '0.875rem' }}>• Closed: {formatDate(investment.closeDate)}</span>
+              )}
               {investment.status === 'RUNNING' && investment.profitPeriod && investment.profitPeriod !== 'NONE' && (
                 <span style={{ color: overdueCheck.overdue ? 'var(--danger-text, #f87171)' : 'var(--text-muted)', fontSize: '0.875rem', fontWeight: overdueCheck.overdue ? 600 : 400 }}>
                   • Cycle: {

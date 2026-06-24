@@ -25,9 +25,9 @@ export default function PaymentsPage() {
   const [filterYear, setFilterYear] = useState<number | ''>(new Date().getFullYear());
 
   // Form states
-  const [addForm, setAddForm] = useState({ userId: '', month: new Date().getMonth() + 1, year: new Date().getFullYear(), amount: 500, fine: 0, isPaid: false, notes: '' });
+  const [addForm, setAddForm] = useState({ userId: '', month: new Date().getMonth() + 1, year: new Date().getFullYear(), amount: 500, fine: 0, isPaid: false, notes: '', paidAt: `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}-10` });
   const [bulkForm, setBulkForm] = useState({ month: new Date().getMonth() + 1, year: new Date().getFullYear(), amount: 500 });
-  const [editForm, setEditForm] = useState({ id: '', amount: 0, fine: 0, isPaid: false, notes: '', userName: '', memberNo: '', month: 1, year: 2026 });
+  const [editForm, setEditForm] = useState({ id: '', amount: 0, fine: 0, isPaid: false, notes: '', userName: '', memberNo: '', month: 1, year: 2026, paidAt: '' });
 
   // History state
   const [memberHistory, setMemberHistory] = useState<any[]>([]);
@@ -90,12 +90,17 @@ export default function PaymentsPage() {
 
   const handleMarkPaid = async (id: string) => {
     try {
-      setPayments(prev => prev.map(p => p.id === id ? { ...p, isPaid: true, paidAt: new Date().toISOString() } : p));
+      const paymentToMark = payments.find(p => p.id === id);
+      const defaultPaidAt = paymentToMark 
+        ? new Date(paymentToMark.year, paymentToMark.month - 1, 10).toISOString()
+        : new Date().toISOString();
+
+      setPayments(prev => prev.map(p => p.id === id ? { ...p, isPaid: true, paidAt: defaultPaidAt } : p));
       
       const res = await fetch(`/api/payments/${id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ isPaid: true })
+        body: JSON.stringify({ isPaid: true, paidAt: defaultPaidAt })
       });
       if (res.ok) await fetchPayments(true);
     } catch (err) {
@@ -113,7 +118,7 @@ export default function PaymentsPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           ...addForm,
-          paidAt: addForm.isPaid ? new Date().toISOString() : null
+          paidAt: addForm.isPaid && addForm.paidAt ? new Date(addForm.paidAt).toISOString() : null
         })
       });
       const data = await res.json();
@@ -159,7 +164,10 @@ export default function PaymentsPage() {
       userName: payment.user?.name || 'Unknown',
       memberNo: payment.user?.memberNo || '',
       month: payment.month,
-      year: payment.year
+      year: payment.year,
+      paidAt: payment.paidAt 
+        ? new Date(payment.paidAt).toISOString().split('T')[0] 
+        : `${payment.year}-${String(payment.month).padStart(2, '0')}-10`
     });
     setError('');
     setShowEditModal(true);
@@ -177,12 +185,13 @@ export default function PaymentsPage() {
           amount: editForm.amount,
           fine: editForm.fine,
           isPaid: editForm.isPaid,
-          notes: editForm.notes
+          notes: editForm.notes,
+          paidAt: editForm.isPaid && editForm.paidAt ? new Date(editForm.paidAt).toISOString() : null
         })
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
-      setPayments(prev => prev.map(p => p.id === editForm.id ? { ...p, amount: editForm.amount, fine: editForm.fine, isPaid: editForm.isPaid, notes: editForm.notes, paidAt: editForm.isPaid && !p.isPaid ? new Date().toISOString() : p.paidAt } : p));
+      setPayments(prev => prev.map(p => p.id === editForm.id ? { ...p, amount: editForm.amount, fine: editForm.fine, isPaid: editForm.isPaid, notes: editForm.notes, paidAt: editForm.isPaid && editForm.paidAt ? new Date(editForm.paidAt).toISOString() : null } : p));
       setShowEditModal(false);
       await fetchPayments(true);
     } catch (err: any) {
@@ -408,10 +417,35 @@ export default function PaymentsPage() {
 
               <div style={{ padding: '0.75rem', background: 'rgba(255,255,255,0.03)', borderRadius: '10px' }}>
                 <label style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', cursor: 'pointer' }}>
-                  <input type="checkbox" checked={editForm.isPaid} onChange={e => setEditForm({...editForm, isPaid: e.target.checked})} style={{ width: 18, height: 18 }} />
+                  <input 
+                    type="checkbox" 
+                    checked={editForm.isPaid} 
+                    onChange={e => {
+                      const checked = e.target.checked;
+                      setEditForm({
+                        ...editForm,
+                        isPaid: checked,
+                        paidAt: checked ? (editForm.paidAt || new Date().toISOString().split('T')[0]) : ''
+                      });
+                    }} 
+                    style={{ width: 18, height: 18 }} 
+                  />
                   <span style={{ fontWeight: 600, fontSize: '0.9rem' }}>Mark as Verified Payment</span>
                 </label>
               </div>
+
+              {editForm.isPaid && (
+                <div>
+                  <label className="reset-label">Payment Date *</label>
+                  <input 
+                    type="date" 
+                    className="input" 
+                    required 
+                    value={editForm.paidAt} 
+                    onChange={e => setEditForm({...editForm, paidAt: e.target.value})} 
+                  />
+                </div>
+              )}
 
               <div style={{ marginTop: '1rem', display: 'flex', justifyContent: 'flex-end', gap: '1rem' }}>
                 <button type="button" className="btn btn-outline" onClick={() => setShowEditModal(false)}>Discard</button>
@@ -500,10 +534,34 @@ export default function PaymentsPage() {
                 <div>
                   <label className="reset-label">Collection Period</label>
                   <div style={{ display: 'flex', gap: '0.5rem' }}>
-                    <select className="input" value={addForm.month} onChange={e => setAddForm({...addForm, month: parseInt(e.target.value)})}>
+                    <select 
+                      className="input" 
+                      value={addForm.month} 
+                      onChange={e => {
+                        const m = parseInt(e.target.value);
+                        setAddForm({
+                          ...addForm,
+                          month: m,
+                          paidAt: `${addForm.year}-${String(m).padStart(2, '0')}-10`
+                        });
+                      }}
+                    >
                       {monthNames.map((m, i) => <option key={i} value={i + 1}>{m}</option>)}
                     </select>
-                    <input type="number" className="input" value={addForm.year} onChange={e => setAddForm({...addForm, year: parseInt(e.target.value)})} style={{ width: '90px' }} />
+                    <input 
+                      type="number" 
+                      className="input" 
+                      value={addForm.year} 
+                      onChange={e => {
+                        const y = parseInt(e.target.value) || new Date().getFullYear();
+                        setAddForm({
+                          ...addForm,
+                          year: y,
+                          paidAt: `${y}-${String(addForm.month).padStart(2, '0')}-10`
+                        });
+                      }} 
+                      style={{ width: '90px' }} 
+                    />
                   </div>
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.375rem' }}>
@@ -522,13 +580,38 @@ export default function PaymentsPage() {
 
               <div style={{ padding: '1rem', background: 'rgba(34, 197, 94, 0.03)', border: '1px solid rgba(34, 197, 94, 0.1)', borderRadius: '12px' }}>
                 <label style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', cursor: 'pointer' }}>
-                  <input type="checkbox" checked={addForm.isPaid} onChange={e => setAddForm({...addForm, isPaid: e.target.checked})} style={{ width: 20, height: 20 }} />
+                  <input 
+                    type="checkbox" 
+                    checked={addForm.isPaid} 
+                    onChange={e => {
+                      const checked = e.target.checked;
+                      setAddForm({
+                        ...addForm,
+                        isPaid: checked,
+                        paidAt: checked ? new Date().toISOString().split('T')[0] : ''
+                      });
+                    }} 
+                    style={{ width: 20, height: 20 }} 
+                  />
                   <div>
                     <span style={{ fontWeight: 700, fontSize: '0.9rem', color: 'white' }}>Instant Receipt</span>
                     <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Mark as paid and generate transaction timestamp.</p>
                   </div>
                 </label>
               </div>
+
+              {addForm.isPaid && (
+                <div>
+                  <label className="reset-label">Payment Date *</label>
+                  <input 
+                    type="date" 
+                    className="input" 
+                    required 
+                    value={addForm.paidAt} 
+                    onChange={e => setAddForm({...addForm, paidAt: e.target.value})} 
+                  />
+                </div>
+              )}
 
               <div style={{ marginTop: '1rem', display: 'flex', justifyContent: 'flex-end', gap: '1rem' }}>
                 <button type="button" className="btn btn-outline" onClick={() => setShowAddModal(false)}>Cancel</button>
