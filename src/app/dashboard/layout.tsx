@@ -5,7 +5,8 @@ import { usePathname, useRouter } from 'next/navigation';
 import { 
   LayoutDashboard, Users, CreditCard, TrendingUp, 
   Receipt, FileText, LogOut, ShieldCheck, 
-  Megaphone, Lock, Wallet, X, Menu, Bell, Settings, User
+  Megaphone, Lock, Wallet, X, Menu, Bell, Settings, User,
+  Table
 } from 'lucide-react';
 import { AuthProvider, useAuth } from '@/lib/auth-context';
 
@@ -45,6 +46,7 @@ function DashboardLayoutInner({ children }: { children: ReactNode }) {
     { name: 'Investments', path: '/dashboard/investments', icon: <TrendingUp size={20} />, key: 'investments' },
     { name: 'Expenses', path: '/dashboard/expenses', icon: <Receipt size={20} />, key: 'expenses' },
     { name: 'Other Incomes', path: '/dashboard/incomes', icon: <Wallet size={20} />, key: 'incomes' },
+    { name: 'Ledger', path: '/dashboard/ledger', icon: <Table size={20} />, key: 'ledger' },
     { name: 'Reports', path: '/dashboard/reports', icon: <FileText size={20} />, key: 'reports' },
     { name: 'Notices', path: '/dashboard/notices', icon: <Megaphone size={20} />, key: 'notices' },
     { name: 'Security', path: '/dashboard/change-password', icon: <Lock size={20} />, key: 'security' },

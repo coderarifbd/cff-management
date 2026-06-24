@@ -11,6 +11,7 @@ const DEFAULT_PERMISSIONS = {
   investments: 'FULL',
   expenses: 'FULL',
   incomes: 'FULL',
+  ledger: 'FULL',
   reports: 'FULL',
   notices: 'FULL',
   settings: 'NONE'
@@ -23,6 +24,7 @@ const MODULES = [
   { key: 'investments', label: 'Investment Portfolio' },
   { key: 'expenses', label: 'Expense Registry' },
   { key: 'incomes', label: 'Other Incomes' },
+  { key: 'ledger', label: 'Ledger (হিসাব খাতা)' },
   { key: 'reports', label: 'Financial Reports' },
   { key: 'notices', label: 'Notice Board' },
   { key: 'settings', label: 'System Settings & Backups' }
