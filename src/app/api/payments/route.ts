@@ -10,12 +10,14 @@ export async function GET(request: Request) {
     }
 
     const { searchParams } = new URL(request.url);
-    const month = searchParams.get('month');
-    const year = searchParams.get('year');
+    const months = searchParams.get('months') || searchParams.get('month');
+    const years = searchParams.get('years') || searchParams.get('year');
     const userId = searchParams.get('userId');
     const limit = searchParams.get('limit');
+    
     const query: any = {
       include: { user: true },
+      where: {},
       orderBy: [
         { year: 'desc' }, 
         { month: 'desc' },
@@ -23,11 +25,20 @@ export async function GET(request: Request) {
       ]
     };
 
-    if (month && year) {
-      query.where = { ...query.where, month: parseInt(month), year: parseInt(year) };
+    if (months) {
+      const monthList = months.split(',').map(m => parseInt(m)).filter(m => !isNaN(m));
+      if (monthList.length > 0) {
+        query.where.month = { in: monthList };
+      }
+    }
+    if (years) {
+      const yearList = years.split(',').map(y => parseInt(y)).filter(y => !isNaN(y));
+      if (yearList.length > 0) {
+        query.where.year = { in: yearList };
+      }
     }
     if (userId) {
-      query.where = { ...query.where, userId };
+      query.where.userId = userId;
     }
     if (limit) {
       query.take = parseInt(limit);

@@ -21,12 +21,14 @@ export default function PaymentsPage() {
   const [submitLoading, setSubmitLoading] = useState(false);
 
   // Filters
-  const [filterMonth, setFilterMonth] = useState<number | ''>(new Date().getMonth() + 1);
-  const [filterYear, setFilterYear] = useState<number | ''>(new Date().getFullYear());
+  const currentMonth = new Date().getMonth() + 1;
+  const currentYear = new Date().getFullYear();
+  const [selectedMonths, setSelectedMonths] = useState<number[]>([currentMonth]);
+  const [selectedYears, setSelectedYears] = useState<number[]>([currentYear]);
 
   // Form states
-  const [addForm, setAddForm] = useState({ userId: '', month: new Date().getMonth() + 1, year: new Date().getFullYear(), amount: 500, fine: 0, isPaid: false, notes: '', paidAt: `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}-10` });
-  const [bulkForm, setBulkForm] = useState({ month: new Date().getMonth() + 1, year: new Date().getFullYear(), amount: 500 });
+  const [addForm, setAddForm] = useState({ userId: '', month: currentMonth, year: currentYear, amount: 500, fine: 0, isPaid: false, notes: '', paidAt: `${currentYear}-${String(currentMonth).padStart(2, '0')}-10` });
+  const [bulkForm, setBulkForm] = useState({ month: currentMonth, year: currentYear, amount: 500 });
   const [editForm, setEditForm] = useState({ id: '', amount: 0, fine: 0, isPaid: false, notes: '', userName: '', memberNo: '', month: 1, year: 2026, paidAt: '' });
 
   // History state
@@ -34,11 +36,14 @@ export default function PaymentsPage() {
   const [historyLoading, setHistoryLoading] = useState(false);
 
   const fetchPayments = useCallback(async (silent = false) => {
+    if (selectedMonths.length === 0 || selectedYears.length === 0) {
+      setPayments([]);
+      setLoading(false);
+      return;
+    }
     if (!silent) setLoading(true);
     try {
-      let url = '/api/payments?';
-      if (filterMonth) url += `month=${filterMonth}&`;
-      if (filterYear) url += `year=${filterYear}&`;
+      let url = `/api/payments?months=${selectedMonths.join(',')}&years=${selectedYears.join(',')}`;
       
       const res = await fetch(url);
       const data = await res.json();
@@ -48,7 +53,7 @@ export default function PaymentsPage() {
     } finally {
       if (!silent) setLoading(false);
     }
-  }, [filterMonth, filterYear]);
+  }, [selectedMonths, selectedYears]);
 
   const fetchMembers = async () => {
     try {
@@ -218,7 +223,13 @@ export default function PaymentsPage() {
 
   const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 
-  const totalCollected = payments.reduce((sum, p) => p.isPaid ? sum + (p.amount + p.fine) : sum, 0);
+  const startYear = 2019;
+  const maxYear = new Date().getFullYear() + 1;
+  const yearsList = Array.from({ length: maxYear - startYear + 1 }, (_, i) => startYear + i);
+
+  const totalBaseCollected = payments.reduce((sum, p) => p.isPaid ? sum + p.amount : sum, 0);
+  const totalFineCollected = payments.reduce((sum, p) => p.isPaid ? sum + p.fine : sum, 0);
+  const totalCollected = totalBaseCollected + totalFineCollected;
   const totalDue = payments.reduce((sum, p) => !p.isPaid ? sum + (p.amount + p.fine) : sum, 0);
 
   return (
@@ -240,40 +251,197 @@ export default function PaymentsPage() {
         )}
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1.5rem', marginBottom: '2.5rem' }}>
-        <div className="card" style={{ display: 'flex', gap: '1rem', alignItems: 'flex-end', padding: '1.5rem' }}>
-          <div style={{ flex: 1 }}>
-            <label className="reset-label">Select Month</label>
-            <select className="input" value={filterMonth} onChange={e => setFilterMonth(e.target.value ? parseInt(e.target.value) : '')}>
-              <option value="">All Months</option>
-              {monthNames.map((m, i) => <option key={i} value={i + 1}>{m}</option>)}
-            </select>
+      <div className="card" style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1.5rem', marginBottom: '1.5rem' }}>
+        {/* Checkbox Filters Card */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border)', paddingBottom: '0.75rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <Filter size={18} className="text-primary" />
+            <h3 style={{ fontSize: '1.05rem', fontWeight: 700, margin: 0 }}>Filter Registry</h3>
           </div>
-          <div style={{ width: '120px' }}>
-            <label className="reset-label">Select Year</label>
-            <input type="number" className="input" value={filterYear} onChange={e => setFilterYear(e.target.value ? parseInt(e.target.value) : '')} placeholder="2026" />
-          </div>
-          <button className="btn btn-primary" onClick={() => fetchPayments()}>
-            <Filter size={18} /> Filter
+          <button 
+            className="btn btn-outline" 
+            style={{ padding: '0.25rem 0.75rem', fontSize: '0.75rem', height: 'auto' }}
+            onClick={() => {
+              setSelectedMonths([new Date().getMonth() + 1]);
+              setSelectedYears([new Date().getFullYear()]);
+            }}
+          >
+            Reset Filters
           </button>
         </div>
 
-        <div className="card" style={{ background: 'rgba(245, 158, 11, 0.03)', borderColor: 'rgba(245, 158, 11, 0.15)', display: 'flex', gap: '1.25rem', alignItems: 'center', padding: '1.5rem' }}>
-          <div style={{ width: 48, height: 48, borderRadius: 14, background: 'rgba(245, 158, 11, 0.1)', color: '#f59e0b', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-            <AlertCircle size={24} />
-          </div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+          {/* Months */}
           <div>
-            <h4 style={{ fontWeight: 700, color: '#f59e0b', fontSize: '0.95rem', marginBottom: '0.25rem' }}>Late Fine Policy</h4>
-            <p style={{ fontSize: '0.8125rem', color: 'var(--text-muted)', lineHeight: 1.4 }}>৳100 auto-applied for payments after the 10th of each month.</p>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+              <label className="reset-label" style={{ marginBottom: 0, fontWeight: 700 }}>Select Months</label>
+              <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                <button 
+                  type="button" 
+                  style={{ background: 'none', border: 'none', color: 'var(--primary-light)', fontSize: '0.75rem', cursor: 'pointer', fontWeight: 600 }}
+                  onClick={() => setSelectedMonths([1,2,3,4,5,6,7,8,9,10,11,12])}
+                >
+                  Select All
+                </button>
+                <span style={{ color: 'var(--text-muted)', fontSize: '0.75rem' }}>|</span>
+                <button 
+                  type="button" 
+                  style={{ background: 'none', border: 'none', color: 'var(--text-muted)', fontSize: '0.75rem', cursor: 'pointer', fontWeight: 600 }}
+                  onClick={() => setSelectedMonths([])}
+                >
+                  Clear All
+                </button>
+              </div>
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(110px, 1fr))', gap: '0.5rem', background: 'rgba(255,255,255,0.01)', padding: '0.875rem', borderRadius: '10px', border: '1px solid var(--border)' }}>
+              {monthNames.map((m, i) => {
+                const monthVal = i + 1;
+                const isChecked = selectedMonths.includes(monthVal);
+                return (
+                  <button
+                    key={i}
+                    type="button"
+                    onClick={() => {
+                      setSelectedMonths(prev => 
+                        prev.includes(monthVal) 
+                          ? prev.filter(v => v !== monthVal) 
+                          : [...prev, monthVal]
+                      );
+                    }}
+                    style={{
+                      padding: '0.5rem 0.75rem',
+                      borderRadius: '8px',
+                      fontSize: '0.85rem',
+                      fontWeight: 600,
+                      textAlign: 'center',
+                      cursor: 'pointer',
+                      transition: 'all 0.2s',
+                      border: '1px solid',
+                      background: isChecked ? 'rgba(21, 128, 61, 0.15)' : 'rgba(255, 255, 255, 0.02)',
+                      borderColor: isChecked ? 'var(--primary)' : 'var(--border)',
+                      color: isChecked ? 'var(--primary-light)' : 'var(--text-muted)',
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.background = isChecked ? 'rgba(21, 128, 61, 0.25)' : 'rgba(255, 255, 255, 0.08)';
+                      if (!isChecked) {
+                        e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.2)';
+                        e.currentTarget.style.color = 'var(--text-main)';
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.background = isChecked ? 'rgba(21, 128, 61, 0.15)' : 'rgba(255, 255, 255, 0.02)';
+                      e.currentTarget.style.borderColor = isChecked ? 'var(--primary)' : 'var(--border)';
+                      e.currentTarget.style.color = isChecked ? 'var(--primary-light)' : 'var(--text-muted)';
+                    }}
+                  >
+                    {m}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Years */}
+          <div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+              <label className="reset-label" style={{ marginBottom: 0, fontWeight: 700 }}>Select Years</label>
+              <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                <button 
+                  type="button" 
+                  style={{ background: 'none', border: 'none', color: 'var(--primary-light)', fontSize: '0.75rem', cursor: 'pointer', fontWeight: 600 }}
+                  onClick={() => setSelectedYears(yearsList)}
+                >
+                  Select All
+                </button>
+                <span style={{ color: 'var(--text-muted)', fontSize: '0.75rem' }}>|</span>
+                <button 
+                  type="button" 
+                  style={{ background: 'none', border: 'none', color: 'var(--text-muted)', fontSize: '0.75rem', cursor: 'pointer', fontWeight: 600 }}
+                  onClick={() => setSelectedYears([])}
+                >
+                  Clear All
+                </button>
+              </div>
+            </div>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', background: 'rgba(255,255,255,0.01)', padding: '0.875rem', borderRadius: '10px', border: '1px solid var(--border)' }}>
+              {yearsList.map((y) => {
+                const isChecked = selectedYears.includes(y);
+                return (
+                  <button
+                    key={y}
+                    type="button"
+                    onClick={() => {
+                      setSelectedYears(prev => 
+                        prev.includes(y) 
+                          ? prev.filter(v => v !== y) 
+                          : [...prev, y]
+                      );
+                    }}
+                    style={{
+                      padding: '0.5rem 1rem',
+                      borderRadius: '8px',
+                      fontSize: '0.85rem',
+                      fontWeight: 600,
+                      textAlign: 'center',
+                      cursor: 'pointer',
+                      transition: 'all 0.2s',
+                      border: '1px solid',
+                      background: isChecked ? 'rgba(21, 128, 61, 0.15)' : 'rgba(255, 255, 255, 0.02)',
+                      borderColor: isChecked ? 'var(--primary)' : 'var(--border)',
+                      color: isChecked ? 'var(--primary-light)' : 'var(--text-muted)',
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.background = isChecked ? 'rgba(21, 128, 61, 0.25)' : 'rgba(255, 255, 255, 0.08)';
+                      if (!isChecked) {
+                        e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.2)';
+                        e.currentTarget.style.color = 'var(--text-main)';
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.background = isChecked ? 'rgba(21, 128, 61, 0.15)' : 'rgba(255, 255, 255, 0.02)';
+                      e.currentTarget.style.borderColor = isChecked ? 'var(--primary)' : 'var(--border)';
+                      e.currentTarget.style.color = isChecked ? 'var(--primary-light)' : 'var(--text-muted)';
+                    }}
+                  >
+                    {y}
+                  </button>
+                );
+              })}
+            </div>
           </div>
         </div>
       </div>
 
-      <div className="stats-grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', marginBottom: '2.5rem' }}>
+      {/* Policy Card (Full Width, Low Height) */}
+      <div className="card" style={{ background: 'rgba(245, 158, 11, 0.03)', borderColor: 'rgba(245, 158, 11, 0.15)', display: 'flex', flexDirection: 'row', gap: '1.25rem', padding: '1rem 1.5rem', alignItems: 'center', marginBottom: '2.5rem' }}>
+        <div style={{ width: 36, height: 36, borderRadius: 10, background: 'rgba(245, 158, 11, 0.1)', color: '#f59e0b', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+          <AlertCircle size={20} />
+        </div>
+        <div>
+          <h4 style={{ fontWeight: 700, color: '#f59e0b', fontSize: '0.9rem', margin: 0 }}>Late Fine Policy</h4>
+          <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', margin: '2px 0 0 0', lineHeight: 1.3 }}>৳100 auto-applied for payments after the 10th of each month.</p>
+        </div>
+      </div>
+
+      <div className="stats-grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', marginBottom: '2.5rem' }}>
         <div className="card stat-card" style={{ background: 'rgba(34, 197, 94, 0.05)', borderColor: 'rgba(34, 197, 94, 0.2)' }}>
           <div className="stat-icon" style={{ background: 'rgba(34, 197, 94, 0.1)', color: '#22c55e' }}><CheckCircle size={24} /></div>
           <div className="stat-info">
-            <h3>Collected (Paid)</h3>
+            <h3>Collected (Base)</h3>
+            <p>৳ {totalBaseCollected.toLocaleString()}</p>
+          </div>
+        </div>
+        <div className="card stat-card" style={{ background: 'rgba(59, 130, 246, 0.05)', borderColor: 'rgba(59, 130, 246, 0.2)' }}>
+          <div className="stat-icon" style={{ background: 'rgba(59, 130, 246, 0.1)', color: '#3b82f6' }}><DollarSign size={24} /></div>
+          <div className="stat-info">
+            <h3>Collected (Fine)</h3>
+            <p>৳ {totalFineCollected.toLocaleString()}</p>
+          </div>
+        </div>
+        <div className="card stat-card" style={{ background: 'rgba(168, 85, 247, 0.05)', borderColor: 'rgba(168, 85, 247, 0.2)' }}>
+          <div className="stat-icon" style={{ background: 'rgba(168, 85, 247, 0.1)', color: '#a855f7' }}><Wallet size={24} /></div>
+          <div className="stat-info">
+            <h3>Total Collected</h3>
             <p>৳ {totalCollected.toLocaleString()}</p>
           </div>
         </div>
