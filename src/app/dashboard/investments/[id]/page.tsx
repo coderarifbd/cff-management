@@ -147,31 +147,27 @@ export default function InvestmentDetailsPage() {
 
     const startDate = new Date(inv.date);
     const currentDate = new Date();
-    
-    // Find the date of the last profit, or default to the investment start date
-    let referenceDate = startDate;
-    if (inv.profits && inv.profits.length > 0) {
-      const profitDates = inv.profits.map((p: any) => new Date(p.date).getTime());
-      const maxTime = Math.max(...profitDates);
-      referenceDate = new Date(maxTime);
-    }
+    // Only count profits recorded after the start date to filter out setup/legacy profits registered on the start date
+    const profitsCount = (inv.profits && Array.isArray(inv.profits))
+      ? inv.profits.filter((p: any) => new Date(p.date).getTime() > startDate.getTime()).length
+      : 0;
 
-    // Calculate next due date from referenceDate
-    const getNextDate = (ref: Date, period: string): Date => {
-      const d = new Date(ref);
+    // Calculate next due date chronologically from startDate based on count of profits submitted
+    const getNextDate = (start: Date, period: string, count: number): Date => {
+      const d = new Date(start);
       let monthsToAdd = 0;
       if (period === 'YEARLY') {
-        monthsToAdd = 12;
+        monthsToAdd = 12 * (count + 1);
       } else if (period === 'EVERY_6_MONTHS') {
-        monthsToAdd = 6;
+        monthsToAdd = 6 * (count + 1);
       } else if (period === 'EVERY_3_MONTHS') {
-        monthsToAdd = 3;
+        monthsToAdd = 3 * (count + 1);
       } else {
         // Default to MONTHLY (1 month)
-        monthsToAdd = 1;
+        monthsToAdd = 1 * (count + 1);
       }
       
-      const targetMonth = ref.getMonth() + monthsToAdd;
+      const targetMonth = start.getMonth() + monthsToAdd;
       d.setMonth(targetMonth);
       if (d.getMonth() !== (targetMonth % 12 + 12) % 12) {
         d.setDate(0);
@@ -179,16 +175,12 @@ export default function InvestmentDetailsPage() {
       return d;
     };
 
-    const nextDueDate = getNextDate(referenceDate, inv.profitPeriod);
+    const nextDueDate = getNextDate(startDate, inv.profitPeriod, profitsCount);
 
-    if (nextDueDate <= currentDate) {
-      return {
-        overdue: true,
-        nextDueDate: formatDate(nextDueDate)
-      };
-    }
-
-    return { overdue: false };
+    return {
+      overdue: nextDueDate <= currentDate,
+      nextDueDate: formatDate(nextDueDate)
+    };
   };
 
   const overdueCheck = isProfitOverdue(investment);

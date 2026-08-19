@@ -399,31 +399,31 @@ export default function LedgerPage() {
       <div className="no-print" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1.5rem', marginBottom: '2rem' }}>
         <div className="card" style={{ padding: '1.25rem', borderLeft: '4px solid var(--primary-light)', background: 'rgba(34, 197, 94, 0.05)' }}>
           <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '0.375rem', fontWeight: 600 }}>Total Filtered Income (মোট আয়)</div>
-          <div className="font-mono-ledger" style={{ fontSize: '1.75rem', fontWeight: 800, color: 'var(--primary-light)' }}>৳ {totalIncome.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
+          <div className="font-mono-ledger" style={{ fontSize: '1.4rem', fontWeight: 800, color: 'var(--primary-light)' }}>৳ {totalIncome.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
         </div>
         
         <div className="card" style={{ padding: '1.25rem', borderLeft: '4px solid var(--danger)', background: 'rgba(239, 68, 68, 0.05)' }}>
           <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '0.375rem', fontWeight: 600 }}>Total Filtered Expense (মোট ব্যয়)</div>
-          <div className="font-mono-ledger" style={{ fontSize: '1.75rem', fontWeight: 800, color: 'var(--danger)' }}>৳ {totalExpense.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
+          <div className="font-mono-ledger" style={{ fontSize: '1.4rem', fontWeight: 800, color: 'var(--danger)' }}>৳ {totalExpense.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
         </div>
 
         <div className="card" style={{ padding: '1.25rem', borderLeft: '4px solid #3b82f6', background: 'rgba(59, 130, 246, 0.05)' }}>
           <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '0.375rem', fontWeight: 600 }}>Net Period Flow (জের/মূলধন প্রবাহ)</div>
-          <div className="font-mono-ledger" style={{ fontSize: '1.75rem', fontWeight: 800, color: filteredNet >= 0 ? 'var(--primary-light)' : 'var(--danger)' }}>
+          <div className="font-mono-ledger" style={{ fontSize: '1.4rem', fontWeight: 800, color: filteredNet >= 0 ? 'var(--primary-light)' : 'var(--danger)' }}>
             {filteredNet >= 0 ? '+' : ''} ৳ {filteredNet.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
           </div>
         </div>
 
         <div className="card" style={{ padding: '1.25rem', borderLeft: '4px solid #e2e8f0', background: 'rgba(255, 255, 255, 0.02)' }}>
           <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '0.375rem', fontWeight: 600 }}>Closing Balance (বর্তমান জের)</div>
-          <div className="font-mono-ledger" style={{ fontSize: '1.75rem', fontWeight: 800, color: 'white' }}>
+          <div className="font-mono-ledger" style={{ fontSize: '1.4rem', fontWeight: 800, color: 'white' }}>
             ৳ {runningTotal.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
           </div>
         </div>
       </div>
 
       {/* Spreadsheet Table View */}
-      <div className="spreadsheet-container">
+      <div className="spreadsheet-container desktop-only">
         <table className="spreadsheet-table">
           <thead>
             <tr>
@@ -471,26 +471,9 @@ export default function LedgerPage() {
                     ৳ {e.runningBalance.toFixed(2)}
                   </td>
                   <td className="actions-col no-print" style={{ textAlign: 'right' }}>
-                    <div style={{ display: 'flex', gap: '0.375rem', justifyContent: 'flex-end' }}>
-                      {(e.source === 'income' || e.source === 'expense') ? (
-                        <>
-                          {canEdit && (
-                            <button className="btn btn-outline" style={{ width: 30, height: 30, padding: 0 }} onClick={() => openEditModal(e)} title="Edit Entry">
-                              <Edit2 size={12} />
-                            </button>
-                          )}
-                          {canDelete && (
-                            <button className="btn" style={{ width: 30, height: 30, padding: 0, background: 'rgba(239, 68, 68, 0.1)', color: 'var(--danger)' }} onClick={() => setDeleteId(e.id)} title="Delete Entry">
-                              <Trash2 size={12} />
-                            </button>
-                          )}
-                        </>
-                      ) : (
-                        <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontStyle: 'italic' }}>
-                          Auto-synced
-                        </span>
-                      )}
-                    </div>
+                    <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontStyle: 'italic' }}>
+                      {e.source === 'income' || e.source === 'expense' ? 'Manual' : 'Auto-synced'}
+                    </span>
                   </td>
                 </tr>
               ))
@@ -514,6 +497,118 @@ export default function LedgerPage() {
             </tfoot>
           )}
         </table>
+      </div>
+
+      <div className="mobile-only no-print" style={{ marginTop: '1rem' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+          {loading ? (
+            [...Array(3)].map((_, i) => (
+              <div key={i} className="card skeleton" style={{ height: '180px', borderRadius: '16px' }}></div>
+            ))
+          ) : displayEntries.length === 0 ? (
+            <div className="card" style={{ textAlign: 'center', padding: '4rem', color: 'var(--text-muted)' }}>
+              No ledger transactions found matching search/filter.
+            </div>
+          ) : (
+            <>
+              {displayEntries.map((e, index) => (
+                <div key={e.id} className="card" style={{
+                  padding: '1.25rem',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '0.875rem',
+                  border: '1px solid var(--border)',
+                  background: 'var(--card-bg, rgba(30, 41, 59, 0.5))'
+                }}>
+                  {/* Header: No, Date & Source */}
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                      <span className="font-mono-ledger" style={{ background: 'rgba(255,255,255,0.05)', padding: '0.2rem 0.5rem', borderRadius: '6px', fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 600 }}>
+                        #{index + 1}
+                      </span>
+                      <span className="font-mono-ledger" style={{ fontSize: '0.85rem', color: 'white', fontWeight: 600 }}>
+                        {formatSpreadsheetDate(e.date)}
+                      </span>
+                    </div>
+                    <div>
+                      {!(e.source === 'income' || e.source === 'expense') ? (
+                        <span className="badge" style={{ background: 'rgba(59, 130, 246, 0.1)', color: '#60a5fa', fontSize: '0.65rem', padding: '0.15rem 0.4rem' }}>
+                          Auto-synced
+                        </span>
+                      ) : (
+                        <span className="badge" style={{ background: 'rgba(255, 255, 255, 0.05)', color: 'var(--text-muted)', fontSize: '0.65rem', padding: '0.15rem 0.4rem' }}>
+                          Manual
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Body: Description */}
+                  <div style={{ 
+                    padding: '0.75rem 0', 
+                    borderTop: '1px solid var(--border)', 
+                    borderBottom: '1px solid var(--border)',
+                    fontSize: '0.9rem',
+                    color: 'white',
+                    lineHeight: 1.4,
+                    fontWeight: 500
+                  }}>
+                    {e.description}
+                  </div>
+
+                  {/* Flow grid: Income, Expense, Balance */}
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1.2fr', gap: '0.5rem', fontSize: '0.75rem' }}>
+                    <div>
+                      <div style={{ color: 'var(--text-muted)', fontSize: '0.65rem', textTransform: 'uppercase', marginBottom: '0.125rem' }}>Income</div>
+                      <div className="font-mono-ledger" style={{ color: e.income > 0 ? 'var(--primary-light)' : 'rgba(255,255,255,0.2)', fontWeight: 600 }}>
+                        {e.income > 0 ? `৳ ${e.income.toFixed(2)}` : '—'}
+                      </div>
+                    </div>
+                    <div>
+                      <div style={{ color: 'var(--text-muted)', fontSize: '0.65rem', textTransform: 'uppercase', marginBottom: '0.125rem' }}>Expense</div>
+                      <div className="font-mono-ledger" style={{ color: e.expense > 0 ? 'var(--danger)' : 'rgba(255,255,255,0.2)', fontWeight: 600 }}>
+                        {e.expense > 0 ? `৳ ${e.expense.toFixed(2)}` : '—'}
+                      </div>
+                    </div>
+                    <div style={{ textAlign: 'right' }}>
+                      <div style={{ color: 'var(--text-muted)', fontSize: '0.65rem', textTransform: 'uppercase', marginBottom: '0.125rem' }}>Balance</div>
+                      <div className="font-mono-ledger" style={{ color: e.runningBalance >= 0 ? 'white' : 'var(--danger)', fontWeight: 700 }}>
+                        ৳ {e.runningBalance.toFixed(2)}
+                      </div>
+                    </div>
+                  </div>
+
+                </div>
+              ))}
+
+              {/* Total Card */}
+              <div className="card" style={{
+                padding: '1.25rem',
+                border: '1px solid var(--border)',
+                background: 'rgba(255, 255, 255, 0.03)',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '0.5rem',
+                fontWeight: 600,
+                fontSize: '0.85rem'
+              }}>
+                <div style={{ color: 'var(--text-muted)', textTransform: 'uppercase', fontSize: '0.7rem', letterSpacing: '0.05em', marginBottom: '0.25rem' }}>Filtered Ledger Totals</div>
+                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <span>Total Income:</span>
+                  <span style={{ color: 'var(--primary-light)' }}>৳ {totalIncome.toFixed(2)}</span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <span>Total Expense:</span>
+                  <span style={{ color: 'var(--danger)' }}>৳ {totalExpense.toFixed(2)}</span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', borderTop: '1px dashed var(--border)', paddingTop: '0.5rem', marginTop: '0.25rem' }}>
+                  <span>Closing Balance:</span>
+                  <span style={{ color: 'white', fontWeight: 700 }}>৳ {runningTotal.toFixed(2)}</span>
+                </div>
+              </div>
+            </>
+          )}
+        </div>
       </div>
 
       {/* Add Transaction Modal */}

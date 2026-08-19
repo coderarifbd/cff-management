@@ -190,11 +190,9 @@ export default function ExpensesPage() {
             <Plus size={18} style={{ marginRight: '0.5rem' }} /> Add Expense
           </button>
         )}
-      </div>
-
-      {/* Search & Filter Section */}
-      <div className="card" style={{ marginBottom: '1.5rem', display: 'grid', gridTemplateColumns: '1fr auto auto auto', gap: '1rem', alignItems: 'center' }}>
-        <div style={{ position: 'relative' }}>
+      </div>      {/* Search & Filter Section */}
+      <div className="card" style={{ marginBottom: '1.5rem', display: 'flex', gap: '1rem', alignItems: 'center', flexWrap: 'wrap' }}>
+        <div style={{ flex: 1, minWidth: '200px', position: 'relative' }}>
           <Search size={18} style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
           <input 
             type="text" 
@@ -205,7 +203,7 @@ export default function ExpensesPage() {
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
-        <div style={{ width: '160px' }}>
+        <div style={{ flex: '1 1 160px', minWidth: '130px' }}>
           <select 
             className="input" 
             value={categoryFilter}
@@ -217,7 +215,7 @@ export default function ExpensesPage() {
             ))}
           </select>
         </div>
-        <div style={{ width: '140px' }}>
+        <div style={{ flex: '1 1 140px', minWidth: '120px' }}>
           <select 
             className="input" 
             value={selectedMonth}
@@ -229,7 +227,7 @@ export default function ExpensesPage() {
             ))}
           </select>
         </div>
-        <div style={{ width: '120px' }}>
+        <div style={{ flex: '1 1 120px', minWidth: '110px' }}>
           <select 
             className="input" 
             value={selectedYear}
@@ -242,8 +240,7 @@ export default function ExpensesPage() {
           </select>
         </div>
       </div>
-
-      <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
+      <div className="card desktop-only" style={{ padding: 0, overflow: 'hidden' }}>
         <div style={{ overflowX: 'auto' }}>
           <table>
             <thead>
@@ -309,6 +306,96 @@ export default function ExpensesPage() {
               </tfoot>
             )}
           </table>
+        </div>
+      </div>
+
+      <div className="mobile-only" style={{ marginTop: '1rem' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+          {loading ? (
+            [...Array(3)].map((_, i) => (
+              <div key={i} className="card skeleton" style={{ height: '180px', borderRadius: '16px' }}></div>
+            ))
+          ) : filteredExpenses.length === 0 ? (
+            <div className="card" style={{ textAlign: 'center', padding: '4rem', color: 'var(--text-muted)' }}>
+              No expense records found.
+            </div>
+          ) : (
+            <>
+              {filteredExpenses.map((expense) => (
+                <div key={expense.id} className="card" style={{
+                  padding: '1.25rem',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '0.875rem',
+                  border: '1px solid var(--border)',
+                  background: 'var(--card-bg, rgba(30, 41, 59, 0.5))'
+                }}>
+                  {/* Header: Date & Amount */}
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div style={{ fontSize: '0.875rem', fontWeight: 600, color: 'white' }}>{formatDate(expense.date)}</div>
+                    <div style={{ fontWeight: 700, color: 'var(--danger)', fontSize: '1rem' }}>- ৳ {expense.amount}</div>
+                  </div>
+
+                  {/* Body: Category & Description */}
+                  <div style={{ 
+                    padding: '0.75rem 0', 
+                    borderTop: '1px solid var(--border)', 
+                    borderBottom: '1px solid var(--border)',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '0.5rem'
+                  }}>
+                    <div>
+                      <span className="badge" style={{ background: 'rgba(148, 163, 184, 0.1)', color: 'var(--text-muted)', fontSize: '0.7rem', padding: '0.2rem 0.5rem' }}>
+                        {expense.category}
+                      </span>
+                    </div>
+                    <div style={{ fontSize: '0.85rem', color: 'white', lineHeight: 1.4 }}>
+                      {expense.description || 'No description provided'}
+                    </div>
+                  </div>
+
+                  {/* Actions */}
+                  <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.5rem' }}>
+                    {expense.receiptUrl && (
+                      <button 
+                        className="btn btn-outline" 
+                        style={{ padding: '0.25rem 0.5rem', fontSize: '0.75rem', height: 32, display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }} 
+                        onClick={() => setPreviewUrl(expense.receiptUrl)}
+                        title="View Receipt"
+                      >
+                        <Receipt size={14} /> Receipt
+                      </button>
+                    )}
+                    {canEdit && (
+                      <button className="btn btn-outline" style={{ padding: '0.25rem 0.5rem', fontSize: '0.75rem', height: 32, display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }} onClick={() => openManageModal(expense)} title="Edit">
+                        <Edit2 size={14} /> Edit
+                      </button>
+                    )}
+                    {canDelete && (
+                      <button className="btn btn-outline" style={{ padding: '0.25rem 0.5rem', fontSize: '0.75rem', height: 32, display: 'inline-flex', alignItems: 'center', gap: '0.25rem', color: 'var(--danger)', borderColor: 'var(--danger)' }} onClick={() => setDeleteId(expense.id)} title="Delete">
+                        <Trash2 size={14} /> Delete
+                      </button>
+                    )}
+                  </div>
+                </div>
+              ))}
+
+              {/* Total Card */}
+              <div className="card" style={{
+                padding: '1.25rem',
+                border: '1px solid var(--border)',
+                background: 'rgba(255, 255, 255, 0.03)',
+                display: 'flex',
+                justifyContent: 'space-between',
+                fontWeight: 700,
+                fontSize: '0.9rem'
+              }}>
+                <span style={{ color: 'var(--text-muted)' }}>Total Filtered Expenses:</span>
+                <span style={{ color: 'var(--danger)', fontSize: '1.05rem' }}>- ৳ {filteredExpenses.reduce((sum, e) => sum + e.amount, 0).toLocaleString()}</span>
+              </div>
+            </>
+          )}
         </div>
       </div>
 

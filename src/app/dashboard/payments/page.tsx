@@ -454,7 +454,7 @@ export default function PaymentsPage() {
         </div>
       </div>
 
-      <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
+      <div className="card desktop-only" style={{ padding: 0, overflow: 'hidden' }}>
         <div className="table-container">
           <table>
             <thead>
@@ -543,6 +543,110 @@ export default function PaymentsPage() {
               )}
             </tbody>
           </table>
+        </div>
+      </div>
+
+      <div className="mobile-only" style={{ marginTop: '1rem' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+          {loading ? (
+            [...Array(3)].map((_, i) => (
+              <div key={i} className="card skeleton" style={{ height: '220px', borderRadius: '16px' }}></div>
+            ))
+          ) : payments.length === 0 ? (
+            <div className="card" style={{ textAlign: 'center', padding: '4rem', color: 'var(--text-muted)' }}>
+              No collection records found.
+            </div>
+          ) : (
+            payments.map((payment) => (
+              <div key={payment.id} className="card" style={{
+                padding: '1.25rem',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '1rem',
+                border: '1px solid var(--border)',
+                background: 'var(--card-bg, rgba(30, 41, 59, 0.5))'
+              }}>
+                {/* Header: Member Avatar & Name / Member No */}
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '0.5rem' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                    <div style={{ width: 40, height: 40, borderRadius: 10, background: 'rgba(255, 255, 255, 0.05)', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800 }}>
+                      {payment.user?.name?.charAt(0).toUpperCase() || '?'}
+                    </div>
+                    <div>
+                      <div style={{ fontWeight: 700, fontSize: '0.95rem', color: 'white' }}>{payment.user?.name || 'Deleted User'}</div>
+                      <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{payment.user?.memberNo || '—'}</div>
+                    </div>
+                  </div>
+                  <span className={`badge ${payment.isPaid ? 'badge-success' : 'badge-danger'}`} style={{ fontSize: '0.7rem', padding: '0.2rem 0.5rem' }}>
+                    {payment.isPaid ? 'CONFIRMED' : 'DUE'}
+                  </span>
+                </div>
+
+                {/* Body Details */}
+                <div style={{ 
+                  display: 'grid', 
+                  gridTemplateColumns: '1fr 1fr', 
+                  gap: '1rem', 
+                  padding: '0.875rem 0', 
+                  borderTop: '1px solid var(--border)', 
+                  borderBottom: '1px solid var(--border)' 
+                }}>
+                  <div>
+                    <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 600, letterSpacing: '0.05em', marginBottom: '0.25rem' }}>Billing Period</div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.375rem', fontSize: '0.85rem', fontWeight: 600, color: 'white' }}>
+                      <Calendar size={12} className="text-muted" />
+                      {monthNames[payment.month - 1]} {payment.year}
+                    </div>
+                  </div>
+
+                  <div style={{ textAlign: 'right' }}>
+                    <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 600, letterSpacing: '0.05em', marginBottom: '0.25rem' }}>Collection Details</div>
+                    <div style={{ fontSize: '0.9rem', fontWeight: 700, color: 'white' }}>৳ {(payment.amount + payment.fine).toLocaleString()}</div>
+                    <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginTop: '0.125rem' }}>
+                      Base: ৳{payment.amount.toLocaleString()} {payment.fine > 0 && <span style={{ color: '#ef4444' }}>+ Fine: ৳{payment.fine.toLocaleString()}</span>}
+                    </div>
+                  </div>
+
+                  {payment.notes && (
+                    <div style={{ gridColumn: 'span 2', fontSize: '0.75rem', color: 'var(--text-muted)', fontStyle: 'italic', display: 'flex', alignItems: 'center', gap: '0.25rem', background: 'rgba(255,255,255,0.02)', padding: '0.5rem', borderRadius: '6px' }}>
+                      <Edit2 size={12} /> Remarks: {payment.notes}
+                    </div>
+                  )}
+                </div>
+
+                {/* Footer: Date & Management Actions */}
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.5rem' }}>
+                  <div>
+                    {payment.isPaid ? (
+                      <div style={{ color: '#22c55e', display: 'flex', alignItems: 'center', gap: '0.25rem', fontSize: '0.75rem', fontWeight: 600 }}>
+                        <CheckCircle size={12} /> {formatDate(payment.paidAt)}
+                      </div>
+                    ) : (
+                      <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontStyle: 'italic' }}>Pending Payment</span>
+                    )}
+                  </div>
+
+                  <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                    {canEdit && (
+                      <button className="btn btn-outline" style={{ width: 32, height: 32, padding: 0 }} onClick={() => openEditModal(payment)} title="Edit Record">
+                        <Edit2 size={14} />
+                      </button>
+                    )}
+                    {canDelete && (
+                      <button className="btn btn-outline" style={{ width: 32, height: 32, padding: 0, color: '#ef4444', borderColor: 'rgba(239, 68, 68, 0.2)' }} onClick={() => setDeleteId(payment.id)} title="Delete Record">
+                        <Trash2 size={14} />
+                      </button>
+                    )}
+                    {!payment.isPaid && canEdit && (
+                      <button className="btn btn-primary" style={{ padding: '0.4rem 0.75rem', fontSize: '0.75rem', height: 32 }} onClick={() => handleMarkPaid(payment.id)}>
+                        Collect
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+            ))
+          )}
         </div>
       </div>
 

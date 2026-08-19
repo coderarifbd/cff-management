@@ -292,7 +292,7 @@ export default function MembersPage() {
         </div>
       </div>
 
-      <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
+      <div className="card desktop-only" style={{ padding: 0, overflow: 'hidden' }}>
         <div className="table-container">
           <table>
             <thead>
@@ -402,6 +402,130 @@ export default function MembersPage() {
               )}
             </tbody>
           </table>
+        </div>
+      </div>
+
+      <div className="mobile-only" style={{ marginTop: '1rem' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+          {loading ? (
+            [...Array(3)].map((_, i) => (
+              <div key={i} className="card skeleton" style={{ height: '220px', borderRadius: '16px' }}></div>
+            ))
+          ) : filteredMembers.length === 0 ? (
+            <div className="card" style={{ textAlign: 'center', padding: '4rem', color: 'var(--text-muted)' }}>
+              No members matching your search.
+            </div>
+          ) : (
+            filteredMembers.map((member) => (
+              <div key={member.id} className="card" style={{
+                padding: '1.25rem',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '1rem',
+                border: '1px solid var(--border)',
+                background: 'var(--card-bg, rgba(30, 41, 59, 0.5))'
+              }}>
+                {/* Header: Avatar & Info */}
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '0.5rem' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                    <div style={{ width: 44, height: 44, borderRadius: 12, background: 'rgba(34, 197, 94, 0.1)', color: '#22c55e', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: '1.1rem' }}>
+                      {member.name.charAt(0).toUpperCase()}
+                    </div>
+                    <div>
+                      <div style={{ fontWeight: 700, fontSize: '1rem', color: 'white' }}>{member.name}</div>
+                      <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '0.375rem', marginTop: '0.125rem' }}>
+                        <Mail size={12} /> <span style={{ wordBreak: 'break-all' }}>{member.email}</span>
+                      </div>
+                    </div>
+                  </div>
+                  <span style={{ 
+                    background: 'rgba(255, 255, 255, 0.05)', 
+                    padding: '0.375rem 0.625rem', 
+                    borderRadius: '8px', 
+                    fontWeight: 700,
+                    fontSize: '0.8rem',
+                    border: '1px solid var(--border)',
+                    whiteSpace: 'nowrap'
+                  }}>
+                    {member.memberNo || '—'}
+                  </span>
+                </div>
+
+                {/* Details Section */}
+                <div style={{ 
+                  display: 'grid', 
+                  gridTemplateColumns: '1fr 1fr', 
+                  gap: '1rem', 
+                  padding: '1rem 0', 
+                  borderTop: '1px solid var(--border)', 
+                  borderBottom: '1px solid var(--border)' 
+                }}>
+                  <div>
+                    <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 600, letterSpacing: '0.05em', marginBottom: '0.25rem' }}>Role & Status</div>
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '0.375rem' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 500 }}>
+                        <ShieldCheck size={12} /> {member.role}
+                      </div>
+                      <span className={`badge ${member.status === 'ACTIVE' ? 'badge-success' : 'badge-danger'}`} style={{ padding: '0.2rem 0.5rem', fontSize: '0.7rem' }}>
+                        {member.status}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div style={{ textAlign: 'right' }}>
+                    <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 600, letterSpacing: '0.05em', marginBottom: '0.25rem' }}>Joining Date</div>
+                    <div style={{ fontSize: '0.875rem', fontWeight: 600, color: 'white', marginTop: '0.125rem' }}>
+                      {formatDate(member.joinDate)}
+                    </div>
+                  </div>
+
+                  <div style={{ gridColumn: 'span 2' }}>
+                    <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 600, letterSpacing: '0.05em', marginBottom: '0.375rem' }}>Equity & Payments</div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.375rem' }}>
+                      {member.status === 'ACTIVE' ? (
+                        <div style={{ fontSize: '0.9rem', fontWeight: 700, color: 'var(--primary-light)', display: 'flex', alignItems: 'center', gap: '0.375rem' }}>
+                          <ShieldCheck size={14} /> ৳{Math.round(member.netEquity || 0).toLocaleString()}
+                          <span style={{ fontSize: '0.7rem', opacity: 0.7, fontWeight: 400 }}>(Equity)</span>
+                        </div>
+                      ) : (
+                        <div style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-muted)', fontStyle: 'italic' }}>
+                          Settled / No Equity
+                        </div>
+                      )}
+                      <div style={{ display: 'flex', gap: '1rem', fontSize: '0.75rem', marginTop: '0.125rem' }}>
+                        <span style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                          <span style={{ color: '#22c55e', fontSize: '0.6rem' }}>●</span> <span style={{ color: 'var(--text-muted)' }}>P:</span> <strong style={{ color: 'white' }}>৳{(member.totalPaidFees || 0).toLocaleString()}</strong>
+                        </span>
+                        <span style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                          <span style={{ color: '#ef4444', fontSize: '0.6rem' }}>●</span> <span style={{ color: 'var(--text-muted)' }}>F:</span> <strong style={{ color: 'white' }}>৳{(member.totalPaidFines || 0).toLocaleString()}</strong>
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Actions */}
+                <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end', alignItems: 'center' }}>
+                  {canEditMembers && (
+                    <>
+                      <button className="btn btn-outline" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.375rem', height: 36, padding: '0 0.875rem', fontSize: '0.8125rem' }} onClick={() => handleOpenModal(member)} title="Edit Member">
+                        <Edit2 size={14} /> Edit
+                      </button>
+                      <button className="btn btn-outline" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.375rem', height: 36, padding: '0 0.875rem', fontSize: '0.8125rem', color: '#818cf8', borderColor: 'rgba(129, 140, 248, 0.2)' }} onClick={() => handleResetPassword(member)} title="Reset Password">
+                        <Key size={14} /> Reset Key
+                      </button>
+                    </>
+                  )}
+                  {canDeleteMembers && (
+                    <button className="btn" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.375rem', height: 36, padding: '0 0.875rem', fontSize: '0.8125rem', background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444' }} onClick={() => handleDelete(member.id)} title="Delete Member">
+                      <Trash2 size={14} /> Delete
+                    </button>
+                  )}
+                  {!canEditMembers && <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Read Only</span>}
+                </div>
+              </div>
+            ))
+          )}
         </div>
       </div>
 

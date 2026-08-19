@@ -239,31 +239,27 @@ export default function InvestmentsPage() {
 
     const startDate = new Date(inv.date);
     const currentDate = new Date();
-    
-    // Find the date of the last profit, or default to the investment start date
-    let referenceDate = startDate;
-    if (inv.profits && inv.profits.length > 0) {
-      const profitDates = inv.profits.map((p: any) => new Date(p.date).getTime());
-      const maxTime = Math.max(...profitDates);
-      referenceDate = new Date(maxTime);
-    }
+    // Only count profits recorded after the start date to filter out setup/legacy profits registered on the start date
+    const profitsCount = (inv.profits && Array.isArray(inv.profits))
+      ? inv.profits.filter((p: any) => new Date(p.date).getTime() > startDate.getTime()).length
+      : 0;
 
-    // Calculate next due date from referenceDate
-    const getNextDate = (ref: Date, period: string): Date => {
-      const d = new Date(ref);
+    // Calculate next due date chronologically from startDate based on count of profits submitted
+    const getNextDate = (start: Date, period: string, count: number): Date => {
+      const d = new Date(start);
       let monthsToAdd = 0;
       if (period === 'YEARLY') {
-        monthsToAdd = 12;
+        monthsToAdd = 12 * (count + 1);
       } else if (period === 'EVERY_6_MONTHS') {
-        monthsToAdd = 6;
+        monthsToAdd = 6 * (count + 1);
       } else if (period === 'EVERY_3_MONTHS') {
-        monthsToAdd = 3;
+        monthsToAdd = 3 * (count + 1);
       } else {
         // Default to MONTHLY (1 month)
-        monthsToAdd = 1;
+        monthsToAdd = 1 * (count + 1);
       }
       
-      const targetMonth = ref.getMonth() + monthsToAdd;
+      const targetMonth = start.getMonth() + monthsToAdd;
       d.setMonth(targetMonth);
       if (d.getMonth() !== (targetMonth % 12 + 12) % 12) {
         d.setDate(0);
@@ -271,16 +267,12 @@ export default function InvestmentsPage() {
       return d;
     };
 
-    const nextDueDate = getNextDate(referenceDate, inv.profitPeriod);
+    const nextDueDate = getNextDate(startDate, inv.profitPeriod, profitsCount);
 
-    if (nextDueDate <= currentDate) {
-      return {
-        overdue: true,
-        nextDueDate: formatDate(nextDueDate)
-      };
-    }
-
-    return { overdue: false };
+    return {
+      overdue: nextDueDate <= currentDate,
+      nextDueDate: formatDate(nextDueDate)
+    };
   };
 
   // Calculations based on filtered data
@@ -404,7 +396,7 @@ export default function InvestmentsPage() {
         </div>
       </div>
 
-      <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
+      <div className="card desktop-only" style={{ padding: 0, overflow: 'hidden' }}>
         <div style={{ overflowX: 'auto' }}>
           <table>
             <thead>
@@ -572,6 +564,150 @@ export default function InvestmentsPage() {
               </tfoot>
             )}
           </table>
+        </div>
+      </div>
+
+      <div className="mobile-only" style={{ marginTop: '1rem' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+          {loading ? (
+            [...Array(3)].map((_, i) => (
+              <div key={i} className="card skeleton" style={{ height: '220px', borderRadius: '16px' }}></div>
+            ))
+          ) : sortedInvestments.length === 0 ? (
+            <div className="card" style={{ textAlign: 'center', padding: '4rem', color: 'var(--text-muted)' }}>
+              No investment records found.
+            </div>
+          ) : (
+            <>
+              {sortedInvestments.map((inv) => (
+                <div key={inv.id} className="card" style={{
+                  padding: '1.25rem',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '1rem',
+                  border: '1px solid var(--border)',
+                  background: 'var(--card-bg, rgba(30, 41, 59, 0.5))'
+                }}>
+                  {/* Header: Title & Status */}
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '0.5rem' }}>
+                    <div>
+                      <a href={`/dashboard/investments/${inv.id}`} style={{ fontWeight: 700, fontSize: '0.95rem', color: 'var(--primary)', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}>
+                        {inv.title} <ArrowUpRight size={14} />
+                      </a>
+                      <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.125rem' }}>{inv.type || 'Other Investment'}</div>
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '0.25rem' }}>
+                      <span className={`badge ${inv.status === 'RUNNING' ? 'badge-warning' : inv.status === 'COMPLETED' ? 'badge-success' : 'badge-danger'}`} style={{ fontSize: '0.7rem', padding: '0.2rem 0.5rem' }}>
+                        {inv.status}
+                      </span>
+                      {inv.closeDate && (
+                        <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)' }}>
+                          Closed: {formatDate(inv.closeDate)}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Body: 2x2 Details Grid */}
+                  <div style={{ 
+                    display: 'grid', 
+                    gridTemplateColumns: '1fr 1fr', 
+                    gap: '1rem', 
+                    padding: '0.875rem 0', 
+                    borderTop: '1px solid var(--border)', 
+                    borderBottom: '1px solid var(--border)' 
+                  }}>
+                    <div>
+                      <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 600, letterSpacing: '0.05em', marginBottom: '0.25rem' }}>Date Started</div>
+                      <div style={{ fontSize: '0.875rem', fontWeight: 600, color: 'white' }}>{formatDate(inv.date)}</div>
+                    </div>
+                    <div style={{ textAlign: 'right' }}>
+                      <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 600, letterSpacing: '0.05em', marginBottom: '0.25rem' }}>Invested Amount</div>
+                      <div style={{ fontSize: '0.875rem', fontWeight: 600, color: 'white' }}>৳ {inv.amount.toLocaleString()}</div>
+                    </div>
+                    <div>
+                      <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 600, letterSpacing: '0.05em', marginBottom: '0.25rem' }}>Profit Generated</div>
+                      <div style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--success)' }}>+ ৳ {inv.profit.toLocaleString()}</div>
+                    </div>
+                    <div style={{ textAlign: 'right' }}>
+                      <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 600, letterSpacing: '0.05em', marginBottom: '0.25rem' }}>Refunded</div>
+                      <div style={{ fontSize: '0.875rem', fontWeight: 600, color: 'white' }}>৳ {inv.refund.toLocaleString()}</div>
+                    </div>
+                  </div>
+
+                  {/* Footer & Actions */}
+                  <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: '0.5rem' }}>
+                    {(() => {
+                      const showBell = inv.status === 'RUNNING';
+                      if (!showBell) return null;
+                      const check = isProfitOverdue(inv);
+                      return (
+                        <div className="tooltip-wrapper" style={{ marginRight: '0.25rem' }}>
+                          <span className={check.overdue ? "bell-icon-overdue" : "bell-icon-normal"}>
+                            <Bell size={14} />
+                            {check.overdue && <span className="bell-red-dot" />}
+                          </span>
+                          <span className="tooltip-text">
+                            {check.overdue 
+                              ? `Profit due since ${check.nextDueDate}! Go to details to add profit.`
+                              : check.nextDueDate 
+                                ? `Next profit due on ${check.nextDueDate}`
+                                : 'No due'}
+                          </span>
+                        </div>
+                      );
+                    })()}
+                    {inv.documentUrl && (
+                      <button 
+                        className="btn btn-outline" 
+                        style={{ padding: '0.25rem 0.5rem', fontSize: '0.75rem', height: 32, display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }} 
+                        onClick={() => setPreviewUrl(inv.documentUrl)}
+                        title="View Document"
+                      >
+                        <FileText size={14} /> Document
+                      </button>
+                    )}
+                    {canEdit && (
+                      <button className="btn btn-outline" style={{ padding: '0.25rem 0.5rem', fontSize: '0.75rem', height: 32, display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }} onClick={() => openManageModal(inv)} title="Manage">
+                        <Edit2 size={14} /> Manage
+                      </button>
+                    )}
+                    {canDelete && (
+                      <button className="btn btn-outline" style={{ padding: '0.25rem 0.5rem', fontSize: '0.75rem', height: 32, display: 'inline-flex', alignItems: 'center', gap: '0.25rem', color: 'var(--danger)', borderColor: 'var(--danger)' }} onClick={() => handleDelete(inv.id)} title="Delete">
+                        <Trash2 size={14} /> Delete
+                      </button>
+                    )}
+                  </div>
+                </div>
+              ))}
+
+              {/* Total Card */}
+              <div className="card" style={{
+                padding: '1.25rem',
+                border: '1px solid var(--border)',
+                background: 'rgba(255, 255, 255, 0.03)',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '0.5rem',
+                fontWeight: 600,
+                fontSize: '0.85rem'
+              }}>
+                <div style={{ color: 'var(--text-muted)', textTransform: 'uppercase', fontSize: '0.7rem', letterSpacing: '0.05em', marginBottom: '0.25rem' }}>Filtered Totals</div>
+                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <span>Total Invested:</span>
+                  <span style={{ color: 'white' }}>৳ {sortedInvestments.reduce((sum, i) => sum + i.amount, 0).toLocaleString()}</span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <span>Total Profit:</span>
+                  <span style={{ color: 'var(--success)' }}>+ ৳ {sortedInvestments.reduce((sum, i) => sum + i.profit, 0).toLocaleString()}</span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <span>Total Refunded:</span>
+                  <span style={{ color: 'white' }}>৳ {sortedInvestments.reduce((sum, i) => sum + i.refund, 0).toLocaleString()}</span>
+                </div>
+              </div>
+            </>
+          )}
         </div>
       </div>
 

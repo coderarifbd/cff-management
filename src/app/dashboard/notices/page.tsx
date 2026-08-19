@@ -157,47 +157,54 @@ export default function NoticesPage() {
           <p>No notices published yet.</p>
         ) : (
           notices.map(notice => (
-            <div key={notice.id} className="card" style={{ padding: '1.5rem' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', gap: '1rem' }}>
-                <div style={{ display: 'flex', gap: '1rem' }}>
-                  <div style={{ width: 48, height: 48, background: 'rgba(245, 158, 11, 0.1)', color: '#d97706', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                    <Megaphone size={24} />
+            <div key={notice.id} className="card" style={{ padding: '1.25rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+              {/* Header: Icon, Title, and Actions */}
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '1rem', borderBottom: '1px solid var(--border)', paddingBottom: '0.75rem' }}>
+                <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
+                  <div style={{ width: 44, height: 44, background: 'rgba(245, 158, 11, 0.1)', color: '#d97706', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                    <Megaphone size={20} />
                   </div>
                   <div>
-                    <h3 style={{ fontSize: '1.1rem', fontWeight: 700, color: 'white', marginBottom: '0.25rem' }}>{notice.title}</h3>
-                     <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '0.75rem' }}>
-                       Published on {formatDate(notice.createdAt)}
-                     </p>
-                    <p style={{ whiteSpace: 'pre-wrap', color: 'rgba(255, 255, 255, 0.8)', fontSize: '0.95rem', lineHeight: 1.6 }}>{notice.content}</p>
+                    <h3 style={{ fontSize: '1.05rem', fontWeight: 700, color: 'white', margin: 0 }}>{notice.title}</h3>
+                    <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', margin: '2px 0 0 0' }}>
+                      Published on {formatDate(notice.createdAt)}
+                    </p>
                   </div>
                 </div>
-                <div style={{ display: 'flex', gap: '0.4rem', alignItems: 'flex-start', flexShrink: 0 }}>
-                  <button className="btn btn-outline" style={{ color: copiedId === notice.id ? '#4ade80' : '#94a3b8', borderColor: copiedId === notice.id ? 'rgba(74, 222, 128, 0.2)' : 'rgba(148, 163, 184, 0.2)', padding: '0.5rem' }} onClick={() => copyNotice(notice)} title="Copy to clipboard">
-                    {copiedId === notice.id ? <Check size={16} /> : <Copy size={16} />}
+
+                {/* Actions container (with wrap support) */}
+                <div style={{ display: 'flex', gap: '0.4rem', alignItems: 'center', flexWrap: 'wrap' }}>
+                  <button className="btn btn-outline" style={{ color: copiedId === notice.id ? '#4ade80' : '#94a3b8', borderColor: copiedId === notice.id ? 'rgba(74, 222, 128, 0.2)' : 'rgba(148, 163, 184, 0.2)', padding: '0.4rem', height: 32, width: 32, display: 'flex', alignItems: 'center', justifyContent: 'center' }} onClick={() => copyNotice(notice)} title="Copy to clipboard">
+                    {copiedId === notice.id ? <Check size={14} /> : <Copy size={14} />}
                   </button>
-                  <button className="btn btn-outline" style={{ color: '#3b82f6', borderColor: 'rgba(59, 130, 246, 0.2)', padding: '0.5rem' }} onClick={() => shareNotice(notice)} title="Universal Share">
-                    <Share2 size={16} />
+                  <button className="btn btn-outline" style={{ color: '#3b82f6', borderColor: 'rgba(59, 130, 246, 0.2)', padding: '0.4rem', height: 32, width: 32, display: 'flex', alignItems: 'center', justifyContent: 'center' }} onClick={() => shareNotice(notice)} title="Universal Share">
+                    <Share2 size={14} />
                   </button>
-                  <button className="btn btn-outline" style={{ color: '#00B2FF', borderColor: 'rgba(0, 178, 255, 0.2)', padding: '0.5rem' }} onClick={() => sendToMessenger(notice)} title="Share on Messenger">
-                    <MessageCircle size={16} />
+                  <button className="btn btn-outline" style={{ color: '#00B2FF', borderColor: 'rgba(0, 178, 255, 0.2)', padding: '0.4rem', height: 32, width: 32, display: 'flex', alignItems: 'center', justifyContent: 'center' }} onClick={() => sendToMessenger(notice)} title="Share on Messenger">
+                    <MessageCircle size={14} />
                   </button>
-                  <button className="btn btn-outline" style={{ color: '#25d366', borderColor: 'rgba(37, 211, 102, 0.2)', padding: '0.5rem' }} onClick={() => sendToWhatsApp(notice)} title="Share on WhatsApp">
-                    <Send size={16} />
+                  <button className="btn btn-outline" style={{ color: '#25d366', borderColor: 'rgba(37, 211, 102, 0.2)', padding: '0.4rem', height: 32, width: 32, display: 'flex', alignItems: 'center', justifyContent: 'center' }} onClick={() => sendToWhatsApp(notice)} title="Share on WhatsApp">
+                    <Send size={14} />
                   </button>
                   {canEdit && (
                     <>
-                      <div style={{ width: '1px', height: '32px', background: 'var(--border)', margin: '0 0.2rem' }}></div>
-                      <button className="btn btn-outline" style={{ padding: '0.5rem' }} onClick={() => openEditModal(notice)} title="Edit Notice">
-                        <Edit2 size={16} />
+                      <div style={{ width: '1px', height: '20px', background: 'var(--border)', margin: '0 0.1rem' }}></div>
+                      <button className="btn btn-outline" style={{ padding: '0.4rem', height: 32, width: 32, display: 'flex', alignItems: 'center', justifyContent: 'center' }} onClick={() => openEditModal(notice)} title="Edit Notice">
+                        <Edit2 size={14} />
                       </button>
                     </>
                   )}
                   {canDelete && (
-                    <button className="btn btn-outline" style={{ color: 'var(--danger)', borderColor: 'rgba(239, 68, 68, 0.2)', padding: '0.5rem' }} onClick={() => setDeleteId(notice.id)} title="Delete Notice">
-                      <Trash2 size={16} />
+                    <button className="btn btn-outline" style={{ color: 'var(--danger)', borderColor: 'rgba(239, 68, 68, 0.2)', padding: '0.4rem', height: 32, width: 32, display: 'flex', alignItems: 'center', justifyContent: 'center' }} onClick={() => setDeleteId(notice.id)} title="Delete Notice">
+                      <Trash2 size={14} />
                     </button>
                   )}
                 </div>
+              </div>
+
+              {/* Content body */}
+              <div style={{ paddingLeft: '0.25rem' }}>
+                <p style={{ whiteSpace: 'pre-wrap', color: 'rgba(255, 255, 255, 0.85)', fontSize: '0.925rem', lineHeight: 1.6, margin: 0 }}>{notice.content}</p>
               </div>
             </div>
           ))
