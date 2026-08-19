@@ -72,7 +72,7 @@ export default function MemberNoticesPage() {
                   <Megaphone size={20} />
                 </div>
                 <div style={{ flex: 1 }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.5rem' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.5rem', marginBottom: '0.5rem' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
                       <h3 style={{ fontSize: '1.125rem', fontWeight: 700 }}>{notice.title}</h3>
                       {!notice.isRead && (

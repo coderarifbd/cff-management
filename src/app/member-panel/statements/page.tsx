@@ -83,7 +83,7 @@ export default function MemberStatementsPage() {
       </div>
 
       {/* Table */}
-      <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
+      <div className="card desktop-only" style={{ padding: 0, overflow: 'hidden' }}>
         <table style={{ margin: 0 }}>
           <thead>
             <tr>
@@ -130,6 +130,69 @@ export default function MemberStatementsPage() {
             ))}
           </tbody>
         </table>
+      </div>
+
+      <div className="mobile-only" style={{ marginTop: '1rem' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+          {filtered.length === 0 ? (
+            <div style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-muted)' }}>
+              No payments found for this period
+            </div>
+          ) : (
+            filtered.map((p: any) => (
+              <div key={p.id} className="card" style={{
+                padding: '1.25rem',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '0.75rem',
+                border: '1px solid var(--border)',
+                background: 'rgba(255, 255, 255, 0.02)'
+              }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ fontWeight: 700, fontSize: '0.95rem', color: 'white' }}>
+                    {monthNames[p.month - 1]} {p.year}
+                  </span>
+                  <span className={`badge ${p.isPaid ? 'badge-success' : 'badge-danger'}`}>
+                    {p.isPaid ? 'PAID' : 'DUE'}
+                  </span>
+                </div>
+
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', color: 'var(--text-muted)', borderTop: '1px solid var(--border)', paddingTop: '0.5rem' }}>
+                  <span>Monthly Fee:</span>
+                  <span style={{ color: 'white', fontWeight: 600 }}>৳ {p.amount.toLocaleString()}</span>
+                </div>
+
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', color: 'var(--text-muted)' }}>
+                  <span>Late Fine:</span>
+                  <span style={{ color: p.fine > 0 ? 'var(--danger)' : 'white' }}>
+                    {p.fine > 0 ? `৳ ${p.fine.toLocaleString()}` : '—'}
+                  </span>
+                </div>
+
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', color: 'var(--text-muted)', fontWeight: 600 }}>
+                  <span>Total Amount:</span>
+                  <span style={{ color: 'white' }}>৳ {(p.amount + p.fine).toLocaleString()}</span>
+                </div>
+
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', color: 'var(--text-muted)' }}>
+                  <span>Date Paid:</span>
+                  <span>
+                    {p.isPaid ? (
+                      <span style={{ color: 'var(--success)', display: 'flex', alignItems: 'center', gap: '0.25rem', fontSize: '0.85rem', fontWeight: 600 }}>
+                        <CheckCircle size={14} />
+                        {p.paidAt ? formatDate(p.paidAt) : 'Paid'}
+                      </span>
+                    ) : (
+                      <span style={{ color: 'var(--danger)', display: 'flex', alignItems: 'center', gap: '0.25rem', fontSize: '0.85rem', fontWeight: 600 }}>
+                        <AlertCircle size={14} /> Pending
+                      </span>
+                    )}
+                  </span>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
       </div>
     </div>
   );

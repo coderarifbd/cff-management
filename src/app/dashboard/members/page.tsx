@@ -585,7 +585,7 @@ export default function MembersPage() {
                 </div>
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1.5rem' }}>
                 <div>
                   <label className="reset-label">Account Role</label>
                   <select className="input" value={formData.role} onChange={e => setFormData({...formData, role: e.target.value})}>

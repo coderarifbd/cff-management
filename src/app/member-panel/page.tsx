@@ -175,7 +175,7 @@ export default function MemberDashboardPage() {
           </div>
         </div>
         
-        <div className="table-container">
+        <div className="table-container desktop-only">
           <table>
             <thead>
               <tr>
@@ -220,6 +220,64 @@ export default function MemberDashboardPage() {
               })}
             </tbody>
           </table>
+        </div>
+
+        <div className="mobile-only" style={{ marginTop: '1rem' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+            {data.payments.length === 0 ? (
+              <div style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-muted)' }}>
+                No payment records found
+              </div>
+            ) : (
+              data.payments.map((item: any) => {
+                const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+                return (
+                  <div key={item.id} className="card" style={{
+                    padding: '1.25rem',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '0.75rem',
+                    border: '1px solid var(--border)',
+                    background: 'rgba(255, 255, 255, 0.02)'
+                  }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <span style={{ fontWeight: 700, fontSize: '0.95rem', color: 'white' }}>
+                        {monthNames[item.month - 1]} {item.year}
+                      </span>
+                      <span className={`badge ${item.isPaid ? 'badge-success' : 'badge-danger'}`}>
+                        {item.isPaid ? 'PAID' : 'PENDING'}
+                      </span>
+                    </div>
+
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', color: 'var(--text-muted)', borderTop: '1px solid var(--border)', paddingTop: '0.5rem' }}>
+                      <span>Monthly Fee:</span>
+                      <span style={{ color: 'white', fontWeight: 600 }}>৳ {item.amount.toLocaleString()}</span>
+                    </div>
+
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', color: 'var(--text-muted)' }}>
+                      <span>Fine:</span>
+                      <span style={{ color: item.fine > 0 ? 'var(--danger)' : 'white' }}>
+                        {item.fine > 0 ? `৳ ${item.fine.toLocaleString()}` : '—'}
+                      </span>
+                    </div>
+
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', color: 'var(--text-muted)' }}>
+                      <span>Payment Date:</span>
+                      <span>
+                        {item.isPaid ? (
+                          <span style={{ color: '#34d399', fontWeight: 600 }}>
+                            {item.paidAt ? formatDate(item.paidAt) : 'Confirmed'}
+                          </span>
+                        ) : (
+                          <span>Awaiting Payment</span>
+                        )}
+                      </span>
+                    </div>
+                  </div>
+                );
+              })
+            )}
+          </div>
         </div>
       </div>
     </div>
