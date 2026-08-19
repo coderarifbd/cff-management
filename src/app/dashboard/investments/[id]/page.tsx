@@ -188,7 +188,7 @@ export default function InvestmentDetailsPage() {
   return (
     <div className="print-container">
       {/* Header Actions (Hidden when printing) */}
-      <div className="no-print" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
+      <div className="no-print" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem', marginBottom: '2rem' }}>
         <button className="btn btn-outline" onClick={() => router.push('/dashboard/investments')}>
           <ArrowLeft size={18} style={{ marginRight: '0.5rem' }} /> Back to Investments
         </button>
@@ -222,7 +222,7 @@ export default function InvestmentDetailsPage() {
       )}
 
       <div className="card" style={{ marginBottom: '2rem' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', borderBottom: '1px solid var(--border)', paddingBottom: '1.5rem', marginBottom: '1.5rem' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem', borderBottom: '1px solid var(--border)', paddingBottom: '1.5rem', marginBottom: '1.5rem' }}>
           <div>
             <h2 style={{ fontSize: '1.75rem', fontWeight: 700, color: 'var(--text-main)', marginBottom: '0.5rem' }}>
               {investment.title}
@@ -276,7 +276,7 @@ export default function InvestmentDetailsPage() {
         </div>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 350px', gap: '2rem', alignItems: 'start' }}>
+      <div className="investment-details-layout" style={{ gap: '2rem', alignItems: 'start' }}>
         {/* Profit History */}
         <div className="card">
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
@@ -294,20 +294,20 @@ export default function InvestmentDetailsPage() {
             <div className="no-print" style={{ background: 'var(--background)', padding: '1.5rem', borderRadius: '8px', border: '1px solid var(--border)', marginBottom: '1.5rem' }}>
               <h4 style={{ marginBottom: '1rem', fontWeight: 600 }}>Record New Profit</h4>
               {error && <div style={{ background: 'var(--danger)', color: 'white', padding: '0.5rem', borderRadius: '4px', marginBottom: '1rem', fontSize: '0.875rem' }}>{error}</div>}
-              <form onSubmit={handleAddProfit} style={{ display: 'flex', gap: '1rem', alignItems: 'flex-end' }}>
-                <div style={{ flex: 1 }}>
+              <form onSubmit={handleAddProfit} style={{ display: 'flex', gap: '1rem', alignItems: 'flex-end', flexWrap: 'wrap' }}>
+                <div style={{ flex: '1 1 150px' }}>
                   <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', fontWeight: 500 }}>Date</label>
                   <input type="date" className="input" required value={profitForm.date} onChange={e => setProfitForm({...profitForm, date: e.target.value})} />
                 </div>
-                <div style={{ flex: 1 }}>
+                <div style={{ flex: '1 1 150px' }}>
                   <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', fontWeight: 500 }}>Profit Amount (৳)</label>
                   <input type="number" className="input" required min="1" value={profitForm.amount} onChange={e => setProfitForm({...profitForm, amount: parseInt(e.target.value) || 0})} />
                 </div>
-                <div style={{ flex: 2 }}>
+                <div style={{ flex: '2 1 200px' }}>
                   <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', fontWeight: 500 }}>Note / Source</label>
                   <input type="text" className="input" placeholder="e.g. Month 1 Return" value={profitForm.note} onChange={e => setProfitForm({...profitForm, note: e.target.value})} />
                 </div>
-                <button type="submit" className="btn btn-primary" disabled={submitLoading} style={{ height: '42px' }}>
+                <button type="submit" className="btn btn-primary" disabled={submitLoading} style={{ height: '42px', minWidth: '120px' }}>
                   {submitLoading ? 'Saving...' : 'Save Profit'}
                 </button>
               </form>

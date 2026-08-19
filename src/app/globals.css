@@ -605,3 +605,14 @@ tr:hover td {
   }
 }
 
+.investment-details-layout {
+  display: grid;
+  grid-template-columns: 1fr 350px;
+}
+
+@media (max-width: 1024px) {
+  .investment-details-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
