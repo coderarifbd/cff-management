@@ -282,7 +282,7 @@ export default function InvestmentsPage() {
 
   return (
     <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem', marginBottom: '2rem' }}>
         <h2 style={{ fontSize: '1.5rem', fontWeight: 600 }}>Fund Investments</h2>
         {canEdit && (
           <button className="btn btn-primary" onClick={() => setShowAddModal(true)}>

@@ -357,19 +357,19 @@ export default function LedgerPage() {
       </div>
 
       {/* Search and Filters Section */}
-      <div className="card no-print" style={{ marginBottom: '1.5rem', display: 'grid', gridTemplateColumns: '1fr auto auto', gap: '1rem', alignItems: 'center' }}>
-        <div style={{ position: 'relative' }}>
+      <div className="card no-print" style={{ marginBottom: '1.5rem', display: 'flex', flexWrap: 'wrap', gap: '1rem', alignItems: 'center' }}>
+        <div style={{ position: 'relative', flex: '1 1 200px', minWidth: '0' }}>
           <Search size={18} style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
           <input 
             type="text" 
             className="input" 
-            style={{ paddingLeft: '2.75rem' }}
+            style={{ paddingLeft: '2.75rem', width: '100%' }}
             placeholder="Search description..." 
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
-        <div style={{ width: '180px' }}>
+        <div style={{ flex: '1 1 150px' }}>
           <select 
             className="input" 
             value={selectedMonth}
@@ -381,7 +381,7 @@ export default function LedgerPage() {
             ))}
           </select>
         </div>
-        <div style={{ width: '140px' }}>
+        <div style={{ flex: '1 1 120px' }}>
           <select 
             className="input" 
             value={selectedYear}

@@ -590,6 +590,15 @@ tr:hover td {
   }
 }
 
+/* Base states - mobile-only hidden by default on desktop */
+.mobile-only {
+  display: none !important;
+}
+
+.desktop-only {
+  display: block;
+}
+
 @media (max-width: 768px) {
   .desktop-only {
     display: none !important;
