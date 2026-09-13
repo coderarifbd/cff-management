@@ -294,10 +294,10 @@ export default function InvestmentDetailsPage() {
               </button>
             </div>
 
-            {/* Original Invested Amount Box on Top Right */}
-            <div style={{ padding: '1rem 1.75rem', background: 'var(--background)', borderRadius: '8px', border: '1px solid var(--border)', textAlign: 'center', minWidth: '190px' }}>
-              <p style={{ color: 'var(--text-muted)', fontSize: '0.8rem', marginBottom: '0.35rem' }}>Original Invested Amount</p>
-              <p style={{ fontSize: '1.85rem', fontWeight: 700, color: 'var(--text-main)', margin: 0 }}>৳ {investment.amount}</p>
+            {/* Original Invested Amount Box on Top Right - Inline layout */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.65rem 1.25rem', background: 'var(--background)', borderRadius: '8px', border: '1px solid var(--border)' }}>
+              <span style={{ color: 'var(--text-muted)', fontSize: '0.875rem', fontWeight: 500 }}>Original Invested Amount:</span>
+              <span style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--text-main)' }}>৳ {investment.amount}</span>
             </div>
           </div>
         </div>
