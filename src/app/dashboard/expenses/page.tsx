@@ -183,14 +183,19 @@ export default function ExpensesPage() {
 
   return (
     <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
-        <h2 style={{ fontSize: '1.5rem', fontWeight: 600 }}>Expenses Overview</h2>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem', marginBottom: '1.5rem' }}>
+        <div>
+          <h1 style={{ fontSize: '1.65rem', fontWeight: 700, letterSpacing: '-0.02em', margin: 0 }}>Expenses</h1>
+          <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginTop: '0.2rem' }}>Manage bills, event expenditures and receipts.</p>
+        </div>
         {canEdit && (
           <button className="btn btn-primary" onClick={() => setShowAddModal(true)}>
-            <Plus size={18} style={{ marginRight: '0.5rem' }} /> Add Expense
+            <Plus size={16} /> Add Expense
           </button>
         )}
-      </div>      {/* Search & Filter Section */}
+      </div>
+
+      {/* Search & Filter Section */}
       <div className="card" style={{ marginBottom: '1.5rem', display: 'flex', gap: '1rem', alignItems: 'center', flexWrap: 'wrap' }}>
         <div style={{ flex: 1, minWidth: '200px', position: 'relative' }}>
           <Search size={18} style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />

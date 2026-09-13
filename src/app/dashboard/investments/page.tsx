@@ -285,20 +285,23 @@ export default function InvestmentsPage() {
 
   return (
     <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem', marginBottom: '2rem' }}>
-        <h2 style={{ fontSize: '1.5rem', fontWeight: 600 }}>Fund Investments</h2>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem', marginBottom: '1.5rem' }}>
+        <div>
+          <h1 style={{ fontSize: '1.65rem', fontWeight: 700, letterSpacing: '-0.02em', margin: 0 }}>Investments</h1>
+          <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginTop: '0.2rem' }}>Track capital projects, profits and cycle statuses.</p>
+        </div>
         {canEdit && (
           <button className="btn btn-primary" onClick={() => setShowAddModal(true)}>
-            <Plus size={18} style={{ marginRight: '0.5rem' }} /> New Investment
+            <Plus size={16} /> New Investment
           </button>
         )}
       </div>
 
       {/* Stats Section */}
-      <div className="stats-grid" style={{ marginBottom: '2.5rem' }}>
-        <div className="card stat-card" style={{ background: 'rgba(59, 130, 246, 0.05)', borderColor: 'rgba(59, 130, 246, 0.2)' }}>
-          <div className="stat-icon" style={{ background: 'rgba(59, 130, 246, 0.1)', color: '#3b82f6' }}>
-            <ArrowUpRight size={24} />
+      <div className="stats-grid" style={{ marginBottom: '1.5rem' }}>
+        <div className="card stat-card">
+          <div className="stat-icon" style={{ color: '#38bdf8' }}>
+            <ArrowUpRight size={20} />
           </div>
           <div className="stat-info">
             <h3>Total Invested</h3>
@@ -306,19 +309,19 @@ export default function InvestmentsPage() {
           </div>
         </div>
 
-        <div className="card stat-card" style={{ background: 'rgba(34, 197, 94, 0.05)', borderColor: 'rgba(34, 197, 94, 0.2)' }}>
-          <div className="stat-icon" style={{ background: 'rgba(34, 197, 94, 0.1)', color: '#22c55e' }}>
-            <TrendingUp size={24} />
+        <div className="card stat-card" style={{ borderColor: 'rgba(16, 185, 129, 0.25)', background: 'rgba(16, 185, 129, 0.04)' }}>
+          <div className="stat-icon" style={{ color: '#10b981' }}>
+            <TrendingUp size={20} />
           </div>
           <div className="stat-info">
-            <h3>Total Profit</h3>
-            <p>৳ {totalProfit.toLocaleString()}</p>
+            <h3 style={{ color: '#10b981' }}>Total Profit</h3>
+            <p style={{ color: '#10b981' }}>+ ৳ {totalProfit.toLocaleString()}</p>
           </div>
         </div>
 
-        <div className="card stat-card" style={{ background: 'rgba(79, 70, 229, 0.05)', borderColor: 'rgba(79, 70, 229, 0.2)' }}>
-          <div className="stat-icon" style={{ background: 'rgba(79, 70, 229, 0.1)', color: '#4f46e5' }}>
-            <ArrowDownRight size={24} />
+        <div className="card stat-card">
+          <div className="stat-icon" style={{ color: '#a78bfa' }}>
+            <ArrowDownRight size={20} />
           </div>
           <div className="stat-info">
             <h3>Total Returned</h3>
@@ -507,32 +510,34 @@ export default function InvestmentsPage() {
                         </div>
                       )}
                     </td>
-                    <td>
-                      <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-                        {(() => {
-                          const showBell = inv.status === 'RUNNING';
-                          if (!showBell) return null;
-                          const check = isProfitOverdue(inv);
-                          return (
-                            <div className="tooltip-wrapper" style={{ marginRight: '0.25rem' }}>
-                              <span className={check.overdue ? "bell-icon-overdue" : "bell-icon-normal"}>
-                                <Bell size={14} />
-                                {check.overdue && <span className="bell-red-dot" />}
-                              </span>
-                              <span className="tooltip-text">
-                                {check.overdue 
-                                  ? `Profit due since ${check.nextDueDate}! Go to details to add profit.`
-                                  : check.nextDueDate 
-                                    ? `Next profit due on ${check.nextDueDate}`
-                                    : 'No due'}
-                              </span>
-                            </div>
-                          );
-                        })()}
+                    <td style={{ width: '160px', whiteSpace: 'nowrap' }}>
+                      <div style={{ display: 'inline-flex', gap: '0.4rem', alignItems: 'center', justifyContent: 'flex-start' }}>
+                        {/* Bell Slot: always 32px wide so edit and delete stay aligned */}
+                        <div style={{ width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                          {inv.status === 'RUNNING' && (() => {
+                            const check = isProfitOverdue(inv);
+                            return (
+                              <div className="tooltip-wrapper">
+                                <span className={check.overdue ? "bell-icon-overdue" : "bell-icon-normal"} style={{ width: '30px', height: '30px', padding: 0 }}>
+                                  <Bell size={14} />
+                                  {check.overdue && <span className="bell-red-dot" />}
+                                </span>
+                                <span className="tooltip-text">
+                                  {check.overdue 
+                                    ? `Profit due since ${check.nextDueDate}! Go to details to add profit.`
+                                    : check.nextDueDate 
+                                      ? `Next profit due on ${check.nextDueDate}`
+                                      : 'No due'}
+                                </span>
+                              </div>
+                            );
+                          })()}
+                        </div>
+
                         {inv.documentUrl && (
                           <button 
                             className="btn btn-outline" 
-                            style={{ padding: '0.25rem 0.5rem', fontSize: '0.75rem' }} 
+                            style={{ width: '32px', height: '32px', padding: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '8px', flexShrink: 0 }} 
                             onClick={() => setPreviewUrl(inv.documentUrl)}
                             title="View Document"
                           >
@@ -540,12 +545,22 @@ export default function InvestmentsPage() {
                           </button>
                         )}
                         {canEdit && (
-                          <button className="btn btn-outline" style={{ padding: '0.25rem 0.5rem', fontSize: '0.75rem' }} onClick={() => openManageModal(inv)} title="Manage">
+                          <button 
+                            className="btn btn-outline" 
+                            style={{ width: '32px', height: '32px', padding: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '8px', flexShrink: 0 }} 
+                            onClick={() => openManageModal(inv)} 
+                            title="Manage"
+                          >
                             <Edit2 size={14} />
                           </button>
                         )}
                         {canDelete && (
-                          <button className="btn btn-outline" style={{ padding: '0.25rem 0.5rem', fontSize: '0.75rem', color: 'var(--danger)', borderColor: 'var(--danger)' }} onClick={() => handleDelete(inv.id)} title="Delete">
+                          <button 
+                            className="btn btn-outline" 
+                            style={{ width: '32px', height: '32px', padding: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '8px', color: 'var(--danger)', borderColor: 'rgba(239, 68, 68, 0.3)', flexShrink: 0 }} 
+                            onClick={() => handleDelete(inv.id)} 
+                            title="Delete"
+                          >
                             <Trash2 size={14} />
                           </button>
                         )}

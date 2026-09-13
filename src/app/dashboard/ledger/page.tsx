@@ -333,24 +333,24 @@ export default function LedgerPage() {
       </div>
 
       {/* Main Header Row */}
-      <div className="no-print" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2.5rem', gap: '1rem', flexWrap: 'wrap' }}>
+      <div className="no-print" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', gap: '1rem', flexWrap: 'wrap' }}>
         <div>
-          <h2 style={{ fontSize: '1.875rem', fontWeight: 800, letterSpacing: '-0.025em', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <Table size={28} style={{ color: 'var(--primary-light)' }} /> Ledger (হিসাব খাতা)
-          </h2>
-          <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem' }}>Federation Income, Expense & Running Balance Cash Book Registry.</p>
+          <h1 style={{ fontSize: '1.65rem', fontWeight: 700, letterSpacing: '-0.02em', display: 'flex', alignItems: 'center', gap: '0.5rem', margin: 0 }}>
+            <Table size={22} style={{ color: 'var(--primary)' }} /> Ledger
+          </h1>
+          <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginTop: '0.2rem' }}>Federation cash book registry, transactions & balances.</p>
         </div>
         
-        <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', gap: '0.65rem', flexWrap: 'wrap' }}>
           <button className="btn btn-outline" onClick={handleExcelExport}>
-            <Download size={18} /> Export Excel
+            <Download size={16} /> Export Excel
           </button>
           <button className="btn btn-outline" onClick={handlePrint}>
-            <Printer size={18} /> Print Cash Book
+            <Printer size={16} /> Print
           </button>
           {canEdit && (
             <button className="btn btn-primary" onClick={() => setShowAddModal(true)}>
-              <Plus size={18} /> Add Transaction
+              <Plus size={16} /> Add Transaction
             </button>
           )}
         </div>

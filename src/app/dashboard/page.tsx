@@ -118,15 +118,15 @@ export default function DashboardPage() {
 
   return (
     <div>
-      <div style={{ marginBottom: '2.5rem' }}>
-        <h1 style={{ fontSize: '1.875rem', fontWeight: 800, letterSpacing: '-0.025em', marginBottom: '0.5rem' }}>Welcome Back,</h1>
-        <p style={{ color: 'var(--text-muted)' }}>Here's what's happening with the federation today.</p>
+      <div style={{ marginBottom: '2rem' }}>
+        <h1 style={{ fontSize: '1.65rem', fontWeight: 700, letterSpacing: '-0.02em', margin: '0 0 0.35rem 0' }}>Overview</h1>
+        <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem' }}>Financial summary and key activity metrics.</p>
       </div>
 
       <div className="stats-grid">
         <div className="card stat-card">
-          <div className="stat-icon" style={{ background: 'rgba(59, 130, 246, 0.1)', color: '#3b82f6' }}>
-            <Users size={24} />
+          <div className="stat-icon" style={{ color: '#38bdf8' }}>
+            <Users size={20} />
           </div>
           <div className="stat-info">
             <h3>Total Members</h3>
@@ -135,8 +135,8 @@ export default function DashboardPage() {
         </div>
 
         <div className="card stat-card">
-          <div className="stat-icon" style={{ background: 'rgba(34, 197, 94, 0.1)', color: '#22c55e' }}>
-            <CreditCard size={24} />
+          <div className="stat-icon" style={{ color: '#34d399' }}>
+            <CreditCard size={20} />
           </div>
           <div className="stat-info">
             <h3>Fees Collected</h3>
@@ -145,8 +145,8 @@ export default function DashboardPage() {
         </div>
 
         <div className="card stat-card">
-          <div className="stat-icon" style={{ background: 'rgba(245, 158, 11, 0.1)', color: '#f59e0b' }}>
-            <Activity size={24} />
+          <div className="stat-icon" style={{ color: '#fbbf24' }}>
+            <Activity size={20} />
           </div>
           <div className="stat-info">
             <h3>Fines Collected</h3>
@@ -155,14 +155,14 @@ export default function DashboardPage() {
         </div>
 
         <div className="card stat-card">
-          <div className="stat-icon" style={{ background: 'rgba(168, 85, 247, 0.1)', color: '#a855f7' }}>
-            <TrendingUp size={24} />
+          <div className="stat-icon" style={{ color: '#c084fc' }}>
+            <TrendingUp size={20} />
           </div>
           <div className="stat-info">
             <h3 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
               Investments
               {stats.activeInvestmentsCount > 0 && (
-                <span className="badge" style={{ background: 'rgba(168, 85, 247, 0.15)', color: '#d8b4fe', padding: '0.125rem 0.375rem', fontSize: '0.65rem' }}>
+                <span className="badge" style={{ background: 'rgba(192, 132, 252, 0.12)', color: '#d8b4fe', padding: '0.15rem 0.4rem', fontSize: '0.65rem' }}>
                   {stats.activeInvestmentsCount} Active
                 </span>
               )}
@@ -172,8 +172,8 @@ export default function DashboardPage() {
         </div>
 
         <div className="card stat-card">
-          <div className="stat-icon" style={{ background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444' }}>
-            <Receipt size={24} />
+          <div className="stat-icon" style={{ color: '#f87171' }}>
+            <Receipt size={20} />
           </div>
           <div className="stat-info">
             <h3>Total Expenses</h3>
@@ -181,9 +181,9 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        <div className="card stat-card" style={{ background: 'rgba(79, 70, 229, 0.05)', borderColor: 'rgba(79, 70, 229, 0.2)' }}>
-          <div className="stat-icon" style={{ background: 'rgba(79, 70, 229, 0.1)', color: '#4f46e5' }}>
-            <DollarSign size={24} />
+        <div className="card stat-card">
+          <div className="stat-icon" style={{ color: '#818cf8' }}>
+            <DollarSign size={20} />
           </div>
           <div className="stat-info">
             <h3>Net Balance (Cash)</h3>
@@ -191,52 +191,53 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        <div className="card stat-card" style={{ background: 'rgba(34, 197, 94, 0.05)', borderColor: 'rgba(34, 197, 94, 0.2)' }}>
-          <div className="stat-icon" style={{ background: 'rgba(34, 197, 94, 0.1)', color: '#22c55e' }}>
-            <TrendingUp size={24} />
+        <div className="card stat-card">
+          <div className="stat-icon" style={{ color: '#34d399' }}>
+            <TrendingUp size={20} />
           </div>
           <div className="stat-info">
-            <h3>Total Federation Profit</h3>
-            <p>৳ {stats.totalProfit.toLocaleString()}</p>
+            <h3>Federation Profit</h3>
+            <p style={{ color: '#34d399' }}>+ ৳ {stats.totalProfit.toLocaleString()}</p>
           </div>
         </div>
 
-        <div className="card stat-card" style={{ background: 'linear-gradient(135deg, var(--primary), var(--primary-dark))', border: 'none' }}>
-          <div className="stat-icon" style={{ background: 'rgba(255, 255, 255, 0.2)', color: 'white' }}>
-            <Activity size={24} />
+        <div className="card stat-card" style={{ borderColor: 'rgba(16, 185, 129, 0.25)', background: 'rgba(16, 185, 129, 0.05)' }}>
+          <div className="stat-icon" style={{ background: 'rgba(16, 185, 129, 0.15)', color: '#34d399' }}>
+            <Activity size={20} />
           </div>
           <div className="stat-info">
-            <h3 style={{ color: 'rgba(255, 255, 255, 0.7)' }}>Total Federation Amount</h3>
-            <p style={{ color: 'white' }}>৳ {stats.totalAmount.toLocaleString()}</p>
+            <h3 style={{ color: '#34d399' }}>Total Federation Amount</h3>
+            <p style={{ color: 'var(--text-main)' }}>৳ {stats.totalAmount.toLocaleString()}</p>
           </div>
         </div>
       </div>
 
-      <div style={{ marginTop: '3rem' }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.5rem' }}>
+      <div style={{ marginTop: '2.5rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.25rem', flexWrap: 'wrap', gap: '1rem' }}>
           <div>
-            <h2 style={{ fontSize: '1.25rem', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <BarChart3 size={20} style={{ color: 'var(--primary)' }} />
+            <h2 style={{ fontSize: '1.15rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.5rem', margin: 0 }}>
+              <BarChart3 size={18} style={{ color: 'var(--primary)' }} />
               Growth Analytics
             </h2>
-            <p style={{ fontSize: '0.875rem', color: 'var(--text-muted)' }}>
-              {chartMode === 'overall' ? 'Overall yearly growth since start' : `Monthly performance breakdown for ${selectedYear}`}
+            <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '0.2rem' }}>
+              {chartMode === 'overall' ? 'Overall yearly growth since inception' : `Performance breakdown for year ${selectedYear}`}
             </p>
           </div>
 
-          <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
-            <div style={{ display: 'flex', background: 'var(--surface)', padding: '0.25rem', borderRadius: '10px', border: '1px solid var(--border)' }}>
+          <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
+            <div style={{ display: 'flex', background: 'var(--surface)', padding: '0.2rem', borderRadius: '8px', border: '1px solid var(--border)' }}>
               <button 
                 onClick={() => setChartMode('yearly')}
                 style={{ 
-                  padding: '0.4rem 1rem', 
-                  borderRadius: '8px', 
-                  fontSize: '0.875rem', 
+                  padding: '0.35rem 0.85rem', 
+                  borderRadius: '6px', 
+                  fontSize: '0.8rem', 
                   border: 'none',
                   cursor: 'pointer',
+                  fontWeight: 500,
                   background: chartMode === 'yearly' ? 'var(--primary)' : 'transparent',
-                  color: chartMode === 'yearly' ? 'white' : 'var(--text-muted)',
-                  transition: 'all 0.2s'
+                  color: chartMode === 'yearly' ? '#0b0f19' : 'var(--text-muted)',
+                  transition: 'all 0.15s ease'
                 }}
               >
                 Yearly
@@ -244,14 +245,15 @@ export default function DashboardPage() {
               <button 
                 onClick={() => setChartMode('overall')}
                 style={{ 
-                  padding: '0.4rem 1rem', 
-                  borderRadius: '8px', 
-                  fontSize: '0.875rem', 
+                  padding: '0.35rem 0.85rem', 
+                  borderRadius: '6px', 
+                  fontSize: '0.8rem', 
                   border: 'none',
                   cursor: 'pointer',
+                  fontWeight: 500,
                   background: chartMode === 'overall' ? 'var(--primary)' : 'transparent',
-                  color: chartMode === 'overall' ? 'white' : 'var(--text-muted)',
-                  transition: 'all 0.2s'
+                  color: chartMode === 'overall' ? '#0b0f19' : 'var(--text-muted)',
+                  transition: 'all 0.15s ease'
                 }}
               >
                 Overall
@@ -260,20 +262,14 @@ export default function DashboardPage() {
 
             {chartMode === 'yearly' && (
               <select 
-                value={selectedYear}
-                onChange={(e) => setSelectedYear(parseInt(e.target.value))}
-                style={{ 
-                  background: 'var(--surface)', 
-                  border: '1px solid var(--border)', 
-                  color: 'white', 
-                  padding: '0.4rem 1rem', 
-                  borderRadius: '8px',
-                  fontSize: '0.875rem',
-                  outline: 'none',
-                  cursor: 'pointer'
-                }}
+                className="input" 
+                value={selectedYear} 
+                onChange={(e) => setSelectedYear(Number(e.target.value))}
+                style={{ height: '36px', padding: '0 2rem 0 0.75rem', fontSize: '0.8rem', borderRadius: '8px' }}
               >
-                {years.map(y => <option key={y} value={y}>{y}</option>)}
+                {years.map(y => (
+                  <option key={y} value={y}>{y}</option>
+                ))}
               </select>
             )}
           </div>

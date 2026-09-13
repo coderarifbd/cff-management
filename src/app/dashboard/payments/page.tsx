@@ -234,18 +234,18 @@ export default function PaymentsPage() {
 
   return (
     <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2.5rem', flexWrap: 'wrap', gap: '1rem' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
         <div>
-          <h2 style={{ fontSize: '1.875rem', fontWeight: 800, letterSpacing: '-0.025em' }}>Collection Registry</h2>
-          <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem' }}>Monitor and manage monthly membership fees and penalties.</p>
+          <h1 style={{ fontSize: '1.65rem', fontWeight: 700, letterSpacing: '-0.02em', margin: 0 }}>Payments</h1>
+          <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginTop: '0.2rem' }}>Monitor and manage monthly membership fees and penalties.</p>
         </div>
         {canEdit && (
-          <div style={{ display: 'flex', gap: '1rem' }}>
+          <div style={{ display: 'flex', gap: '0.75rem' }}>
             <button className="btn btn-outline" onClick={() => { setError(''); setShowBulkModal(true); }}>
-              <Copy size={18} /> Bulk Generate
+              <Copy size={16} /> Bulk Generate
             </button>
             <button className="btn btn-primary" onClick={() => { setError(''); setShowAddModal(true); }}>
-              <Plus size={18} /> Add Payment
+              <Plus size={16} /> Add Payment
             </button>
           </div>
         )}
