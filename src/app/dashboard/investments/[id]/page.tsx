@@ -223,9 +223,10 @@ export default function InvestmentDetailsPage() {
 
       {/* Modern Minimal Header Card */}
       <div className="card" style={{ marginBottom: '1.5rem', padding: '1.5rem 1.75rem' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '1.25rem' }}>
-          <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap', marginBottom: '0.6rem' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1.25rem' }}>
+          {/* Left: Title + Status + Contact Strip */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
               <h1 style={{ fontSize: '1.75rem', fontWeight: 700, color: 'var(--text-main)', margin: 0, letterSpacing: '-0.02em' }}>
                 {investment.title}
               </h1>
@@ -234,61 +235,58 @@ export default function InvestmentDetailsPage() {
               </span>
             </div>
 
-            <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '1rem', color: 'var(--text-muted)', fontSize: '0.85rem' }}>
-              <span>Type: <strong style={{ color: 'var(--text-main)', fontWeight: 500 }}>{investment.type || 'Other Investment'}</strong></span>
-              <span>•</span>
-              <span>Started: <strong style={{ color: 'var(--text-main)', fontWeight: 500 }}>{formatDate(investment.date)}</strong></span>
-              {investment.closeDate && (
-                <>
-                  <span>•</span>
-                  <span>Closed: <strong style={{ color: 'var(--text-main)', fontWeight: 500 }}>{formatDate(investment.closeDate)}</strong></span>
-                </>
-              )}
-              {investment.status === 'RUNNING' && investment.profitPeriod && investment.profitPeriod !== 'NONE' && (
-                <>
-                  <span>•</span>
-                  <span style={{ color: overdueCheck.overdue ? '#f87171' : 'var(--text-muted)', fontWeight: overdueCheck.overdue ? 600 : 400 }}>
-                    Cycle: {
-                      investment.profitPeriod === 'YEARLY' ? 'Yearly' :
-                      investment.profitPeriod === 'EVERY_6_MONTHS' ? '6 Months' :
-                      investment.profitPeriod === 'EVERY_3_MONTHS' ? '3 Months' : 'Monthly'
-                    } ({overdueCheck.overdue ? 'Overdue since' : 'Next due'}: {overdueCheck.nextDueDate})
+            {/* Minimal Clean Contact Strip below title */}
+            {(investment.contactName || investment.contactPhone || investment.contactEmail) && (
+              <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '1.25rem', fontSize: '0.85rem' }}>
+                <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Contact:</span>
+                {investment.contactName && (
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', color: 'var(--text-main)' }}>
+                    <span>👤</span> <strong>{investment.contactName}</strong>
                   </span>
-                </>
-              )}
-            </div>
+                )}
+                {investment.contactPhone && (
+                  <a href={`tel:${investment.contactPhone}`} style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', color: 'var(--primary-light)', textDecoration: 'none' }}>
+                    <span>📱</span> {investment.contactPhone}
+                  </a>
+                )}
+                {investment.contactEmail && (
+                  <a href={`mailto:${investment.contactEmail}`} style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', color: 'var(--primary-light)', textDecoration: 'none' }}>
+                    <span>✉️</span> {investment.contactEmail}
+                  </a>
+                )}
+              </div>
+            )}
           </div>
 
-          <button
-            onClick={() => setShowDocModal(true)}
-            className="btn btn-outline no-print"
-            style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.5rem 1rem', fontSize: '0.875rem' }}
-          >
-            <Upload size={16} /> Add Document
-          </button>
-        </div>
-
-        {/* Minimal Clean Contact Strip */}
-        {(investment.contactName || investment.contactPhone || investment.contactEmail) && (
-          <div style={{ marginTop: '1.25rem', paddingTop: '1rem', borderTop: '1px solid var(--border)', display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '1.5rem', fontSize: '0.875rem' }}>
-            <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Contact:</span>
-            {investment.contactName && (
-              <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', color: 'var(--text-main)' }}>
-                <span>👤</span> <strong>{investment.contactName}</strong>
+          {/* Right: Type, Started Date, Cycle Info */}
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '0.35rem', textAlign: 'right', fontSize: '0.875rem', color: 'var(--text-muted)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <span>Type:</span>
+              <span style={{ color: 'var(--text-main)', fontWeight: 600, background: 'var(--background)', padding: '0.2rem 0.6rem', borderRadius: '6px', border: '1px solid var(--border)' }}>
+                {investment.type || 'Other Investment'}
               </span>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <span>Started:</span>
+              <strong style={{ color: 'var(--text-main)', fontWeight: 600 }}>{formatDate(investment.date)}</strong>
+            </div>
+            {investment.closeDate && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <span>Closed:</span>
+                <strong style={{ color: 'var(--text-main)', fontWeight: 600 }}>{formatDate(investment.closeDate)}</strong>
+              </div>
             )}
-            {investment.contactPhone && (
-              <a href={`tel:${investment.contactPhone}`} style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', color: 'var(--primary-light)', textDecoration: 'none' }}>
-                <span>📱</span> {investment.contactPhone}
-              </a>
-            )}
-            {investment.contactEmail && (
-              <a href={`mailto:${investment.contactEmail}`} style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', color: 'var(--primary-light)', textDecoration: 'none' }}>
-                <span>✉️</span> {investment.contactEmail}
-              </a>
+            {investment.status === 'RUNNING' && investment.profitPeriod && investment.profitPeriod !== 'NONE' && (
+              <div style={{ fontSize: '0.8rem', color: overdueCheck.overdue ? '#f87171' : 'var(--text-muted)', fontWeight: overdueCheck.overdue ? 600 : 400 }}>
+                Cycle: {
+                  investment.profitPeriod === 'YEARLY' ? 'Yearly' :
+                  investment.profitPeriod === 'EVERY_6_MONTHS' ? '6 Months' :
+                  investment.profitPeriod === 'EVERY_3_MONTHS' ? '3 Months' : 'Monthly'
+                } ({overdueCheck.overdue ? 'Overdue since' : 'Next due'}: {overdueCheck.nextDueDate})
+              </div>
             )}
           </div>
-        )}
+        </div>
       </div>
 
       {/* Clean 4-Metric Grid */}
