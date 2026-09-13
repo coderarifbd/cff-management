@@ -274,6 +274,42 @@ export default function InvestmentDetailsPage() {
             <p style={{ fontSize: '2rem', fontWeight: 700, color: 'var(--primary)' }}>৳ {investment.amount - investment.refund}</p>
           </div>
         </div>
+
+        {/* Contact Information */}
+        {(investment.contactName || investment.contactPhone || investment.contactEmail) && (
+          <div style={{ marginTop: '1.5rem', padding: '1.25rem', background: 'var(--background)', borderRadius: '8px', border: '1px solid var(--border)' }}>
+            <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.875rem' }}>Contact Information</div>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1.25rem' }}>
+              {investment.contactName && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <span style={{ fontSize: '1rem' }}>👤</span>
+                  <div>
+                    <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginBottom: '0.1rem' }}>Contact Person</div>
+                    <div style={{ fontWeight: 600, fontSize: '0.9rem', color: 'var(--text-main)' }}>{investment.contactName}</div>
+                  </div>
+                </div>
+              )}
+              {investment.contactPhone && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <span style={{ fontSize: '1rem' }}>📱</span>
+                  <div>
+                    <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginBottom: '0.1rem' }}>Mobile</div>
+                    <a href={`tel:${investment.contactPhone}`} style={{ fontWeight: 600, fontSize: '0.9rem', color: 'var(--primary-light)', textDecoration: 'none' }}>{investment.contactPhone}</a>
+                  </div>
+                </div>
+              )}
+              {investment.contactEmail && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <span style={{ fontSize: '1rem' }}>✉️</span>
+                  <div>
+                    <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginBottom: '0.1rem' }}>Email</div>
+                    <a href={`mailto:${investment.contactEmail}`} style={{ fontWeight: 600, fontSize: '0.9rem', color: 'var(--primary-light)', textDecoration: 'none' }}>{investment.contactEmail}</a>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
       </div>
 
       <div className="investment-details-layout" style={{ gap: '2rem', alignItems: 'start' }}>

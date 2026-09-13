@@ -54,21 +54,24 @@ model Deposit {
 }
 
 model Investment {
-  id          String   @id @default(uuid())
-  title       String
-  type        String   @default("Other Investment")
-  amount      Float
-  profit      Float    @default(0)
-  refund      Float    @default(0)
-  status      String   @default("RUNNING")
-  date        DateTime @default(now())
-  documentUrl String? // Legacy single document field
+  id           String   @id @default(uuid())
+  title        String
+  type         String   @default("Other Investment")
+  amount       Float
+  profit       Float    @default(0)
+  refund       Float    @default(0)
+  status       String   @default("RUNNING")
+  date         DateTime @default(now())
+  documentUrl  String? // Legacy single document field
   profitPeriod String   @default("NONE")
-  closeDate   DateTime?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  profits     InvestmentProfit[]
-  documents   InvestmentDocument[]
+  closeDate    DateTime?
+  contactName  String?
+  contactPhone String?
+  contactEmail String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  profits      InvestmentProfit[]
+  documents    InvestmentDocument[]
 }
 
 model InvestmentDocument {

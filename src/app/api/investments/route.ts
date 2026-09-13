@@ -30,7 +30,7 @@ export async function POST(request: Request) {
     }
 
     const data = await request.json();
-    const { title, type, amount, date, documentUrl, profitPeriod } = data;
+    const { title, type, amount, date, documentUrl, profitPeriod, contactName, contactPhone, contactEmail } = data;
 
     const investment = await prisma.investment.create({
       data: {
@@ -39,7 +39,10 @@ export async function POST(request: Request) {
         amount: parseFloat(amount),
         date: date ? new Date(date) : undefined,
         documentUrl,
-        profitPeriod: profitPeriod || 'NONE'
+        profitPeriod: profitPeriod || 'NONE',
+        contactName: contactName || null,
+        contactPhone: contactPhone || null,
+        contactEmail: contactEmail || null,
       }
     });
 

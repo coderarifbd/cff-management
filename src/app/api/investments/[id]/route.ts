@@ -35,7 +35,7 @@ export async function PUT(request: Request, context: any) {
     }
     const { id } = await context.params;
     const data = await request.json();
-    const { title, type, amount, profit, refund, status, date, documentUrl, profitPeriod, closeDate } = data;
+    const { title, type, amount, profit, refund, status, date, documentUrl, profitPeriod, closeDate, contactName, contactPhone, contactEmail } = data;
 
     const investment = await prisma.investment.update({
       where: { id },
@@ -49,7 +49,10 @@ export async function PUT(request: Request, context: any) {
         date: date ? new Date(date) : undefined,
         documentUrl: documentUrl !== undefined ? documentUrl : undefined,
         profitPeriod: profitPeriod !== undefined ? profitPeriod : undefined,
-        closeDate: closeDate !== undefined ? (closeDate ? new Date(closeDate) : null) : undefined
+        closeDate: closeDate !== undefined ? (closeDate ? new Date(closeDate) : null) : undefined,
+        contactName: contactName !== undefined ? (contactName || null) : undefined,
+        contactPhone: contactPhone !== undefined ? (contactPhone || null) : undefined,
+        contactEmail: contactEmail !== undefined ? (contactEmail || null) : undefined,
       }
     });
 

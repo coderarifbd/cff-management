@@ -21,10 +21,10 @@ export default function InvestmentsPage() {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
   // Forms
-  const [addForm, setAddForm] = useState({ title: '', type: 'Other Investment', amount: 0, date: new Date().toISOString().split('T')[0], profitPeriod: 'NONE' });
+  const [addForm, setAddForm] = useState({ title: '', type: 'Other Investment', amount: 0, date: new Date().toISOString().split('T')[0], profitPeriod: 'NONE', contactName: '', contactPhone: '', contactEmail: '' });
   const [addFile, setAddFile] = useState<File | null>(null);
 
-  const [manageForm, setManageForm] = useState({ id: '', title: '', type: 'Other Investment', amount: 0, profit: 0, refund: 0, status: 'RUNNING', date: '', documentUrl: '', profitPeriod: 'NONE', closeDate: '' });
+  const [manageForm, setManageForm] = useState({ id: '', title: '', type: 'Other Investment', amount: 0, profit: 0, refund: 0, status: 'RUNNING', date: '', documentUrl: '', profitPeriod: 'NONE', closeDate: '', contactName: '', contactPhone: '', contactEmail: '' });
   const [manageFile, setManageFile] = useState<File | null>(null);
 
   // Search and Filter
@@ -156,7 +156,7 @@ export default function InvestmentsPage() {
       if (!res.ok) throw new Error(data.error);
       
       setShowAddModal(false);
-      setAddForm({ title: '', type: 'Other Investment', amount: 0, date: new Date().toISOString().split('T')[0], profitPeriod: 'NONE' });
+      setAddForm({ title: '', type: 'Other Investment', amount: 0, date: new Date().toISOString().split('T')[0], profitPeriod: 'NONE', contactName: '', contactPhone: '', contactEmail: '' });
       setAddFile(null);
       await fetchInvestments();
     } catch (err: any) {
@@ -178,7 +178,10 @@ export default function InvestmentsPage() {
       date: new Date(inv.date).toISOString().split('T')[0],
       documentUrl: inv.documentUrl || '',
       profitPeriod: inv.profitPeriod || 'NONE',
-      closeDate: inv.closeDate ? new Date(inv.closeDate).toISOString().split('T')[0] : ''
+      closeDate: inv.closeDate ? new Date(inv.closeDate).toISOString().split('T')[0] : '',
+      contactName: inv.contactName || '',
+      contactPhone: inv.contactPhone || '',
+      contactEmail: inv.contactEmail || '',
     });
     setManageFile(null);
     setError('');
@@ -755,6 +758,26 @@ export default function InvestmentsPage() {
                   <input type="date" className="input" required value={addForm.date} onChange={e => setAddForm({...addForm, date: e.target.value})} />
                 </div>
               </div>
+              {/* Contact Information */}
+              <div style={{ borderTop: '1px solid var(--border)', paddingTop: '1rem' }}>
+                <div style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.75rem' }}>Contact Information (Optional)</div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                  <div>
+                    <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', fontWeight: 500 }}>Contact Person Name</label>
+                    <input type="text" className="input" placeholder="e.g. রাবিউল করিম" value={addForm.contactName} onChange={e => setAddForm({...addForm, contactName: e.target.value})} />
+                  </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
+                    <div>
+                      <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', fontWeight: 500 }}>Mobile Number</label>
+                      <input type="tel" className="input" placeholder="01XXXXXXXXX" value={addForm.contactPhone} onChange={e => setAddForm({...addForm, contactPhone: e.target.value})} />
+                    </div>
+                    <div>
+                      <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', fontWeight: 500 }}>Email</label>
+                      <input type="email" className="input" placeholder="email@example.com" value={addForm.contactEmail} onChange={e => setAddForm({...addForm, contactEmail: e.target.value})} />
+                    </div>
+                  </div>
+                </div>
+              </div>
               <div>
                 <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', fontWeight: 500 }}>Investment Paper (PDF/Image)</label>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
@@ -870,6 +893,26 @@ export default function InvestmentsPage() {
                   />
                 </div>
               )}
+              {/* Contact Information */}
+              <div style={{ borderTop: '1px solid var(--border)', paddingTop: '1rem' }}>
+                <div style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.75rem' }}>Contact Information (Optional)</div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                  <div>
+                    <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', fontWeight: 500 }}>Contact Person Name</label>
+                    <input type="text" className="input" placeholder="e.g. রাবিউল করিম" value={manageForm.contactName} onChange={e => setManageForm({...manageForm, contactName: e.target.value})} />
+                  </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
+                    <div>
+                      <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', fontWeight: 500 }}>Mobile Number</label>
+                      <input type="tel" className="input" placeholder="01XXXXXXXXX" value={manageForm.contactPhone} onChange={e => setManageForm({...manageForm, contactPhone: e.target.value})} />
+                    </div>
+                    <div>
+                      <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', fontWeight: 500 }}>Email</label>
+                      <input type="email" className="input" placeholder="email@example.com" value={manageForm.contactEmail} onChange={e => setManageForm({...manageForm, contactEmail: e.target.value})} />
+                    </div>
+                  </div>
+                </div>
+              </div>
               <div>
                 <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', fontWeight: 500 }}>Update Investment Paper (PDF/Image)</label>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
