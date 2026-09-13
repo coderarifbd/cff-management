@@ -221,221 +221,224 @@ export default function InvestmentDetailsPage() {
         </div>
       )}
 
+      {/* Header Card matching exact layout */}
       <div className="card" style={{ marginBottom: '2rem' }}>
-        {/* Top row: Title (left) + Status/Type/Date (right) + Add Document button */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '1rem', borderBottom: '1px solid var(--border)', paddingBottom: '1.5rem', marginBottom: '1.5rem' }}>
-          {/* Left: Title */}
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <h2 style={{ fontSize: '1.75rem', fontWeight: 700, color: 'var(--text-main)', marginBottom: '0' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '1.5rem' }}>
+          {/* Left: Title + Contact Badges */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem', flex: 1, minWidth: '280px' }}>
+            <h2 style={{ fontSize: '1.85rem', fontWeight: 700, color: 'var(--text-main)', margin: 0 }}>
               {investment.title}
             </h2>
-          </div>
-          {/* Right: Status + Type + Date + Button */}
-          <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '0.75rem', flexShrink: 0 }}>
-            <span className={`badge ${investment.status === 'RUNNING' ? 'badge-warning' : investment.status === 'COMPLETED' ? 'badge-success' : 'badge-danger'}`}>
-              {investment.status}
-            </span>
-            <span style={{ color: 'var(--text-muted)', fontSize: '0.875rem' }}>• {investment.type || 'Other Investment'}</span>
-            <span style={{ color: 'var(--text-muted)', fontSize: '0.875rem' }}>• Started: {formatDate(investment.date)}</span>
-            {investment.closeDate && (
-              <span style={{ color: 'var(--text-muted)', fontSize: '0.875rem' }}>• Closed: {formatDate(investment.closeDate)}</span>
-            )}
-            {investment.status === 'RUNNING' && investment.profitPeriod && investment.profitPeriod !== 'NONE' && (
-              <span style={{ color: overdueCheck.overdue ? 'var(--danger-text, #f87171)' : 'var(--text-muted)', fontSize: '0.875rem', fontWeight: overdueCheck.overdue ? 600 : 400 }}>
-                • Cycle: {
-                  investment.profitPeriod === 'YEARLY' ? 'Yearly' :
-                  investment.profitPeriod === 'EVERY_6_MONTHS' ? '6 Months' :
-                  investment.profitPeriod === 'EVERY_3_MONTHS' ? '3 Months' : 'Monthly'
-                } ({overdueCheck.overdue ? 'Overdue since' : 'Next due'}: {overdueCheck.nextDueDate})
-              </span>
-            )}
-            <button
-              onClick={() => setShowDocModal(true)}
-              className="btn btn-outline no-print"
-              style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}
-            >
-              <Upload size={18} /> Add Document
-            </button>
-          </div>
-        </div>
 
-        <div className="grid-2" style={{ gap: '1.5rem' }}>
-          <div style={{ padding: '1.5rem', background: 'var(--background)', borderRadius: '8px', border: '1px solid var(--border)' }}>
-            <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem', marginBottom: '0.5rem' }}>Original Invested Amount</p>
-            <p style={{ fontSize: '2rem', fontWeight: 700, color: 'var(--text-main)' }}>৳ {investment.amount}</p>
-          </div>
-          <div style={{ padding: '1.5rem', background: '#f0fdf4', borderRadius: '8px', border: '1px solid #bbf7d0' }}>
-            <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem', marginBottom: '0.5rem' }}>Total Profit Earned</p>
-            <p style={{ fontSize: '2rem', fontWeight: 700, color: 'var(--success)' }}>+ ৳ {investment.profit}</p>
-          </div>
-          <div style={{ padding: '1.5rem', background: 'var(--background)', borderRadius: '8px', border: '1px solid var(--border)' }}>
-            <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem', marginBottom: '0.5rem' }}>Principal Refunded</p>
-            <p style={{ fontSize: '2rem', fontWeight: 700, color: 'var(--text-main)' }}>৳ {investment.refund}</p>
-          </div>
-          <div style={{ padding: '1.5rem', background: 'var(--background)', borderRadius: '8px', border: '1px solid var(--border)' }}>
-            <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem', marginBottom: '0.5rem' }}>Active Running Amount</p>
-            <p style={{ fontSize: '2rem', fontWeight: 700, color: 'var(--primary)' }}>৳ {investment.amount - investment.refund}</p>
-          </div>
-        </div>
-      </div>
-
-      {/* Two columns: Left = Contact Information, Right = Investment Papers */}
-      <div className="grid-2" style={{ gap: '2rem', marginBottom: '2rem', alignItems: 'stretch' }}>
-        {/* Left Column: Contact Information */}
-        <div className="card" style={{ display: 'flex', flexDirection: 'column' }}>
-          <h3 style={{ fontSize: '1.25rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1.5rem' }}>
-            <span>📋</span> Contact Information
-          </h3>
-          {(!investment.contactName && !investment.contactPhone && !investment.contactEmail) ? (
-            <div style={{ textAlign: 'center', padding: '2rem', background: 'rgba(255,255,255,0.02)', borderRadius: '12px', border: '1px dashed var(--border)', flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem' }}>No contact information added yet.</p>
-            </div>
-          ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', flex: 1, justifyContent: 'center' }}>
-              {investment.contactName && (
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.875rem 1rem', background: 'var(--background)', borderRadius: '8px', border: '1px solid var(--border)' }}>
-                  <span style={{ fontSize: '1.25rem', flexShrink: 0 }}>👤</span>
-                  <div style={{ minWidth: 0 }}>
-                    <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginBottom: '0.15rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Contact Person</div>
-                    <div style={{ fontWeight: 600, fontSize: '0.95rem', color: 'var(--text-main)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{investment.contactName}</div>
-                  </div>
-                </div>
-              )}
-              {investment.contactPhone && (
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.875rem 1rem', background: 'var(--background)', borderRadius: '8px', border: '1px solid var(--border)' }}>
-                  <span style={{ fontSize: '1.25rem', flexShrink: 0 }}>📱</span>
-                  <div style={{ minWidth: 0 }}>
-                    <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginBottom: '0.15rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Mobile</div>
-                    <a href={`tel:${investment.contactPhone}`} style={{ fontWeight: 600, fontSize: '0.95rem', color: 'var(--primary-light)', textDecoration: 'none' }}>{investment.contactPhone}</a>
-                  </div>
-                </div>
-              )}
-              {investment.contactEmail && (
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.875rem 1rem', background: 'var(--background)', borderRadius: '8px', border: '1px solid var(--border)' }}>
-                  <span style={{ fontSize: '1.25rem', flexShrink: 0 }}>✉️</span>
-                  <div style={{ minWidth: 0 }}>
-                    <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginBottom: '0.15rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Email</div>
-                    <a href={`mailto:${investment.contactEmail}`} style={{ fontWeight: 600, fontSize: '0.95rem', color: 'var(--primary-light)', textDecoration: 'none', overflow: 'hidden', textOverflow: 'ellipsis', display: 'block', whiteSpace: 'nowrap' }}>{investment.contactEmail}</a>
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
-        </div>
-
-        {/* Right Column: Investment Papers */}
-        <div className="card" style={{ display: 'flex', flexDirection: 'column' }}>
-          <h3 style={{ fontSize: '1.25rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1.5rem' }}>
-            <FileText size={20} color="var(--primary)" /> Investment Papers
-          </h3>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', flex: 1 }}>
-            {(!investment.documents || investment.documents.length === 0) && !investment.documentUrl ? (
-              <div style={{ textAlign: 'center', padding: '2rem', background: 'rgba(255,255,255,0.02)', borderRadius: '12px', border: '1px dashed var(--border)', flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem' }}>No documents uploaded yet.</p>
-              </div>
-            ) : (
-              <>
-                {investment.documentUrl && (
-                  <div style={{ padding: '0.75rem', background: 'rgba(255,255,255,0.05)', borderRadius: '8px', border: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flex: 1, minWidth: 0 }}>
-                      <FileText size={20} color="var(--text-muted)" />
-                      <span style={{ fontSize: '0.875rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>Primary Document (Legacy)</span>
+            {/* Contact Information Cards/Pills below title */}
+            {(investment.contactName || investment.contactPhone || investment.contactEmail) && (
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem', alignItems: 'center' }}>
+                {investment.contactName && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.6rem 1rem', background: 'var(--background)', borderRadius: '8px', border: '1px solid var(--border)' }}>
+                    <span style={{ fontSize: '1.1rem' }}>👤</span>
+                    <div>
+                      <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em' }}>CONTACT PERSON</div>
+                      <div style={{ fontWeight: 600, fontSize: '0.95rem', color: 'var(--text-main)' }}>{investment.contactName}</div>
                     </div>
-                    <button onClick={() => setPreviewUrl(investment.documentUrl)} className="btn btn-outline" style={{ padding: '0.4rem' }}><Eye size={16} /></button>
                   </div>
                 )}
-                {investment.documents?.map((doc: any) => (
-                  <div key={doc.id} style={{ padding: '0.75rem', background: 'rgba(255,255,255,0.05)', borderRadius: '8px', border: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flex: 1, minWidth: 0 }}>
-                      <FileText size={20} color="var(--primary)" />
-                      <div style={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
-                        <span style={{ fontSize: '0.875rem', fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{doc.name}</span>
-                        <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>{formatDate(doc.createdAt)}</span>
-                      </div>
-                    </div>
-                    <div style={{ display: 'flex', gap: '0.5rem' }}>
-                      <button onClick={() => setPreviewUrl(doc.url)} className="btn btn-outline" style={{ padding: '0.4rem' }} title="View"><Eye size={16} /></button>
-                      {canDelete && (
-                        <button onClick={() => handleDeleteDoc(doc.id)} className="btn btn-outline" style={{ padding: '0.4rem', color: 'var(--danger)', borderColor: 'rgba(239, 68, 68, 0.2)' }} title="Delete"><Trash2 size={16} /></button>
-                      )}
+                {investment.contactPhone && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.6rem 1rem', background: 'var(--background)', borderRadius: '8px', border: '1px solid var(--border)' }}>
+                    <span style={{ fontSize: '1.1rem' }}>📱</span>
+                    <div>
+                      <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em' }}>MOBILE</div>
+                      <a href={`tel:${investment.contactPhone}`} style={{ fontWeight: 600, fontSize: '0.95rem', color: 'var(--primary-light)', textDecoration: 'none' }}>{investment.contactPhone}</a>
                     </div>
                   </div>
-                ))}
-              </>
+                )}
+                {investment.contactEmail && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.6rem 1rem', background: 'var(--background)', borderRadius: '8px', border: '1px solid var(--border)' }}>
+                    <span style={{ fontSize: '1.1rem' }}>✉️</span>
+                    <div>
+                      <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em' }}>EMAIL</div>
+                      <a href={`mailto:${investment.contactEmail}`} style={{ fontWeight: 600, fontSize: '0.95rem', color: 'var(--primary-light)', textDecoration: 'none' }}>{investment.contactEmail}</a>
+                    </div>
+                  </div>
+                )}
+              </div>
             )}
-            {canEdit && (
+          </div>
+
+          {/* Right: Status/Type/Date/Button AND Original Invested Amount */}
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '1rem', flexShrink: 0 }}>
+            {/* Top row: Status, Type, Started Date, Add Document */}
+            <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '0.75rem' }}>
+              <span className={`badge ${investment.status === 'RUNNING' ? 'badge-warning' : investment.status === 'COMPLETED' ? 'badge-success' : 'badge-danger'}`}>
+                {investment.status}
+              </span>
+              <span style={{ color: 'var(--text-muted)', fontSize: '0.875rem' }}>• {investment.type || 'Other Investment'}</span>
+              <span style={{ color: 'var(--text-muted)', fontSize: '0.875rem' }}>• Started: {formatDate(investment.date)}</span>
+              {investment.closeDate && (
+                <span style={{ color: 'var(--text-muted)', fontSize: '0.875rem' }}>• Closed: {formatDate(investment.closeDate)}</span>
+              )}
+              {investment.status === 'RUNNING' && investment.profitPeriod && investment.profitPeriod !== 'NONE' && (
+                <span style={{ color: overdueCheck.overdue ? 'var(--danger-text, #f87171)' : 'var(--text-muted)', fontSize: '0.875rem', fontWeight: overdueCheck.overdue ? 600 : 400 }}>
+                  • Cycle: {
+                    investment.profitPeriod === 'YEARLY' ? 'Yearly' :
+                    investment.profitPeriod === 'EVERY_6_MONTHS' ? '6 Months' :
+                    investment.profitPeriod === 'EVERY_3_MONTHS' ? '3 Months' : 'Monthly'
+                  } ({overdueCheck.overdue ? 'Overdue since' : 'Next due'}: {overdueCheck.nextDueDate})
+                </span>
+              )}
               <button
                 onClick={() => setShowDocModal(true)}
                 className="btn btn-outline no-print"
-                style={{ marginTop: 'auto', width: '100%', borderStyle: 'dashed' }}
+                style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}
               >
-                <Plus size={16} style={{ marginRight: '0.5rem' }} /> Add New Paper
+                <Upload size={18} /> Add Document
               </button>
-            )}
+            </div>
+
+            {/* Original Invested Amount Box on Top Right */}
+            <div style={{ padding: '1rem 1.75rem', background: 'var(--background)', borderRadius: '8px', border: '1px solid var(--border)', textAlign: 'center', minWidth: '190px' }}>
+              <p style={{ color: 'var(--text-muted)', fontSize: '0.8rem', marginBottom: '0.35rem' }}>Original Invested Amount</p>
+              <p style={{ fontSize: '1.85rem', fontWeight: 700, color: 'var(--text-main)', margin: 0 }}>৳ {investment.amount}</p>
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Full-width Profit History Section */}
-      <div className="card">
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-          <h3 style={{ fontSize: '1.25rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <TrendingUp size={20} color="var(--primary)" /> Profit History
-          </h3>
-          {canEdit && (
-            <button className="btn btn-primary no-print" onClick={() => setShowProfitForm(!showProfitForm)} style={{ padding: '0.5rem 1rem', fontSize: '0.875rem' }}>
-              <Plus size={16} style={{ marginRight: '0.25rem' }} /> Add Profit
-            </button>
-          )}
+      {/* Main 2-column layout matching the screenshot */}
+      <div className="grid-2" style={{ gap: '2rem', alignItems: 'start' }}>
+        {/* Left Column: Stats (Active Running Amount, Total Profit Earned, Principal Refunded) */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+          <div className="card" style={{ padding: '1.5rem', background: 'var(--card-bg, #1a2332)' }}>
+            <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem', marginBottom: '0.75rem' }}>Active Running Amount</p>
+            <p style={{ fontSize: '2.25rem', fontWeight: 700, color: 'var(--primary, #10b981)', margin: 0 }}>৳ {investment.amount - investment.refund}</p>
+          </div>
+
+          <div className="card" style={{ padding: '1.5rem', background: '#f0fdf4', border: '1px solid #bbf7d0' }}>
+            <p style={{ color: '#4b5563', fontSize: '0.875rem', marginBottom: '0.75rem' }}>Total Profit Earned</p>
+            <p style={{ fontSize: '2.25rem', fontWeight: 700, color: '#16a34a', margin: 0 }}>+ ৳ {investment.profit}</p>
+          </div>
+
+          <div className="card" style={{ padding: '1.5rem', background: 'var(--card-bg, #1a2332)' }}>
+            <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem', marginBottom: '0.75rem' }}>Principal Refunded</p>
+            <p style={{ fontSize: '2.25rem', fontWeight: 700, color: 'var(--text-main)', margin: 0 }}>৳ {investment.refund}</p>
+          </div>
         </div>
 
-        {showProfitForm && (
-          <div className="no-print" style={{ background: 'var(--background)', padding: '1.5rem', borderRadius: '8px', border: '1px solid var(--border)', marginBottom: '1.5rem' }}>
-            <h4 style={{ marginBottom: '1rem', fontWeight: 600 }}>Record New Profit</h4>
-            {error && <div style={{ background: 'var(--danger)', color: 'white', padding: '0.5rem', borderRadius: '4px', marginBottom: '1rem', fontSize: '0.875rem' }}>{error}</div>}
-            <form onSubmit={handleAddProfit} style={{ display: 'flex', gap: '1rem', alignItems: 'flex-end', flexWrap: 'wrap' }}>
-              <div style={{ flex: '1 1 150px' }}>
-                <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', fontWeight: 500 }}>Date</label>
-                <input type="date" className="input" required value={profitForm.date} onChange={e => setProfitForm({...profitForm, date: e.target.value})} />
-              </div>
-              <div style={{ flex: '1 1 150px' }}>
-                <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', fontWeight: 500 }}>Profit Amount (৳)</label>
-                <input type="number" className="input" required min="1" value={profitForm.amount} onChange={e => setProfitForm({...profitForm, amount: parseInt(e.target.value) || 0})} />
-              </div>
-              <div style={{ flex: '2 1 200px' }}>
-                <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', fontWeight: 500 }}>Note / Source</label>
-                <input type="text" className="input" placeholder="e.g. Month 1 Return" value={profitForm.note} onChange={e => setProfitForm({...profitForm, note: e.target.value})} />
-              </div>
-              <button type="submit" className="btn btn-primary" disabled={submitLoading} style={{ height: '42px', minWidth: '120px' }}>
-                {submitLoading ? 'Saving...' : 'Save Profit'}
-              </button>
-            </form>
-          </div>
-        )}
-
-        <div style={{ overflowX: 'auto' }}>
-          <table>
-            <thead>
-              <tr>
-                <th>Date</th>
-                <th>Profit Amount</th>
-                <th>Note / Source</th>
-              </tr>
-            </thead>
-            <tbody>
-              {(!investment.profits || investment.profits.length === 0) ? (
-                <tr><td colSpan={3} style={{ textAlign: 'center', color: 'var(--text-muted)' }}>No profit recorded yet.</td></tr>
-              ) : (
-                investment.profits.map((p: any) => (
-                  <tr key={p.id}>
-                    <td>{formatDate(p.date)}</td>
-                    <td style={{ color: 'var(--success)', fontWeight: 600 }}>+ ৳ {p.amount}</td>
-                    <td>{p.note || '-'}</td>
-                  </tr>
-                ))
+        {/* Right Column: Profit History + Investment Papers */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+          {/* Profit History Card */}
+          <div className="card">
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+              <h3 style={{ fontSize: '1.25rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <TrendingUp size={20} color="var(--primary)" /> Profit History
+              </h3>
+              {canEdit && (
+                <button className="btn btn-primary no-print" onClick={() => setShowProfitForm(!showProfitForm)} style={{ padding: '0.5rem 1rem', fontSize: '0.875rem' }}>
+                  <Plus size={16} style={{ marginRight: '0.25rem' }} /> Add Profit
+                </button>
               )}
-            </tbody>
-          </table>
+            </div>
+
+            {showProfitForm && (
+              <div className="no-print" style={{ background: 'var(--background)', padding: '1.5rem', borderRadius: '8px', border: '1px solid var(--border)', marginBottom: '1.5rem' }}>
+                <h4 style={{ marginBottom: '1rem', fontWeight: 600 }}>Record New Profit</h4>
+                {error && <div style={{ background: 'var(--danger)', color: 'white', padding: '0.5rem', borderRadius: '4px', marginBottom: '1rem', fontSize: '0.875rem' }}>{error}</div>}
+                <form onSubmit={handleAddProfit} style={{ display: 'flex', gap: '1rem', alignItems: 'flex-end', flexWrap: 'wrap' }}>
+                  <div style={{ flex: '1 1 150px' }}>
+                    <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', fontWeight: 500 }}>Date</label>
+                    <input type="date" className="input" required value={profitForm.date} onChange={e => setProfitForm({...profitForm, date: e.target.value})} />
+                  </div>
+                  <div style={{ flex: '1 1 150px' }}>
+                    <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', fontWeight: 500 }}>Profit Amount (৳)</label>
+                    <input type="number" className="input" required min="1" value={profitForm.amount} onChange={e => setProfitForm({...profitForm, amount: parseInt(e.target.value) || 0})} />
+                  </div>
+                  <div style={{ flex: '2 1 200px' }}>
+                    <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', fontWeight: 500 }}>Note / Source</label>
+                    <input type="text" className="input" placeholder="e.g. Month 1 Return" value={profitForm.note} onChange={e => setProfitForm({...profitForm, note: e.target.value})} />
+                  </div>
+                  <button type="submit" className="btn btn-primary" disabled={submitLoading} style={{ height: '42px', minWidth: '120px' }}>
+                    {submitLoading ? 'Saving...' : 'Save Profit'}
+                  </button>
+                </form>
+              </div>
+            )}
+
+            <div style={{ overflowX: 'auto' }}>
+              <table>
+                <thead>
+                  <tr>
+                    <th>Date</th>
+                    <th>Profit Amount</th>
+                    <th>Note / Source</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {(!investment.profits || investment.profits.length === 0) ? (
+                    <tr><td colSpan={3} style={{ textAlign: 'center', color: 'var(--text-muted)', padding: '2rem' }}>No profit recorded yet.</td></tr>
+                  ) : (
+                    investment.profits.map((p: any) => (
+                      <tr key={p.id}>
+                        <td>{formatDate(p.date)}</td>
+                        <td style={{ color: 'var(--success)', fontWeight: 600 }}>+ ৳ {p.amount}</td>
+                        <td>{p.note || '-'}</td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          {/* Investment Papers Card */}
+          <div className="card">
+            <h3 style={{ fontSize: '1.25rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1.5rem' }}>
+              <FileText size={20} color="var(--primary)" /> Investment Papers
+            </h3>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+              {(!investment.documents || investment.documents.length === 0) && !investment.documentUrl ? (
+                <div style={{ textAlign: 'center', padding: '2rem', background: 'rgba(255,255,255,0.02)', borderRadius: '12px', border: '1px dashed var(--border)' }}>
+                  <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem' }}>No documents uploaded yet.</p>
+                </div>
+              ) : (
+                <>
+                  {investment.documentUrl && (
+                    <div style={{ padding: '0.75rem', background: 'rgba(255,255,255,0.05)', borderRadius: '8px', border: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flex: 1, minWidth: 0 }}>
+                        <FileText size={20} color="var(--text-muted)" />
+                        <span style={{ fontSize: '0.875rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>Primary Document (Legacy)</span>
+                      </div>
+                      <button onClick={() => setPreviewUrl(investment.documentUrl)} className="btn btn-outline" style={{ padding: '0.4rem' }}><Eye size={16} /></button>
+                    </div>
+                  )}
+                  {investment.documents?.map((doc: any) => (
+                    <div key={doc.id} style={{ padding: '0.75rem', background: 'rgba(255,255,255,0.05)', borderRadius: '8px', border: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flex: 1, minWidth: 0 }}>
+                        <FileText size={20} color="var(--primary)" />
+                        <div style={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
+                          <span style={{ fontSize: '0.875rem', fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{doc.name}</span>
+                          <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>{formatDate(doc.createdAt)}</span>
+                        </div>
+                      </div>
+                      <div style={{ display: 'flex', gap: '0.5rem' }}>
+                        <button onClick={() => setPreviewUrl(doc.url)} className="btn btn-outline" style={{ padding: '0.4rem' }} title="View"><Eye size={16} /></button>
+                        {canDelete && (
+                          <button onClick={() => handleDeleteDoc(doc.id)} className="btn btn-outline" style={{ padding: '0.4rem', color: 'var(--danger)', borderColor: 'rgba(239, 68, 68, 0.2)' }} title="Delete"><Trash2 size={16} /></button>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </>
+              )}
+              {canEdit && (
+                <button
+                  onClick={() => setShowDocModal(true)}
+                  className="btn btn-outline no-print"
+                  style={{ marginTop: '0.5rem', width: '100%', borderStyle: 'dashed' }}
+                >
+                  <Plus size={16} style={{ marginRight: '0.5rem' }} /> Add New Paper
+                </button>
+              )}
+            </div>
+          </div>
         </div>
       </div>
       
