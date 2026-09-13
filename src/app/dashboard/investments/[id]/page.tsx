@@ -274,42 +274,6 @@ export default function InvestmentDetailsPage() {
             <p style={{ fontSize: '2rem', fontWeight: 700, color: 'var(--primary)' }}>৳ {investment.amount - investment.refund}</p>
           </div>
         </div>
-
-        {/* Contact Information */}
-        {(investment.contactName || investment.contactPhone || investment.contactEmail) && (
-          <div style={{ marginTop: '1.5rem', padding: '1.25rem', background: 'var(--background)', borderRadius: '8px', border: '1px solid var(--border)' }}>
-            <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.875rem' }}>Contact Information</div>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1.25rem' }}>
-              {investment.contactName && (
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                  <span style={{ fontSize: '1rem' }}>👤</span>
-                  <div>
-                    <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginBottom: '0.1rem' }}>Contact Person</div>
-                    <div style={{ fontWeight: 600, fontSize: '0.9rem', color: 'var(--text-main)' }}>{investment.contactName}</div>
-                  </div>
-                </div>
-              )}
-              {investment.contactPhone && (
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                  <span style={{ fontSize: '1rem' }}>📱</span>
-                  <div>
-                    <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginBottom: '0.1rem' }}>Mobile</div>
-                    <a href={`tel:${investment.contactPhone}`} style={{ fontWeight: 600, fontSize: '0.9rem', color: 'var(--primary-light)', textDecoration: 'none' }}>{investment.contactPhone}</a>
-                  </div>
-                </div>
-              )}
-              {investment.contactEmail && (
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                  <span style={{ fontSize: '1rem' }}>✉️</span>
-                  <div>
-                    <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginBottom: '0.1rem' }}>Email</div>
-                    <a href={`mailto:${investment.contactEmail}`} style={{ fontWeight: 600, fontSize: '0.9rem', color: 'var(--primary-light)', textDecoration: 'none' }}>{investment.contactEmail}</a>
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-        )}
       </div>
 
       <div className="investment-details-layout" style={{ gap: '2rem', alignItems: 'start' }}>
@@ -377,7 +341,47 @@ export default function InvestmentDetailsPage() {
         </div>
 
         {/* Documents Section */}
-        <div className="card">
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+          {/* Contact Information Card */}
+          {(investment.contactName || investment.contactPhone || investment.contactEmail) && (
+            <div className="card">
+              <h3 style={{ fontSize: '1.1rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1.25rem' }}>
+                <span style={{ fontSize: '1.1rem' }}>📋</span> Contact Information
+              </h3>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                {investment.contactName && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.75rem', background: 'var(--background)', borderRadius: '8px', border: '1px solid var(--border)' }}>
+                    <span style={{ fontSize: '1.1rem', flexShrink: 0 }}>👤</span>
+                    <div style={{ minWidth: 0 }}>
+                      <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginBottom: '0.15rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Contact Person</div>
+                      <div style={{ fontWeight: 600, fontSize: '0.9rem', color: 'var(--text-main)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{investment.contactName}</div>
+                    </div>
+                  </div>
+                )}
+                {investment.contactPhone && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.75rem', background: 'var(--background)', borderRadius: '8px', border: '1px solid var(--border)' }}>
+                    <span style={{ fontSize: '1.1rem', flexShrink: 0 }}>📱</span>
+                    <div style={{ minWidth: 0 }}>
+                      <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginBottom: '0.15rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Mobile</div>
+                      <a href={`tel:${investment.contactPhone}`} style={{ fontWeight: 600, fontSize: '0.9rem', color: 'var(--primary-light)', textDecoration: 'none' }}>{investment.contactPhone}</a>
+                    </div>
+                  </div>
+                )}
+                {investment.contactEmail && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.75rem', background: 'var(--background)', borderRadius: '8px', border: '1px solid var(--border)' }}>
+                    <span style={{ fontSize: '1.1rem', flexShrink: 0 }}>✉️</span>
+                    <div style={{ minWidth: 0 }}>
+                      <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginBottom: '0.15rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Email</div>
+                      <a href={`mailto:${investment.contactEmail}`} style={{ fontWeight: 600, fontSize: '0.9rem', color: 'var(--primary-light)', textDecoration: 'none', overflow: 'hidden', textOverflow: 'ellipsis', display: 'block', whiteSpace: 'nowrap' }}>{investment.contactEmail}</a>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Investment Papers Card */}
+          <div className="card">
           <h3 style={{ fontSize: '1.25rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1.5rem' }}>
             <FileText size={20} color="var(--primary)" /> Investment Papers
           </h3>
@@ -428,6 +432,7 @@ export default function InvestmentDetailsPage() {
               </button>
             )}
           </div>
+        </div>
         </div>
       </div>
       
