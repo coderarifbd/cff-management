@@ -259,40 +259,6 @@ export default function InvestmentDetailsPage() {
           </div>
         </div>
 
-        {/* Contact Information — below title row */}
-        {(investment.contactName || investment.contactPhone || investment.contactEmail) && (
-          <div style={{ marginBottom: '1.5rem', padding: '1rem 1.25rem', background: 'var(--background)', borderRadius: '8px', border: '1px solid var(--border)', display: 'flex', flexWrap: 'wrap', gap: '1.5rem', alignItems: 'center' }}>
-            <div style={{ fontSize: '0.7rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', flexBasis: '100%', marginBottom: '-0.5rem' }}>Contact Information</div>
-            {investment.contactName && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <span>👤</span>
-                <div>
-                  <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)', marginBottom: '0.1rem' }}>Contact Person</div>
-                  <div style={{ fontWeight: 600, fontSize: '0.9rem', color: 'var(--text-main)' }}>{investment.contactName}</div>
-                </div>
-              </div>
-            )}
-            {investment.contactPhone && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <span>📱</span>
-                <div>
-                  <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)', marginBottom: '0.1rem' }}>Mobile</div>
-                  <a href={`tel:${investment.contactPhone}`} style={{ fontWeight: 600, fontSize: '0.9rem', color: 'var(--primary-light)', textDecoration: 'none' }}>{investment.contactPhone}</a>
-                </div>
-              </div>
-            )}
-            {investment.contactEmail && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <span>✉️</span>
-                <div>
-                  <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)', marginBottom: '0.1rem' }}>Email</div>
-                  <a href={`mailto:${investment.contactEmail}`} style={{ fontWeight: 600, fontSize: '0.9rem', color: 'var(--primary-light)', textDecoration: 'none' }}>{investment.contactEmail}</a>
-                </div>
-              </div>
-            )}
-          </div>
-        )}
-
         <div className="grid-2" style={{ gap: '1.5rem' }}>
           <div style={{ padding: '1.5rem', background: 'var(--background)', borderRadius: '8px', border: '1px solid var(--border)' }}>
             <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem', marginBottom: '0.5rem' }}>Original Invested Amount</p>
@@ -313,86 +279,62 @@ export default function InvestmentDetailsPage() {
         </div>
       </div>
 
-      <div className="investment-details-layout" style={{ gap: '2rem', alignItems: 'start' }}>
-        {/* Profit History */}
-        <div className="card">
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-            <h3 style={{ fontSize: '1.25rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <TrendingUp size={20} color="var(--primary)" /> Profit History
-            </h3>
-            {canEdit && (
-              <button className="btn btn-primary no-print" onClick={() => setShowProfitForm(!showProfitForm)} style={{ padding: '0.5rem 1rem', fontSize: '0.875rem' }}>
-                <Plus size={16} style={{ marginRight: '0.25rem' }} /> Add Profit
-              </button>
-            )}
-          </div>
-
-          {showProfitForm && (
-            <div className="no-print" style={{ background: 'var(--background)', padding: '1.5rem', borderRadius: '8px', border: '1px solid var(--border)', marginBottom: '1.5rem' }}>
-              <h4 style={{ marginBottom: '1rem', fontWeight: 600 }}>Record New Profit</h4>
-              {error && <div style={{ background: 'var(--danger)', color: 'white', padding: '0.5rem', borderRadius: '4px', marginBottom: '1rem', fontSize: '0.875rem' }}>{error}</div>}
-              <form onSubmit={handleAddProfit} style={{ display: 'flex', gap: '1rem', alignItems: 'flex-end', flexWrap: 'wrap' }}>
-                <div style={{ flex: '1 1 150px' }}>
-                  <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', fontWeight: 500 }}>Date</label>
-                  <input type="date" className="input" required value={profitForm.date} onChange={e => setProfitForm({...profitForm, date: e.target.value})} />
+      {/* Two columns: Left = Contact Information, Right = Investment Papers */}
+      <div className="grid-2" style={{ gap: '2rem', marginBottom: '2rem', alignItems: 'stretch' }}>
+        {/* Left Column: Contact Information */}
+        <div className="card" style={{ display: 'flex', flexDirection: 'column' }}>
+          <h3 style={{ fontSize: '1.25rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1.5rem' }}>
+            <span>📋</span> Contact Information
+          </h3>
+          {(!investment.contactName && !investment.contactPhone && !investment.contactEmail) ? (
+            <div style={{ textAlign: 'center', padding: '2rem', background: 'rgba(255,255,255,0.02)', borderRadius: '12px', border: '1px dashed var(--border)', flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem' }}>No contact information added yet.</p>
+            </div>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', flex: 1, justifyContent: 'center' }}>
+              {investment.contactName && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.875rem 1rem', background: 'var(--background)', borderRadius: '8px', border: '1px solid var(--border)' }}>
+                  <span style={{ fontSize: '1.25rem', flexShrink: 0 }}>👤</span>
+                  <div style={{ minWidth: 0 }}>
+                    <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginBottom: '0.15rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Contact Person</div>
+                    <div style={{ fontWeight: 600, fontSize: '0.95rem', color: 'var(--text-main)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{investment.contactName}</div>
+                  </div>
                 </div>
-                <div style={{ flex: '1 1 150px' }}>
-                  <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', fontWeight: 500 }}>Profit Amount (৳)</label>
-                  <input type="number" className="input" required min="1" value={profitForm.amount} onChange={e => setProfitForm({...profitForm, amount: parseInt(e.target.value) || 0})} />
+              )}
+              {investment.contactPhone && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.875rem 1rem', background: 'var(--background)', borderRadius: '8px', border: '1px solid var(--border)' }}>
+                  <span style={{ fontSize: '1.25rem', flexShrink: 0 }}>📱</span>
+                  <div style={{ minWidth: 0 }}>
+                    <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginBottom: '0.15rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Mobile</div>
+                    <a href={`tel:${investment.contactPhone}`} style={{ fontWeight: 600, fontSize: '0.95rem', color: 'var(--primary-light)', textDecoration: 'none' }}>{investment.contactPhone}</a>
+                  </div>
                 </div>
-                <div style={{ flex: '2 1 200px' }}>
-                  <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', fontWeight: 500 }}>Note / Source</label>
-                  <input type="text" className="input" placeholder="e.g. Month 1 Return" value={profitForm.note} onChange={e => setProfitForm({...profitForm, note: e.target.value})} />
+              )}
+              {investment.contactEmail && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.875rem 1rem', background: 'var(--background)', borderRadius: '8px', border: '1px solid var(--border)' }}>
+                  <span style={{ fontSize: '1.25rem', flexShrink: 0 }}>✉️</span>
+                  <div style={{ minWidth: 0 }}>
+                    <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginBottom: '0.15rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Email</div>
+                    <a href={`mailto:${investment.contactEmail}`} style={{ fontWeight: 600, fontSize: '0.95rem', color: 'var(--primary-light)', textDecoration: 'none', overflow: 'hidden', textOverflow: 'ellipsis', display: 'block', whiteSpace: 'nowrap' }}>{investment.contactEmail}</a>
+                  </div>
                 </div>
-                <button type="submit" className="btn btn-primary" disabled={submitLoading} style={{ height: '42px', minWidth: '120px' }}>
-                  {submitLoading ? 'Saving...' : 'Save Profit'}
-                </button>
-              </form>
+              )}
             </div>
           )}
-
-          <div style={{ overflowX: 'auto' }}>
-            <table>
-              <thead>
-                <tr>
-                  <th>Date</th>
-                  <th>Profit Amount</th>
-                  <th>Note / Source</th>
-                </tr>
-              </thead>
-              <tbody>
-                {(!investment.profits || investment.profits.length === 0) ? (
-                  <tr><td colSpan={3} style={{ textAlign: 'center', color: 'var(--text-muted)' }}>No profit recorded yet.</td></tr>
-                ) : (
-                  investment.profits.map((p: any) => (
-                    <tr key={p.id}>
-                      <td>{formatDate(p.date)}</td>
-                      <td style={{ color: 'var(--success)', fontWeight: 600 }}>+ ৳ {p.amount}</td>
-                      <td>{p.note || '-'}</td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
         </div>
 
-        {/* Documents Section */}
-        <div>
-
-          {/* Investment Papers Card */}
-          <div className="card">
+        {/* Right Column: Investment Papers */}
+        <div className="card" style={{ display: 'flex', flexDirection: 'column' }}>
           <h3 style={{ fontSize: '1.25rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1.5rem' }}>
             <FileText size={20} color="var(--primary)" /> Investment Papers
           </h3>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', flex: 1 }}>
             {(!investment.documents || investment.documents.length === 0) && !investment.documentUrl ? (
-              <div style={{ textAlign: 'center', padding: '2rem', background: 'rgba(255,255,255,0.02)', borderRadius: '12px', border: '1px dashed var(--border)' }}>
+              <div style={{ textAlign: 'center', padding: '2rem', background: 'rgba(255,255,255,0.02)', borderRadius: '12px', border: '1px dashed var(--border)', flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem' }}>No documents uploaded yet.</p>
               </div>
             ) : (
               <>
-                {/* Legacy Document if exists */}
                 {investment.documentUrl && (
                   <div style={{ padding: '0.75rem', background: 'rgba(255,255,255,0.05)', borderRadius: '8px', border: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flex: 1, minWidth: 0 }}>
@@ -402,7 +344,6 @@ export default function InvestmentDetailsPage() {
                     <button onClick={() => setPreviewUrl(investment.documentUrl)} className="btn btn-outline" style={{ padding: '0.4rem' }}><Eye size={16} /></button>
                   </div>
                 )}
-                {/* Multi-documents */}
                 {investment.documents?.map((doc: any) => (
                   <div key={doc.id} style={{ padding: '0.75rem', background: 'rgba(255,255,255,0.05)', borderRadius: '8px', border: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flex: 1, minWidth: 0 }}>
@@ -423,16 +364,78 @@ export default function InvestmentDetailsPage() {
               </>
             )}
             {canEdit && (
-              <button 
-                onClick={() => setShowDocModal(true)} 
-                className="btn btn-outline no-print" 
-                style={{ marginTop: '0.5rem', width: '100%', borderStyle: 'dashed' }}
+              <button
+                onClick={() => setShowDocModal(true)}
+                className="btn btn-outline no-print"
+                style={{ marginTop: 'auto', width: '100%', borderStyle: 'dashed' }}
               >
                 <Plus size={16} style={{ marginRight: '0.5rem' }} /> Add New Paper
               </button>
             )}
           </div>
         </div>
+      </div>
+
+      {/* Full-width Profit History Section */}
+      <div className="card">
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+          <h3 style={{ fontSize: '1.25rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <TrendingUp size={20} color="var(--primary)" /> Profit History
+          </h3>
+          {canEdit && (
+            <button className="btn btn-primary no-print" onClick={() => setShowProfitForm(!showProfitForm)} style={{ padding: '0.5rem 1rem', fontSize: '0.875rem' }}>
+              <Plus size={16} style={{ marginRight: '0.25rem' }} /> Add Profit
+            </button>
+          )}
+        </div>
+
+        {showProfitForm && (
+          <div className="no-print" style={{ background: 'var(--background)', padding: '1.5rem', borderRadius: '8px', border: '1px solid var(--border)', marginBottom: '1.5rem' }}>
+            <h4 style={{ marginBottom: '1rem', fontWeight: 600 }}>Record New Profit</h4>
+            {error && <div style={{ background: 'var(--danger)', color: 'white', padding: '0.5rem', borderRadius: '4px', marginBottom: '1rem', fontSize: '0.875rem' }}>{error}</div>}
+            <form onSubmit={handleAddProfit} style={{ display: 'flex', gap: '1rem', alignItems: 'flex-end', flexWrap: 'wrap' }}>
+              <div style={{ flex: '1 1 150px' }}>
+                <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', fontWeight: 500 }}>Date</label>
+                <input type="date" className="input" required value={profitForm.date} onChange={e => setProfitForm({...profitForm, date: e.target.value})} />
+              </div>
+              <div style={{ flex: '1 1 150px' }}>
+                <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', fontWeight: 500 }}>Profit Amount (৳)</label>
+                <input type="number" className="input" required min="1" value={profitForm.amount} onChange={e => setProfitForm({...profitForm, amount: parseInt(e.target.value) || 0})} />
+              </div>
+              <div style={{ flex: '2 1 200px' }}>
+                <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', fontWeight: 500 }}>Note / Source</label>
+                <input type="text" className="input" placeholder="e.g. Month 1 Return" value={profitForm.note} onChange={e => setProfitForm({...profitForm, note: e.target.value})} />
+              </div>
+              <button type="submit" className="btn btn-primary" disabled={submitLoading} style={{ height: '42px', minWidth: '120px' }}>
+                {submitLoading ? 'Saving...' : 'Save Profit'}
+              </button>
+            </form>
+          </div>
+        )}
+
+        <div style={{ overflowX: 'auto' }}>
+          <table>
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Profit Amount</th>
+                <th>Note / Source</th>
+              </tr>
+            </thead>
+            <tbody>
+              {(!investment.profits || investment.profits.length === 0) ? (
+                <tr><td colSpan={3} style={{ textAlign: 'center', color: 'var(--text-muted)' }}>No profit recorded yet.</td></tr>
+              ) : (
+                investment.profits.map((p: any) => (
+                  <tr key={p.id}>
+                    <td>{formatDate(p.date)}</td>
+                    <td style={{ color: 'var(--success)', fontWeight: 600 }}>+ ৳ {p.amount}</td>
+                    <td>{p.note || '-'}</td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
         </div>
       </div>
       
