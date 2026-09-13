@@ -222,39 +222,76 @@ export default function InvestmentDetailsPage() {
       )}
 
       <div className="card" style={{ marginBottom: '2rem' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem', borderBottom: '1px solid var(--border)', paddingBottom: '1.5rem', marginBottom: '1.5rem' }}>
-          <div>
-            <h2 style={{ fontSize: '1.75rem', fontWeight: 700, color: 'var(--text-main)', marginBottom: '0.5rem' }}>
+        {/* Top row: Title (left) + Status/Type/Date (right) + Add Document button */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '1rem', borderBottom: '1px solid var(--border)', paddingBottom: '1.5rem', marginBottom: '1.5rem' }}>
+          {/* Left: Title */}
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <h2 style={{ fontSize: '1.75rem', fontWeight: 700, color: 'var(--text-main)', marginBottom: '0' }}>
               {investment.title}
             </h2>
-            <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', flexWrap: 'wrap' }}>
-              <span className={`badge ${investment.status === 'RUNNING' ? 'badge-warning' : investment.status === 'COMPLETED' ? 'badge-success' : 'badge-danger'}`}>
-                {investment.status}
-              </span>
-              <span style={{ color: 'var(--text-muted)', fontSize: '0.875rem' }}>• {investment.type || 'Other Investment'}</span>
-              <span style={{ color: 'var(--text-muted)', fontSize: '0.875rem' }}>• Started: {formatDate(investment.date)}</span>
-              {investment.closeDate && (
-                <span style={{ color: 'var(--text-muted)', fontSize: '0.875rem' }}>• Closed: {formatDate(investment.closeDate)}</span>
-              )}
-              {investment.status === 'RUNNING' && investment.profitPeriod && investment.profitPeriod !== 'NONE' && (
-                <span style={{ color: overdueCheck.overdue ? 'var(--danger-text, #f87171)' : 'var(--text-muted)', fontSize: '0.875rem', fontWeight: overdueCheck.overdue ? 600 : 400 }}>
-                  • Cycle: {
-                    investment.profitPeriod === 'YEARLY' ? 'Yearly' :
-                    investment.profitPeriod === 'EVERY_6_MONTHS' ? '6 Months' :
-                    investment.profitPeriod === 'EVERY_3_MONTHS' ? '3 Months' : 'Monthly'
-                  } ({overdueCheck.overdue ? 'Overdue since' : 'Next due'}: {overdueCheck.nextDueDate})
-                </span>
-              )}
-            </div>
           </div>
-          <button 
-            onClick={() => setShowDocModal(true)} 
-            className="btn btn-outline no-print" 
-            style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}
-          >
-            <Upload size={18} /> Add Document
-          </button>
+          {/* Right: Status + Type + Date + Button */}
+          <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '0.75rem', flexShrink: 0 }}>
+            <span className={`badge ${investment.status === 'RUNNING' ? 'badge-warning' : investment.status === 'COMPLETED' ? 'badge-success' : 'badge-danger'}`}>
+              {investment.status}
+            </span>
+            <span style={{ color: 'var(--text-muted)', fontSize: '0.875rem' }}>• {investment.type || 'Other Investment'}</span>
+            <span style={{ color: 'var(--text-muted)', fontSize: '0.875rem' }}>• Started: {formatDate(investment.date)}</span>
+            {investment.closeDate && (
+              <span style={{ color: 'var(--text-muted)', fontSize: '0.875rem' }}>• Closed: {formatDate(investment.closeDate)}</span>
+            )}
+            {investment.status === 'RUNNING' && investment.profitPeriod && investment.profitPeriod !== 'NONE' && (
+              <span style={{ color: overdueCheck.overdue ? 'var(--danger-text, #f87171)' : 'var(--text-muted)', fontSize: '0.875rem', fontWeight: overdueCheck.overdue ? 600 : 400 }}>
+                • Cycle: {
+                  investment.profitPeriod === 'YEARLY' ? 'Yearly' :
+                  investment.profitPeriod === 'EVERY_6_MONTHS' ? '6 Months' :
+                  investment.profitPeriod === 'EVERY_3_MONTHS' ? '3 Months' : 'Monthly'
+                } ({overdueCheck.overdue ? 'Overdue since' : 'Next due'}: {overdueCheck.nextDueDate})
+              </span>
+            )}
+            <button
+              onClick={() => setShowDocModal(true)}
+              className="btn btn-outline no-print"
+              style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}
+            >
+              <Upload size={18} /> Add Document
+            </button>
+          </div>
         </div>
+
+        {/* Contact Information — below title row */}
+        {(investment.contactName || investment.contactPhone || investment.contactEmail) && (
+          <div style={{ marginBottom: '1.5rem', padding: '1rem 1.25rem', background: 'var(--background)', borderRadius: '8px', border: '1px solid var(--border)', display: 'flex', flexWrap: 'wrap', gap: '1.5rem', alignItems: 'center' }}>
+            <div style={{ fontSize: '0.7rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', flexBasis: '100%', marginBottom: '-0.5rem' }}>Contact Information</div>
+            {investment.contactName && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <span>👤</span>
+                <div>
+                  <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)', marginBottom: '0.1rem' }}>Contact Person</div>
+                  <div style={{ fontWeight: 600, fontSize: '0.9rem', color: 'var(--text-main)' }}>{investment.contactName}</div>
+                </div>
+              </div>
+            )}
+            {investment.contactPhone && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <span>📱</span>
+                <div>
+                  <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)', marginBottom: '0.1rem' }}>Mobile</div>
+                  <a href={`tel:${investment.contactPhone}`} style={{ fontWeight: 600, fontSize: '0.9rem', color: 'var(--primary-light)', textDecoration: 'none' }}>{investment.contactPhone}</a>
+                </div>
+              </div>
+            )}
+            {investment.contactEmail && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <span>✉️</span>
+                <div>
+                  <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)', marginBottom: '0.1rem' }}>Email</div>
+                  <a href={`mailto:${investment.contactEmail}`} style={{ fontWeight: 600, fontSize: '0.9rem', color: 'var(--primary-light)', textDecoration: 'none' }}>{investment.contactEmail}</a>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
 
         <div className="grid-2" style={{ gap: '1.5rem' }}>
           <div style={{ padding: '1.5rem', background: 'var(--background)', borderRadius: '8px', border: '1px solid var(--border)' }}>
@@ -341,44 +378,7 @@ export default function InvestmentDetailsPage() {
         </div>
 
         {/* Documents Section */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-          {/* Contact Information Card */}
-          {(investment.contactName || investment.contactPhone || investment.contactEmail) && (
-            <div className="card">
-              <h3 style={{ fontSize: '1.1rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1.25rem' }}>
-                <span style={{ fontSize: '1.1rem' }}>📋</span> Contact Information
-              </h3>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                {investment.contactName && (
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.75rem', background: 'var(--background)', borderRadius: '8px', border: '1px solid var(--border)' }}>
-                    <span style={{ fontSize: '1.1rem', flexShrink: 0 }}>👤</span>
-                    <div style={{ minWidth: 0 }}>
-                      <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginBottom: '0.15rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Contact Person</div>
-                      <div style={{ fontWeight: 600, fontSize: '0.9rem', color: 'var(--text-main)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{investment.contactName}</div>
-                    </div>
-                  </div>
-                )}
-                {investment.contactPhone && (
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.75rem', background: 'var(--background)', borderRadius: '8px', border: '1px solid var(--border)' }}>
-                    <span style={{ fontSize: '1.1rem', flexShrink: 0 }}>📱</span>
-                    <div style={{ minWidth: 0 }}>
-                      <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginBottom: '0.15rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Mobile</div>
-                      <a href={`tel:${investment.contactPhone}`} style={{ fontWeight: 600, fontSize: '0.9rem', color: 'var(--primary-light)', textDecoration: 'none' }}>{investment.contactPhone}</a>
-                    </div>
-                  </div>
-                )}
-                {investment.contactEmail && (
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.75rem', background: 'var(--background)', borderRadius: '8px', border: '1px solid var(--border)' }}>
-                    <span style={{ fontSize: '1.1rem', flexShrink: 0 }}>✉️</span>
-                    <div style={{ minWidth: 0 }}>
-                      <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginBottom: '0.15rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Email</div>
-                      <a href={`mailto:${investment.contactEmail}`} style={{ fontWeight: 600, fontSize: '0.9rem', color: 'var(--primary-light)', textDecoration: 'none', overflow: 'hidden', textOverflow: 'ellipsis', display: 'block', whiteSpace: 'nowrap' }}>{investment.contactEmail}</a>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
+        <div>
 
           {/* Investment Papers Card */}
           <div className="card">
