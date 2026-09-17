@@ -64,14 +64,15 @@ model Investment {
   date         DateTime @default(now())
   documentUrl  String? // Legacy single document field
   profitPeriod String   @default("NONE")
-  closeDate    DateTime?
-  contactName  String?
-  contactPhone String?
-  contactEmail String?
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-  profits      InvestmentProfit[]
-  documents    InvestmentDocument[]
+  closeDate        DateTime?
+  contactName      String?
+  contactPhone     String?
+  contactEmail     String?
+  extraContactInfo String?  // JSON string for custom contact fields: [{ label: string, value: string }]
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  profits          InvestmentProfit[]
+  documents        InvestmentDocument[]
 }
 
 model InvestmentDocument {

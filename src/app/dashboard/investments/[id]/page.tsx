@@ -236,26 +236,47 @@ export default function InvestmentDetailsPage() {
             </div>
 
             {/* Minimal Clean Contact Strip below title */}
-            {(investment.contactName || investment.contactPhone || investment.contactEmail) && (
-              <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '1.25rem', fontSize: '0.85rem' }}>
-                <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Contact:</span>
-                {investment.contactName && (
-                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', color: 'var(--text-main)' }}>
-                    <span>👤</span> <strong>{investment.contactName}</strong>
-                  </span>
-                )}
-                {investment.contactPhone && (
-                  <a href={`tel:${investment.contactPhone}`} style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', color: 'var(--primary-light)', textDecoration: 'none' }}>
-                    <span>📱</span> {investment.contactPhone}
-                  </a>
-                )}
-                {investment.contactEmail && (
-                  <a href={`mailto:${investment.contactEmail}`} style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', color: 'var(--primary-light)', textDecoration: 'none' }}>
-                    <span>✉️</span> {investment.contactEmail}
-                  </a>
-                )}
-              </div>
-            )}
+            {(() => {
+              let extraFields: { label: string; value: string }[] = [];
+              if (investment.extraContactInfo) {
+                try {
+                  const parsed = JSON.parse(investment.extraContactInfo);
+                  if (Array.isArray(parsed)) extraFields = parsed;
+                } catch (e) {
+                  extraFields = [];
+                }
+              }
+
+              const hasContact = investment.contactName || investment.contactPhone || investment.contactEmail || extraFields.length > 0;
+              if (!hasContact) return null;
+
+              return (
+                <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '1.25rem', fontSize: '0.85rem' }}>
+                  <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Contact:</span>
+                  {investment.contactName && (
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', color: 'var(--text-main)' }}>
+                      <span>👤</span> <strong>{investment.contactName}</strong>
+                    </span>
+                  )}
+                  {investment.contactPhone && (
+                    <a href={`tel:${investment.contactPhone}`} style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', color: 'var(--primary-light)', textDecoration: 'none' }}>
+                      <span>📱</span> {investment.contactPhone}
+                    </a>
+                  )}
+                  {investment.contactEmail && (
+                    <a href={`mailto:${investment.contactEmail}`} style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', color: 'var(--primary-light)', textDecoration: 'none' }}>
+                      <span>✉️</span> {investment.contactEmail}
+                    </a>
+                  )}
+                  {extraFields.map((field, idx) => (
+                    <span key={idx} style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem', color: 'var(--text-main)', background: 'rgba(255,255,255,0.03)', padding: '0.2rem 0.6rem', borderRadius: '6px', border: '1px solid var(--border)' }}>
+                      <span style={{ color: 'var(--text-muted)', fontSize: '0.75rem', fontWeight: 500 }}>{field.label}:</span>
+                      <strong style={{ fontWeight: 600 }}>{field.value}</strong>
+                    </span>
+                  ))}
+                </div>
+              );
+            })()}
           </div>
 
           {/* Right: Type, Started Date, Cycle Info */}

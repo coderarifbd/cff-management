@@ -30,7 +30,7 @@ export async function POST(request: Request) {
     }
 
     const data = await request.json();
-    const { title, type, amount, date, documentUrl, profitPeriod, contactName, contactPhone, contactEmail } = data;
+    const { title, type, amount, date, documentUrl, profitPeriod, contactName, contactPhone, contactEmail, extraContactInfo } = data;
 
     const investment = await prisma.investment.create({
       data: {
@@ -43,6 +43,7 @@ export async function POST(request: Request) {
         contactName: contactName || null,
         contactPhone: contactPhone || null,
         contactEmail: contactEmail || null,
+        extraContactInfo: extraContactInfo ? (typeof extraContactInfo === 'string' ? extraContactInfo : JSON.stringify(extraContactInfo)) : null,
       }
     });
 

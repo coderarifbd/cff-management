@@ -21,10 +21,36 @@ export default function InvestmentsPage() {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
   // Forms
-  const [addForm, setAddForm] = useState({ title: '', type: 'Other Investment', amount: 0, date: new Date().toISOString().split('T')[0], profitPeriod: 'NONE', contactName: '', contactPhone: '', contactEmail: '' });
+  const [addForm, setAddForm] = useState({ 
+    title: '', 
+    type: 'Other Investment', 
+    amount: 0, 
+    date: new Date().toISOString().split('T')[0], 
+    profitPeriod: 'NONE', 
+    contactName: '', 
+    contactPhone: '', 
+    contactEmail: '',
+    extraFields: [] as { label: string; value: string }[]
+  });
   const [addFile, setAddFile] = useState<File | null>(null);
 
-  const [manageForm, setManageForm] = useState({ id: '', title: '', type: 'Other Investment', amount: 0, profit: 0, refund: 0, status: 'RUNNING', date: '', documentUrl: '', profitPeriod: 'NONE', closeDate: '', contactName: '', contactPhone: '', contactEmail: '' });
+  const [manageForm, setManageForm] = useState({ 
+    id: '', 
+    title: '', 
+    type: 'Other Investment', 
+    amount: 0, 
+    profit: 0, 
+    refund: 0, 
+    status: 'RUNNING', 
+    date: '', 
+    documentUrl: '', 
+    profitPeriod: 'NONE', 
+    closeDate: '', 
+    contactName: '', 
+    contactPhone: '', 
+    contactEmail: '',
+    extraFields: [] as { label: string; value: string }[]
+  });
   const [manageFile, setManageFile] = useState<File | null>(null);
 
   // Search and Filter
@@ -150,13 +176,19 @@ export default function InvestmentsPage() {
       const res = await fetch('/api/investments', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...addForm, documentUrl })
+        body: JSON.stringify({ 
+          ...addForm, 
+          documentUrl,
+          extraContactInfo: addForm.extraFields && addForm.extraFields.length > 0 
+            ? JSON.stringify(addForm.extraFields.filter(f => f.label.trim() || f.value.trim()))
+            : null
+        })
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
       
       setShowAddModal(false);
-      setAddForm({ title: '', type: 'Other Investment', amount: 0, date: new Date().toISOString().split('T')[0], profitPeriod: 'NONE', contactName: '', contactPhone: '', contactEmail: '' });
+      setAddForm({ title: '', type: 'Other Investment', amount: 0, date: new Date().toISOString().split('T')[0], profitPeriod: 'NONE', contactName: '', contactPhone: '', contactEmail: '', extraFields: [] });
       setAddFile(null);
       await fetchInvestments();
     } catch (err: any) {
@@ -167,6 +199,14 @@ export default function InvestmentsPage() {
   };
 
   const openManageModal = (inv: any) => {
+    let parsedExtra: { label: string; value: string }[] = [];
+    if (inv.extraContactInfo) {
+      try {
+        parsedExtra = JSON.parse(inv.extraContactInfo);
+      } catch (e) {
+        parsedExtra = [];
+      }
+    }
     setManageForm({
       id: inv.id,
       title: inv.title,
@@ -182,6 +222,7 @@ export default function InvestmentsPage() {
       contactName: inv.contactName || '',
       contactPhone: inv.contactPhone || '',
       contactEmail: inv.contactEmail || '',
+      extraFields: Array.isArray(parsedExtra) ? parsedExtra : []
     });
     setManageFile(null);
     setError('');
@@ -211,7 +252,13 @@ export default function InvestmentsPage() {
       const res = await fetch(`/api/investments/${manageForm.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...manageForm, documentUrl })
+        body: JSON.stringify({ 
+          ...manageForm, 
+          documentUrl,
+          extraContactInfo: manageForm.extraFields && manageForm.extraFields.length > 0 
+            ? JSON.stringify(manageForm.extraFields.filter(f => f.label.trim() || f.value.trim()))
+            : null
+        })
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
@@ -775,7 +822,17 @@ export default function InvestmentsPage() {
               </div>
               {/* Contact Information */}
               <div style={{ borderTop: '1px solid var(--border)', paddingTop: '1rem' }}>
-                <div style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.75rem' }}>Contact Information (Optional)</div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
+                  <div style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Contact Information (Optional)</div>
+                  <button
+                    type="button"
+                    className="btn btn-outline"
+                    style={{ height: '28px', padding: '0 0.6rem', fontSize: '0.75rem', borderRadius: '6px' }}
+                    onClick={() => setAddForm({ ...addForm, extraFields: [...addForm.extraFields, { label: '', value: '' }] })}
+                  >
+                    <Plus size={12} /> Add Field
+                  </button>
+                </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                   <div>
                     <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', fontWeight: 500 }}>Contact Person Name</label>
@@ -791,6 +848,47 @@ export default function InvestmentsPage() {
                       <input type="email" className="input" placeholder="email@example.com" value={addForm.contactEmail} onChange={e => setAddForm({...addForm, contactEmail: e.target.value})} />
                     </div>
                   </div>
+
+                  {/* Dynamic Custom Contact Fields */}
+                  {addForm.extraFields && addForm.extraFields.map((field, idx) => (
+                    <div key={idx} style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', background: 'rgba(255,255,255,0.02)', padding: '0.5rem', borderRadius: '8px', border: '1px solid var(--border)' }}>
+                      <input
+                        type="text"
+                        className="input"
+                        style={{ flex: '1 1 120px', height: '36px', fontSize: '0.825rem' }}
+                        placeholder="Field Label (e.g. WhatsApp / Address)"
+                        value={field.label}
+                        onChange={e => {
+                          const updated = [...addForm.extraFields];
+                          updated[idx].label = e.target.value;
+                          setAddForm({ ...addForm, extraFields: updated });
+                        }}
+                      />
+                      <input
+                        type="text"
+                        className="input"
+                        style={{ flex: '2 1 160px', height: '36px', fontSize: '0.825rem' }}
+                        placeholder="Information / Value"
+                        value={field.value}
+                        onChange={e => {
+                          const updated = [...addForm.extraFields];
+                          updated[idx].value = e.target.value;
+                          setAddForm({ ...addForm, extraFields: updated });
+                        }}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const updated = addForm.extraFields.filter((_, i) => i !== idx);
+                          setAddForm({ ...addForm, extraFields: updated });
+                        }}
+                        style={{ background: 'transparent', border: 'none', color: 'var(--danger)', cursor: 'pointer', padding: '0.25rem', display: 'flex', alignItems: 'center' }}
+                        title="Remove field"
+                      >
+                        <X size={16} />
+                      </button>
+                    </div>
+                  ))}
                 </div>
               </div>
               <div>
@@ -910,7 +1008,17 @@ export default function InvestmentsPage() {
               )}
               {/* Contact Information */}
               <div style={{ borderTop: '1px solid var(--border)', paddingTop: '1rem' }}>
-                <div style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.75rem' }}>Contact Information (Optional)</div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
+                  <div style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Contact Information (Optional)</div>
+                  <button
+                    type="button"
+                    className="btn btn-outline"
+                    style={{ height: '28px', padding: '0 0.6rem', fontSize: '0.75rem', borderRadius: '6px' }}
+                    onClick={() => setManageForm({ ...manageForm, extraFields: [...manageForm.extraFields, { label: '', value: '' }] })}
+                  >
+                    <Plus size={12} /> Add Field
+                  </button>
+                </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                   <div>
                     <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', fontWeight: 500 }}>Contact Person Name</label>
@@ -926,6 +1034,47 @@ export default function InvestmentsPage() {
                       <input type="email" className="input" placeholder="email@example.com" value={manageForm.contactEmail} onChange={e => setManageForm({...manageForm, contactEmail: e.target.value})} />
                     </div>
                   </div>
+
+                  {/* Dynamic Custom Contact Fields */}
+                  {manageForm.extraFields && manageForm.extraFields.map((field, idx) => (
+                    <div key={idx} style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', background: 'rgba(255,255,255,0.02)', padding: '0.5rem', borderRadius: '8px', border: '1px solid var(--border)' }}>
+                      <input
+                        type="text"
+                        className="input"
+                        style={{ flex: '1 1 120px', height: '36px', fontSize: '0.825rem' }}
+                        placeholder="Field Label (e.g. WhatsApp / Address)"
+                        value={field.label}
+                        onChange={e => {
+                          const updated = [...manageForm.extraFields];
+                          updated[idx].label = e.target.value;
+                          setManageForm({ ...manageForm, extraFields: updated });
+                        }}
+                      />
+                      <input
+                        type="text"
+                        className="input"
+                        style={{ flex: '2 1 160px', height: '36px', fontSize: '0.825rem' }}
+                        placeholder="Information / Value"
+                        value={field.value}
+                        onChange={e => {
+                          const updated = [...manageForm.extraFields];
+                          updated[idx].value = e.target.value;
+                          setManageForm({ ...manageForm, extraFields: updated });
+                        }}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const updated = manageForm.extraFields.filter((_, i) => i !== idx);
+                          setManageForm({ ...manageForm, extraFields: updated });
+                        }}
+                        style={{ background: 'transparent', border: 'none', color: 'var(--danger)', cursor: 'pointer', padding: '0.25rem', display: 'flex', alignItems: 'center' }}
+                        title="Remove field"
+                      >
+                        <X size={16} />
+                      </button>
+                    </div>
+                  ))}
                 </div>
               </div>
               <div>
